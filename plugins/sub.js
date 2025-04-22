@@ -72,9 +72,9 @@ const handler = async (m, { conn, usedPrefix }) => {
     }
 };
 
-handler.help = ['limpiezasub'];
+handler.help = ['borrarbots'];
 handler.tags = ['jadibot'];
-handler.command = /^(limpiezasub|limpiarsub|clearsubbot)$/i;
+handler.command = /^(borrarbots)$/i;
 handler.rowner = true;
 
 export default handler;
