@@ -1,14 +1,6 @@
 import { readdirSync, unlinkSync, existsSync, promises as fs } from 'fs'
 import path from 'path'
 
-const handler = async (m, { conn, usedPrefix }) => {
-    if (global.conn.user.jid !== conn.user.jid) {
-        return conn.sendMessage(
-            m.chat,
-            { text: `${lenguajeGB['smsAvisoAG']()}𝙐𝙏𝙄𝙇𝙄𝙕𝘼 𝙀𝙎𝙏𝙀 𝘾𝙊𝙈𝘼𝙉𝘿𝙊 𝘿𝙄𝙍𝙀𝘾𝙏𝘼𝙈𝙀𝙉𝙏𝙀 𝙀𝙉 𝙀𝙇 𝙉𝙐́𝙈𝙀𝙍𝙊 𝙋𝙍𝙄𝙉𝘾𝙄𝙋𝘼𝙇 𝘿𝙀𝙇 𝘽𝙊𝙏` },
-            { quoted: m }
-        )
-    }
 
     const GataBotDir = './GataJadiBot/'
     try {
