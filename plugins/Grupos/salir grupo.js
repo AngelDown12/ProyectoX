@@ -17,7 +17,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
 handler.help = ['salir <grupo>']
 handler.tags = ['owner']
-handler.command = /^(salir|leavegc|leavegroup)$/i
+handler.command = /^(salirgrupo|leavegc|leavegroup)$/i
 handler.owner = true
 handler.group = false
 
