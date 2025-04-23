@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+/*import chalk from 'chalk';
  let WAMessageStubType = (await import("@whiskeysockets/baileys")).default;
  import { readdirSync, unlinkSync, existsSync, promises as fs, rmSync } from 'fs';
  import path from 'path';
@@ -73,3 +73,4 @@ import chalk from 'chalk';
  }
  
  export default handler;
+*/
