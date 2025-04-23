@@ -26,29 +26,10 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
       console.log(chalk.yellow(`[⚠️] Bot no es admin en el grupo: ${m.chat}`));
     }
 
-    // Definir fkontak con estructura mejorada
-    let fkontak = {
-      key: {
-        remoteJid: m.chat,
-        fromMe: false,
-        id: m.id || m.messageStubParameters[0] || Date.now().toString(),
-        participant: m.sender
-      },
-      message: {
-        conversation: "Mensaje de referencia"
-      }
-    };
-
-    if (chat.detect && m.messageStubType == 2) {
-      const uniqid = (m.isGroup ? m.chat : m.sender).split('@')[0];
-      const sessionPath = './GataBotSession/';
-      for (const file of await fs.readdir(sessionPath)) {
-        if (file.includes(uniqid)) {
-          await fs.unlink(path.join(sessionPath, file));
-          console.log(`${chalk.yellow.bold('[ ⚠️ Archivo Eliminado ]')} ${chalk.greenBright(`'${file}'`)}\n` +
-          `${chalk.blue('(Session PreKey)')} ${chalk.redBright('que provoca el "undefined" en el chat')}`);
-        }
-      }
+    // Verificar si el chat tiene detect habilitado
+    if (!chat.detect) {
+      console.log(chalk.yellow(`[⚠️] Detect deshabilitado en el grupo: ${m.chat}`));
+      return;
     }
 
     // Función auxiliar para enviar mensajes
@@ -60,7 +41,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
         console.log(chalk.blue(`[ℹ️] Chat detect: ${chat.detect}`));
 
         // Intentar enviar el mensaje original
-        await conn.sendMessage(m.chat, content, { ...options, quoted: fkontak });
+        await conn.sendMessage(m.chat, content, { ...options });
         console.log(chalk.green(`[✅] Mensaje enviado exitosamente en ${m.chat}`));
         return true;
       } catch (error) {
@@ -70,7 +51,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
           const simpleMessage = { 
             text: `⚠️ Se ha detectado un cambio en el grupo\nUsuario: ${usuario}\nTipo: ${WAMessageStubType[m.messageStubType] || 'Desconocido'}`
           };
-          await conn.sendMessage(m.chat, simpleMessage, { quoted: fkontak });
+          await conn.sendMessage(m.chat, simpleMessage);
           console.log(chalk.green(`[✅] Mensaje simplificado enviado en ${m.chat}`));
           return true;
         } catch (e) {
@@ -79,12 +60,6 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
         }
       }
     };
-
-    // Verificar si el chat tiene detect habilitado
-    if (!chat.detect) {
-      console.log(chalk.yellow(`[⚠️] Detect deshabilitado en el grupo: ${m.chat}`));
-      return;
-    }
 
     // Procesar los diferentes tipos de mensajes
     switch (m.messageStubType) {
