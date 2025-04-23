@@ -2,14 +2,6 @@ import { readdirSync, unlinkSync, existsSync, promises as fs } from 'fs'
 import path from 'path'
 
 const handler = async (m, { conn, usedPrefix }) => {
-    if (global.conn.user.jid !== conn.user.jid) {
-        return conn.sendMessage(
-            m.chat,
-            { text: `${lenguajeGB['smsAvisoAG']()}𝙐𝙏𝙄𝙇𝙄𝙕𝘼 𝙀𝙎𝙏𝙀 𝘾𝙊𝙈𝘼𝙉𝘿𝙊 𝘿𝙄𝙍𝙀𝘾𝙏𝘼𝙈𝙀𝙉𝙏𝙀 𝙀𝙉 𝙀𝙇 𝙉𝙐́𝙈𝙀𝙍𝙊 𝙋𝙍𝙄𝙉𝘾𝙄𝙋𝘼𝙇 𝘿𝙀𝙇 𝘽𝙊𝙏` },
-            { quoted: m }
-        )
-    }
-
     const GataBotDir = './GataJadiBot/'
     try {
         if (!existsSync(GataBotDir)) {
@@ -46,7 +38,7 @@ const handler = async (m, { conn, usedPrefix }) => {
         if (filesDeleted === 0) {
             await conn.sendMessage(
                 m.chat,
-                { text: `${lenguajeGB['smsAvisoFG']()}𝙉𝙊 𝙎𝙀 𝙀𝙉𝘾𝙊𝙉𝙏𝙍𝘼𝙍𝙊𝙉 𝘼𝙍𝘾𝙃𝙄𝙑𝙊𝙎 𝙍𝙀𝙎𝙄𝘿𝙐𝘼𝙇𝙀𝙎 𝙋𝘼𝙍𝘼 𝙇𝙄𝙈𝙋𝙄𝘼𝙍` },
+                { text: `${lenguajeGB['smsAvisoFG']()}𝙉𝙊 𝙎𝙀 𝙀𝙉𝘾𝙊𝙉𝙏𝘼𝙍𝙊𝙉 𝘼𝙍𝘾𝙃𝙄𝙑𝙊𝙎 𝙍𝙀𝙎𝙄𝘿𝙐𝘼𝙇𝙀𝙎 𝙋𝘼𝙍𝘼 𝙇𝙄𝙈𝙋𝙄𝘼𝙍` },
                 { quoted: m }
             )
         } else {
@@ -78,4 +70,4 @@ handler.tags = ['jadibot']
 handler.command = /^(limpiezasub|limpiarsub|clearsubbot)$/i
 handler.rowner = true
 
-export default handler 
+export default handler
