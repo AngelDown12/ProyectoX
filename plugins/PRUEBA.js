@@ -13,7 +13,7 @@ handler.before = async function (m, { conn, participants }) {
     // Mensaje personalizado para fkontak
     let fkontak = { 
         "key": {
-            "participants": "0@s.whatsapp.net",
+            "participants":"0@s.whatsapp.net",
             "remoteJid": "status@broadcast",
             "fromMe": false,
             "id": "Halo"
@@ -25,23 +25,6 @@ handler.before = async function (m, { conn, participants }) {
         },
         "participant": "0@s.whatsapp.net"
     };
-
-    // Detectar cambios en el modo de anuncios
-    if (m.messageStubType === 26) {
-        const modo = m.messageStubParameters[0];
-        const texto = modo === 'off' 
-            ? `*⚠️ 𝘾𝙊𝙉𝙁𝙄𝙂𝙐𝙍𝘼𝘾𝙄𝙊𝙉 𝘿𝙀𝙇 𝙂𝙍𝙐𝙋𝙊 ⚠️*\n\n*𝙀𝙡 𝙖𝙙𝙢𝙞𝙣𝙞𝙨𝙩𝙧𝙖𝙙𝙤𝙧 ${usuario} 𝙝𝙖 𝙙𝙚𝙨𝙖𝙘𝙩𝙞𝙫𝙖𝙙𝙤 𝙚𝙡 𝙢𝙤𝙙𝙤 "𝙎𝙤𝙡𝙤 𝙖𝙙𝙢𝙞𝙣𝙞𝙨𝙩𝙧𝙖𝙙𝙤𝙧𝙚𝙨"* 🔓\n\n*𝘼𝙝𝙤𝙧𝙖 𝙩𝙤𝙙𝙤𝙨 𝙡𝙤𝙨 𝙥𝙖𝙧𝙩𝙞𝙘𝙞𝙥𝙖𝙣𝙩𝙚𝙨 𝙥𝙪𝙚𝙙𝙚𝙣 𝙚𝙣𝙫𝙞𝙖𝙧 𝙢𝙚𝙣𝙨𝙖𝙟𝙚𝙨 𝙖𝙡 𝙜𝙧𝙪𝙥𝙤.*`
-            : `*⚠️ 𝘾𝙊𝙉𝙁𝙄𝙂𝙐𝙍𝘼𝘾𝙄𝙊𝙉 𝘿𝙀𝙇 𝙂𝙍𝙐𝙋𝙊 ⚠️*\n\n*𝙀𝙡 𝙖𝙙𝙢𝙞𝙣𝙞𝙨𝙩𝙧𝙖𝙙𝙤𝙧 ${usuario} 𝙝𝙖 𝙖𝙘𝙩𝙞𝙫𝙖𝙙𝙤 𝙚𝙡 𝙢𝙤𝙙𝙤 "𝙎𝙤𝙡𝙤 𝙖𝙙𝙢𝙞𝙣𝙞𝙨𝙩𝙧𝙖𝙙𝙤𝙧𝙚𝙨"* 🔒\n\n*𝘼𝙝𝙤𝙧𝙖 𝙨𝙤𝙡𝙤 𝙡𝙤𝙨 𝙖𝙙𝙢𝙞𝙣𝙞𝙨𝙩𝙧𝙖𝙙𝙤𝙧𝙚𝙨 𝙥𝙪𝙚𝙙𝙚𝙣 𝙚𝙣𝙫𝙞𝙖𝙧 𝙢𝙚𝙣𝙨𝙖𝙟𝙚𝙨 𝙖𝙡 𝙜𝙧𝙪𝙥𝙤.*`;
-
-        try {
-            await conn.sendMessage(m.chat, { 
-                text: texto, 
-                mentions: [m.sender]
-            }, { quoted: fkontak });
-        } catch (error) {
-            console.log("Error al enviar mensaje de modo anuncios:", error);
-        }
-    }
 
     // Detectar cambios en el modo de agregar participantes
     if (m.messageStubType == 171) {
@@ -55,7 +38,7 @@ handler.before = async function (m, { conn, participants }) {
         }
         
         if (texto) {
-            await this.sendMessage(m.chat, { text: texto, mentions: [m.sender] }, { quoted: fkontak });
+            await conn.sendMessage(m.chat, { text: texto, mentions: [m.sender] }, { quoted: fkontak });
         }
     }
 
@@ -71,7 +54,7 @@ handler.before = async function (m, { conn, participants }) {
         }
         
         if (texto) {
-            await this.sendMessage(m.chat, { text: texto, mentions: [m.sender] }, { quoted: fkontak });
+            await conn.sendMessage(m.chat, { text: texto, mentions: [m.sender] }, { quoted: fkontak });
         }
     }
     
@@ -81,7 +64,7 @@ handler.before = async function (m, { conn, participants }) {
             const userRejected = m.messageStubParameters[0].split('@')[0];
             const texto = `*❌ SOLICITUD RECHAZADA ❌*\n\n*El administrador ${usuario} ha rechazado la solicitud de ingreso del número:* wa.me/${userRejected}\n\n*El usuario no podrá unirse al grupo.*`;
             
-            await this.sendMessage(m.chat, { text: texto, mentions: [m.sender] }, { quoted: fkontak });
+            await conn.sendMessage(m.chat, { text: texto, mentions: [m.sender] }, { quoted: fkontak });
         }
     }
 }
