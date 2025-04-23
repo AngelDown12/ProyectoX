@@ -21,47 +21,14 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
       return;
     }
 
-    // Función mejorada para enviar mensajes
+    // Función directa para enviar mensajes
     const sendMessage = async (text, mentions = []) => {
       try {
-        // Verificar conexión
-        if (!conn.user) {
-          console.log(chalk.red(`[❌] Conexión no establecida en ${m.chat}`));
-          return false;
-        }
-
-        // Verificar permisos
-        const groupInfo = await conn.groupMetadata(m.chat).catch(() => null);
-        if (!groupInfo) {
-          console.log(chalk.red(`[❌] No se pudo obtener información del grupo ${m.chat}`));
-          return false;
-        }
-
-        const botParticipant = groupInfo.participants.find(p => p.id === conn.user.id);
-        if (!botParticipant || !botParticipant.admin) {
-          console.log(chalk.red(`[❌] Bot no es admin en ${m.chat}`));
-          return false;
-        }
-
-        // Enviar mensaje
-        const message = { text, mentions };
-        await conn.sendMessage(m.chat, message);
+        // Enviar mensaje directamente sin verificaciones adicionales
+        await conn.sendMessage(m.chat, { text, mentions });
         console.log(chalk.green(`[✅] Mensaje enviado en ${m.chat}`));
-        return true;
       } catch (error) {
-        console.error(chalk.red(`[❌] Error en ${m.chat}:`), error);
-        
-        // Intentar reconectar si hay error de conexión
-        if (error.message.includes('connection') || error.message.includes('socket')) {
-          console.log(chalk.yellow(`[⚠️] Intentando reconectar en ${m.chat}`));
-          try {
-            await conn.groupMetadata(m.chat);
-            console.log(chalk.green(`[✅] Reconexión exitosa en ${m.chat}`));
-          } catch (e) {
-            console.error(chalk.red(`[❌] Error al reconectar en ${m.chat}:`), e);
-          }
-        }
-        return false;
+        console.error(chalk.red(`[❌] Error al enviar mensaje en ${m.chat}:`), error);
       }
     };
 
