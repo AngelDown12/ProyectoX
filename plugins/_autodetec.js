@@ -12,23 +12,25 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
     const groupAdmins = participants.filter(p => p.admin);
 
     // Verificación básica
-    if (!chat || !chat.detect || !isBotAdmin) {
-      console.log(chalk.yellow(`[⚠️] Condiciones no cumplidas en ${m.chat}:`), {
-        chatExists: !!chat,
-        detectEnabled: chat?.detect,
-        isBotAdmin
-      });
-      return;
-    }
+    if (!chat || !chat.detect || !isBotAdmin) return;
 
-    // Función directa para enviar mensajes
+    // Función básica para enviar mensajes
     const sendMessage = async (text, mentions = []) => {
       try {
-        // Enviar mensaje directamente sin verificaciones adicionales
-        await conn.sendMessage(m.chat, { text, mentions });
-        console.log(chalk.green(`[✅] Mensaje enviado en ${m.chat}`));
+        await m.reply(text, m.chat, { 
+          mentions,
+          quoted: m
+        });
       } catch (error) {
-        console.error(chalk.red(`[❌] Error al enviar mensaje en ${m.chat}:`), error);
+        console.error(chalk.red(`[❌] Error al enviar mensaje:`), error);
+        // Intento alternativo de envío
+        try {
+          await conn.reply(m.chat, text, m, { 
+            mentions
+          });
+        } catch (e) {
+          console.error(chalk.red(`[❌] Error en segundo intento:`), e);
+        }
       }
     };
 
@@ -84,13 +86,11 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
           try {
             if (chat.antifake && isBotAdmin && prefijosProhibidos.some(prefijo => usersConPrefijo.startsWith(prefijo))) {
               await conn.groupRequestParticipantsUpdate(m.chat, [rawUser], 'reject');
-              console.log(`Solicitud de ${usersConPrefijo} rechazada por prefijo prohibido`);
             } else {
               await conn.groupRequestParticipantsUpdate(m.chat, [rawUser], 'approve');
-              console.log(`Solicitud de ${usersConPrefijo} aprobada`);
             }
           } catch (error) {
-            console.error(`Error al procesar solicitud de ${usersConPrefijo}:`, error);
+            console.error(`Error al procesar solicitud:`, error);
           }
         }
       }
@@ -100,12 +100,6 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
     const handler = messageHandlers[m.messageStubType];
     if (handler) {
       await handler();
-    } else if (m.messageStubType !== 2) {
-      console.log({
-        messageStubType: m.messageStubType,
-        messageStubParameters: m.messageStubParameters,
-        type: WAMessageStubType[m.messageStubType],
-      });
     }
   } catch (error) {
     console.error(chalk.red('[❌] Error en el handler:'), error);
