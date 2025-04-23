@@ -23,6 +23,22 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
         }
     };
 
+    // Detectar cambios en el modo de agregar participantes
+    if (chat.detect && m.messageStubType == 171) {
+        const modo = m.messageStubParameters[0];
+        let texto = '';
+        
+        if (modo === 'all_member_add') {
+            texto = `*⚠️ CONFIGURACIÓN DEL GRUPO MODIFICADA ⚠️*\n\n*El administrador ${usuario} ha activado la opción:*\n*"Todos pueden agregar participantes"* ✅\n\n*Ahora cualquier miembro puede añadir nuevos participantes al grupo.*`;
+        } else if (modo === 'admin_add') {
+            texto = `*⚠️ CONFIGURACIÓN DEL GRUPO MODIFICADA ⚠️*\n\n*El administrador ${usuario} ha activado la opción:*\n*"Solo admins pueden agregar participantes"* 👑\n\n*Ahora solo los administradores pueden añadir nuevos participantes al grupo.*`;
+        }
+        
+        if (texto) {
+            await this.sendMessage(m.chat, { text: texto, mentions: [m.sender] }, { quoted: fkontak });
+        }
+    }
+
     // Detectar cambios en el modo de aprobación
     if (chat.detect && m.messageStubType == 145) {
         const modo = m.messageStubParameters[0];
