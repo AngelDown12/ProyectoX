@@ -24,6 +24,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
     // Verificar si el bot es admin
     if (!isBotAdmin) {
       console.log(chalk.yellow(`[⚠️] Bot no es admin en el grupo: ${m.chat}`));
+      return;
     }
 
     // Verificar si el chat tiene detect habilitado
@@ -39,6 +40,15 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
         console.log(chalk.blue(`[ℹ️] Tipo de mensaje: ${WAMessageStubType[m.messageStubType]}`));
         console.log(chalk.blue(`[ℹ️] Bot es admin: ${isBotAdmin}`));
         console.log(chalk.blue(`[ℹ️] Chat detect: ${chat.detect}`));
+
+        // Verificar permisos antes de enviar
+        const groupInfo = await conn.groupMetadata(m.chat);
+        const botParticipant = groupInfo.participants.find(p => p.id === conn.user.id);
+        
+        if (!botParticipant || !botParticipant.admin) {
+          console.log(chalk.red(`[❌] Bot perdió permisos de admin en ${m.chat}`));
+          return false;
+        }
 
         // Intentar enviar el mensaje original
         await conn.sendMessage(m.chat, content, { ...options });
