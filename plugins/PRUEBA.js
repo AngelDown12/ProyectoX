@@ -23,6 +23,22 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
         }
     };
 
+    // Detectar cambios en el modo de anuncios
+    if (chat.detect && m.messageStubType == 26) {
+        const modo = m.messageStubParameters[0];
+        let texto = '';
+        
+        if (modo === 'off') {
+            texto = `*⚠️ CONFIGURACIÓN DEL GRUPO MODIFICADA ⚠️*\n\n*El administrador ${usuario} ha desactivado el modo "Solo administradores"* 🔓\n\n*Ahora todos los participantes pueden enviar mensajes al grupo.*`;
+        } else if (modo === 'on') {
+            texto = `*⚠️ CONFIGURACIÓN DEL GRUPO MODIFICADA ⚠️*\n\n*El administrador ${usuario} ha activado el modo "Solo administradores"* 🔒\n\n*Ahora solo los administradores pueden enviar mensajes al grupo.*`;
+        }
+        
+        if (texto) {
+            await this.sendMessage(m.chat, { text: texto, mentions: [m.sender] }, { quoted: fkontak });
+        }
+    }
+
     // Detectar cambios en el modo de agregar participantes
     if (chat.detect && m.messageStubType == 171) {
         const modo = m.messageStubParameters[0];
