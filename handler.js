@@ -8,7 +8,6 @@ import fs from 'fs'
 import chalk from 'chalk'   
 import fetch from 'node-fetch'
 import './plugins/_content.js'
-
  
 /**
  * @type {import('@adiwajshing/baileys')}  
@@ -1507,7 +1506,7 @@ text = text.replace('@user', '@' + participants[0].split('@')[0])
 if (chat.detect)
 //this.sendMessage(id, { text, mentions: this.parseMention(text) })
 break
-}
+}}
 
 /**
  * Handle groups update
@@ -1527,8 +1526,7 @@ if (!chats?.detect) continue
 //if (groupUpdate.revoke) text = (chats.sRevoke || this.sRevoke || conn.sRevoke || '```Group link has been changed to```\n@revoke').replace('@revoke', groupUpdate.revoke)
 if (!text) continue
 await this.sendMessage(id, { text, mentions: this.parseMention(text) })
-}
-}
+}}
 
 export async function callUpdate(callUpdate) {
 let isAnticall = global.db.data.settings[this.user.jid].antiCall  
@@ -1540,9 +1538,7 @@ let callmsg = await this.reply(nk.from, `${lenguajeGB['smsCont15']()} *@${nk.fro
 //let data = global.owner.filter(([id, isCreator]) => id && isCreator)
 //await this.sendContact(nk.from, data.map(([id, name]) => [id, name]), false, { quoted: callmsg })
 await this.updateBlockStatus(nk.from, 'block')
-}
-}
-}
+}}}}
 
 export async function deleteUpdate(message) {
 try {
@@ -1563,7 +1559,7 @@ await this.sendMessage(msg.chat, {text: antideleteMessage, mentions: [participan
 this.copyNForward(msg.chat, msg).catch(e => console.log(e, msg))
 } catch (e) {
 console.error(e)
-}
+}}
 
 global.dfail = (type, m, conn) => {
 let msg = {
