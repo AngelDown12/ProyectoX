@@ -1,7 +1,5 @@
 import chalk from 'chalk';
 let WAMessageStubType = (await import("@whiskeysockets/baileys")).default;
-import { readdirSync, unlinkSync, existsSync, promises as fs, rmSync } from 'fs';
-import path from 'path';
 import './_content.js';
 
 let handler = m => m;
@@ -11,171 +9,108 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
 
     let usuario = `@${m.sender.split`@`[0]}`;
     let chat = global.db.data.chats[m.chat];
-    let users = participants.map(u => conn.decodeJid(u.id));
     const groupAdmins = participants.filter(p => p.admin);
-    const listAdmin = groupAdmins.map((v, i) => `*» ${i + 1}. @${v.id.split('@')[0]}*`).join('\n');
 
-    // Verificar si el chat existe en la base de datos
-    if (!chat) {
-      console.log(chalk.yellow(`[⚠️] Chat no encontrado en la base de datos: ${m.chat}`));
-      chat = { detect: true }; // Asignar valores por defecto
-    }
-
-    // Verificar si el bot es admin
-    if (!isBotAdmin) {
-      console.log(chalk.yellow(`[⚠️] Bot no es admin en el grupo: ${m.chat}`));
+    // Verificación básica
+    if (!chat || !chat.detect || !isBotAdmin) {
+      console.log(chalk.yellow(`[⚠️] Condiciones no cumplidas en ${m.chat}:`), {
+        chatExists: !!chat,
+        detectEnabled: chat?.detect,
+        isBotAdmin
+      });
       return;
     }
 
-    // Verificar si el chat tiene detect habilitado
-    if (!chat.detect) {
-      console.log(chalk.yellow(`[⚠️] Detect deshabilitado en el grupo: ${m.chat}`));
-      return;
-    }
-
-    // Función auxiliar para enviar mensajes
-    const sendMessageWithRetry = async (content, options = {}) => {
+    // Función simplificada para enviar mensajes
+    const sendMessage = async (text, mentions = []) => {
       try {
-        console.log(chalk.blue(`[ℹ️] Intentando enviar mensaje en ${m.chat}`));
-        console.log(chalk.blue(`[ℹ️] Tipo de mensaje: ${WAMessageStubType[m.messageStubType]}`));
-        console.log(chalk.blue(`[ℹ️] Bot es admin: ${isBotAdmin}`));
-        console.log(chalk.blue(`[ℹ️] Chat detect: ${chat.detect}`));
-
-        // Verificar permisos antes de enviar
-        const groupInfo = await conn.groupMetadata(m.chat);
-        const botParticipant = groupInfo.participants.find(p => p.id === conn.user.id);
-        
-        if (!botParticipant || !botParticipant.admin) {
-          console.log(chalk.red(`[❌] Bot perdió permisos de admin en ${m.chat}`));
-          return false;
-        }
-
-        // Intentar enviar el mensaje original
-        await conn.sendMessage(m.chat, content, { ...options });
-        console.log(chalk.green(`[✅] Mensaje enviado exitosamente en ${m.chat}`));
+        const message = { text, mentions };
+        await conn.sendMessage(m.chat, message);
+        console.log(chalk.green(`[✅] Mensaje enviado en ${m.chat}`));
         return true;
       } catch (error) {
-        console.error(chalk.red(`[❌] Error al enviar mensaje en ${m.chat}:`), error);
-        try {
-          // Si falla, intentar con un mensaje simplificado
-          const simpleMessage = { 
-            text: `⚠️ Se ha detectado un cambio en el grupo\nUsuario: ${usuario}\nTipo: ${WAMessageStubType[m.messageStubType] || 'Desconocido'}`
-          };
-          await conn.sendMessage(m.chat, simpleMessage);
-          console.log(chalk.green(`[✅] Mensaje simplificado enviado en ${m.chat}`));
-          return true;
-        } catch (e) {
-          console.error(chalk.red(`[❌] Error al enviar mensaje simplificado en ${m.chat}:`), e);
-          return false;
+        console.error(chalk.red(`[❌] Error en ${m.chat}:`), error);
+        return false;
+      }
+    };
+
+    // Mapeo de tipos de mensaje a funciones
+    const messageHandlers = {
+      21: () => sendMessage(
+        lenguajeGB['smsAvisoAG']() + mid.smsAutodetec1(usuario, m),
+        [m.sender, ...groupAdmins.map(v => v.id)]
+      ),
+      22: () => sendMessage(
+        lenguajeGB['smsAvisoIIG']() + mid.smsAutodetec2(usuario, groupMetadata),
+        [m.sender]
+      ),
+      23: () => sendMessage(
+        lenguajeGB['smsAvisoIIG']() + mid.smsAutodetec5(groupMetadata, usuario),
+        [m.sender]
+      ),
+      24: () => sendMessage(
+        lenguajeGB['smsAvisoIIG']() + mid.smsAutodetec3(usuario, m),
+        [m.sender]
+      ),
+      25: () => sendMessage(
+        lenguajeGB['smsAvisoIIG']() + mid.smsAutodetec4(usuario, m, groupMetadata),
+        [m.sender]
+      ),
+      26: () => sendMessage(
+        mid.smsAutodetec6(m, usuario, groupMetadata),
+        [m.sender]
+      ),
+      29: () => sendMessage(
+        mid.smsAutodetec7(m, usuario),
+        [m.sender, m.messageStubParameters[0], ...groupAdmins.map(v => v.id)]
+      ),
+      30: () => sendMessage(
+        mid.smsAutodetec8(m, usuario),
+        [m.sender, m.messageStubParameters[0], ...groupAdmins.map(v => v.id)]
+      ),
+      72: () => sendMessage(
+        lenguajeGB['smsAvisoIIG']() + mid.smsAutodetec9(usuario, m),
+        [m.sender]
+      ),
+      123: () => sendMessage(
+        lenguajeGB['smsAvisoIIG']() + mid.smsAutodetec10(usuario, m),
+        [m.sender]
+      ),
+      172: async () => {
+        if (m.messageStubParameters.length > 0) {
+          const rawUser = m.messageStubParameters[0];
+          const users = rawUser.split('@')[0];
+          const prefijosProhibidos = ['91', '92', '222', '93', '265', '61', '62', '966', '229', '40', '49', '20', '963', '967', '234', '210', '212'];
+          const usersConPrefijo = users.startsWith('+') ? users : `+${users}`;
+
+          try {
+            if (chat.antifake && isBotAdmin && prefijosProhibidos.some(prefijo => usersConPrefijo.startsWith(prefijo))) {
+              await conn.groupRequestParticipantsUpdate(m.chat, [rawUser], 'reject');
+              console.log(`Solicitud de ${usersConPrefijo} rechazada por prefijo prohibido`);
+            } else {
+              await conn.groupRequestParticipantsUpdate(m.chat, [rawUser], 'approve');
+              console.log(`Solicitud de ${usersConPrefijo} aprobada`);
+            }
+          } catch (error) {
+            console.error(`Error al procesar solicitud de ${usersConPrefijo}:`, error);
+          }
         }
       }
     };
 
-    // Procesar los diferentes tipos de mensajes
-    switch (m.messageStubType) {
-      case 21:
-        await sendMessageWithRetry({ 
-          text: lenguajeGB['smsAvisoAG']() + mid.smsAutodetec1(usuario, m), 
-          mentions: [m.sender, ...groupAdmins.map(v => v.id)] 
-        });
-        break;
-      case 22:
-        await sendMessageWithRetry({ 
-          text: lenguajeGB['smsAvisoIIG']() + mid.smsAutodetec2(usuario, groupMetadata), 
-          mentions: [m.sender] 
-        });
-        break;
-      case 23:
-        await sendMessageWithRetry({ 
-          text: lenguajeGB['smsAvisoIIG']() + mid.smsAutodetec5(groupMetadata, usuario), 
-          mentions: [m.sender] 
-        });
-        break;
-      case 24:
-        await sendMessageWithRetry({ 
-          text: lenguajeGB['smsAvisoIIG']() + mid.smsAutodetec3(usuario, m), 
-          mentions: [m.sender] 
-        });
-        break;
-      case 25:
-        await sendMessageWithRetry({ 
-          text: lenguajeGB['smsAvisoIIG']() + mid.smsAutodetec4(usuario, m, groupMetadata), 
-          mentions: [m.sender] 
-        });
-        break;
-      case 26:
-        await sendMessageWithRetry({ 
-          text: mid.smsAutodetec6(m, usuario, groupMetadata), 
-          mentions: [m.sender] 
-        });
-        break;
-      case 29:
-        await sendMessageWithRetry({ 
-          text: mid.smsAutodetec7(m, usuario), 
-          mentions: [m.sender, m.messageStubParameters[0], ...groupAdmins.map(v => v.id)] 
-        });
-        break;
-      case 30:
-        await sendMessageWithRetry({ 
-          text: mid.smsAutodetec8(m, usuario), 
-          mentions: [m.sender, m.messageStubParameters[0], ...groupAdmins.map(v => v.id)] 
-        });
-        break;
-      case 72:
-        await sendMessageWithRetry({ 
-          text: lenguajeGB['smsAvisoIIG']() + mid.smsAutodetec9(usuario, m), 
-          mentions: [m.sender] 
-        });
-        break;
-      case 123:
-        await sendMessageWithRetry({ 
-          text: lenguajeGB['smsAvisoIIG']() + mid.smsAutodetec10(usuario, m), 
-          mentions: [m.sender] 
-        });
-        break;
-      case 172:
-        if (m.messageStubParameters.length > 0) {
-          const rawUser = m.messageStubParameters[0];
-          const users = rawUser.split('@')[0]; 
-          const prefijosProhibidos = ['91', '92', '222', '93', '265', '61', '62', '966', '229', '40', '49', '20', '963', '967', '234', '210', '212'];
-          const usersConPrefijo = users.startsWith('+') ? users : `+${users}`;
-
-          if (chat.antifake && isBotAdmin) {
-            if (prefijosProhibidos.some(prefijo => usersConPrefijo.startsWith(prefijo))) {
-              try {
-                await conn.groupRequestParticipantsUpdate(m.chat, [rawUser], 'reject');
-                console.log(`Solicitud de ingreso de ${usersConPrefijo} rechazada automáticamente por tener un prefijo prohibido.`);
-              } catch (error) {
-                console.error(`Error al rechazar la solicitud de ${usersConPrefijo}:`, error);
-              }
-            } else {
-              try {
-                await conn.groupRequestParticipantsUpdate(m.chat, [rawUser], 'approve');
-                console.log(`Solicitud de ingreso de ${usersConPrefijo} aprobada automáticamente.`);
-              } catch (error) {
-                console.error(`Error al aprobar la solicitud de ${usersConPrefijo}:`, error);
-              }
-            }
-          } else {
-            try {
-              await conn.groupRequestParticipantsUpdate(m.chat, [rawUser], 'approve');
-              console.log(`Solicitud de ingreso de ${usersConPrefijo} aprobada automáticamente ya que #antifake está desactivado.`);
-            } catch (error) {
-              console.error(`Error al aprobar la solicitud de ${usersConPrefijo}:`, error);
-            }
-          }
-        }
-        break;
-      default:
-        if (m.messageStubType == 2) return;
-        console.log({
-          messageStubType: m.messageStubType,
-          messageStubParameters: m.messageStubParameters,
-          type: WAMessageStubType[m.messageStubType],
-        });
+    // Ejecutar el manejador correspondiente
+    const handler = messageHandlers[m.messageStubType];
+    if (handler) {
+      await handler();
+    } else if (m.messageStubType !== 2) {
+      console.log({
+        messageStubType: m.messageStubType,
+        messageStubParameters: m.messageStubParameters,
+        type: WAMessageStubType[m.messageStubType],
+      });
     }
   } catch (error) {
-    console.error(chalk.red('[❌] Error en el handler de autodetección:'), error);
+    console.error(chalk.red('[❌] Error en el handler:'), error);
   }
 }
 
