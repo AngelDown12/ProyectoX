@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+/*import chalk from 'chalk';
 let WAMessageStubType = (await import("@whiskeysockets/baileys")).default;
 import { readdirSync, unlinkSync, existsSync, promises as fs, rmSync } from 'fs';
 import path from 'path';
@@ -105,3 +105,4 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
 }
 
 export default handler;
+*/
