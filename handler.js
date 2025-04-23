@@ -8,7 +8,7 @@ import fs from 'fs'
 import chalk from 'chalk'   
 import fetch from 'node-fetch'
 import './plugins/_content.js'
-import { WAMessageStubType } from '@whiskeysockets/baileys'
+
  
 /**
  * @type {import('@adiwajshing/baileys')}  
