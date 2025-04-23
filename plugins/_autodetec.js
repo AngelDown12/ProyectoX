@@ -9,8 +9,18 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
   try {
     if (!m.messageStubType || !m.isGroup) return;
     
+    // Verificar y cargar la configuración del chat
     let chat = global.db.data.chats[m.chat];
-    if (!chat || !chat.detect) return;
+    if (!chat) {
+      console.log(chalk.yellow(`[⚠️] Chat ${m.chat} no encontrado en la base de datos`));
+      chat = { detect: true }; // Configuración por defecto
+      global.db.data.chats[m.chat] = chat;
+    }
+    
+    if (!chat.detect) {
+      console.log(chalk.gray(`[ℹ️] Detección desactivada en ${m.chat}`));
+      return;
+    }
 
     // Verificar estado de la conexión
     if (!conn.user || !conn.user.id) {
@@ -80,7 +90,7 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
         const chatExists = await conn.groupMetadata(m.chat).catch(() => null);
         if (!chatExists) {
           console.log(chalk.red(`[❌] No se pudo acceder al grupo ${m.chat}`));
-          return;
+          return false;
         }
 
         // Preparar el mensaje
@@ -121,7 +131,8 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
       parameters: m.messageStubParameters,
       usuario: usuario,
       botAdmin: botAdmin,
-      chatExists: !!chat
+      chatExists: !!chat,
+      detectEnabled: chat.detect
     });
 
     let messageSent = false;
