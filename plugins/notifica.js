@@ -3,7 +3,7 @@ const { generateWAMessageFromContent, proto } = pkg;
 
 const handler = async (m, { conn, text, participants }) => {
   const users = participants.map((u) => conn.decodeJid(u.id));
-  const watermark = '\nㅤㅤㅤㅤㅤㅤㅤㅤㅤᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
+  const watermark = 'ᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
   const more = String.fromCharCode(8206); // invisible char
   const invisibleMention = more.repeat(850); // oculta la mención
 
@@ -15,7 +15,7 @@ const handler = async (m, { conn, text, participants }) => {
         },
         interactiveMessage: proto.Message.InteractiveMessage.create({
           body: {
-            text: (text || 'MENSAJE DEL ADMIN') + '\n\n' + invisibleMention + watermark
+            text: `${text || 'MENSAJE DEL ADMIN'}\n${invisibleMention}\n${watermark}`
           },
           footer: { text: 'Selecciona una opción' },
           nativeFlowMessage: {
