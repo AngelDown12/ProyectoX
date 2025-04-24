@@ -155,15 +155,19 @@ export async function after(m, { conn }) {
         
         if (libre !== -1) {
             listas[squadType][libre] = `@${nombreUsuario}`;
-            // Enviar mensaje de respuesta
-            const mensajeRespuesta = id === 'acepto' 
-                ? `UY ESTO SE PONDRA BUENO QUIEN PONE SALA` 
-                : `✅ @${nombreUsuario} agregado a Negado`;
             
-            await conn.sendMessage(m.chat, {
-                text: mensajeRespuesta,
-                mentions: [tag]
-            }, { quoted: m });
+            // Enviar mensaje de respuesta
+            if (id === 'acepto') {
+                await conn.sendMessage(m.chat, {
+                    text: `UY ESTO SE PONDRA BUENO QUIEN PONE SALA`,
+                    mentions: [tag]
+                });
+            } else {
+                await conn.sendMessage(m.chat, {
+                    text: `✅ @${nombreUsuario} agregado a Negado`,
+                    mentions: [tag]
+                });
+            }
             
             // Actualizar el mensaje con la nueva lista
             await mostrarLista(conn, m.chat, listas, [tag]);
@@ -171,13 +175,12 @@ export async function after(m, { conn }) {
             await conn.sendMessage(m.chat, {
                 text: `⚠️ ${id === 'acepto' ? 'Acepto' : 'Negado'} está llena`,
                 mentions: [tag]
-            }, { quoted: m });
+            });
         }
     } catch (error) {
         console.error('Error en after:', error);
         await conn.sendMessage(m.chat, { 
-            text: '❌ Error al procesar tu selección',
-            quoted: m 
+            text: '❌ Error al procesar tu selección'
         });
     }
 }
