@@ -104,7 +104,7 @@ let handler = async (m, { conn }) => {
     // Respuesta al botón "Yomismo" (MENTIRA, NADIE TIENE SALA)
     if (response === 'yomismo') {
         await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\n*FINALMENTE ALGUIEN CON HUEVOS* 🥚🔥\n\n@${m.sender.split('@')[0]}\n\n*Pero seguro se desconectan a medio juego* 📵💀`
+            text: `┏━━━━━━━━━━━━━━━━┓\n*FINALMENTE ALGUIEN CON HUEVOS* 🥚🔥\n\n@${m.sender.split('@')[0]}\n\n*Pero seguro se desconectan a medio juego* 📵💀\n*MANDA DATOS DE LA SALA DE UUUNA*`
         });
         return;
     }
