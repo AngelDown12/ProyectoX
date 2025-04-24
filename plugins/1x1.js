@@ -22,7 +22,7 @@ let handler = async (m, { conn }) => {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
                     display_text: "ACEPTO",
-                    id: `acepto|${m.sender}`
+                    id: `acepto|${m.sender}` // Incluye el ID del remitente al presionar "ACEPTO"
                 })
             },
             {
@@ -54,8 +54,8 @@ let handler = async (m, { conn }) => {
     }
 
     if (response.startsWith('acepto')) {
-        const [, retadorId] = response.split('|');
-        
+        const [, retadorId] = response.split('|'); // Extraemos el ID del retador desde el botón
+
         // Validación de que el ID del retador sea válido
         if (!retadorId) {
             console.error("Error: ID de retador inválido.");
