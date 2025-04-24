@@ -118,7 +118,7 @@ let handler = async (m, { conn }) => {
 
             await conn.relayMessage(m.chat, mensaje.message, {});
         } else {
-            // Aquí se maneja correctamente la respuesta cuando el mensaje es "negado"
+            // Este es el mensaje cuando se presiona "negado"
             await conn.sendMessage(m.chat, {
                 text: `┏━━━━━━━━━━━━━━━━┓\nUy pana, se nota el miedo de no jugarle a PVP a @user\n┛`,
                 mentions: [proponente]
