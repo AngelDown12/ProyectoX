@@ -1,59 +1,61 @@
+import { generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
+
 const handler = async (m, { conn, text, participants }) => {
   try {
     const users = participants.map(u => conn.decodeJid(u.id));
-    const watermark = '\nㅤㅤㅤㅤㅤㅤㅤㅤᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
-    const fullMessage = (text || 'Notificación') + watermark;
+    const watermark = 'ㅤㅤㅤㅤㅤㅤㅤㅤᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
+    const messageText = text ? `${text}\n${watermark}` : watermark;
 
-    // 1. Primero enviar el mensaje base
-    const baseMsg = await conn.sendMessage(m.chat, {
-      text: fullMessage,
-      mentions: users
-    }, { quoted: m });
-
-    // 2. Enviar los botones como mensaje interactivo
-    await conn.sendMessage(m.chat, {
-      templateButtons: [
-        {
-          index: 1,
-          quickReplyButton: {
-            displayText: '👤 Mención',
-            id: 'mencion_btn'
-          }
-        },
-        {
-          index: 2,
-          quickReplyButton: {
-            displayText: '📝 Recordatorio',
-            id: 'recordatorio_btn'
-          }
+    // 1. Estructura EXACTA de botones del segundo código (pero corregida)
+    const buttons = [
+      {
+        quickReplyButton: {
+          displayText: "👤 MENCIÓN",
+          id: "btn_mencion"
         }
-      ],
-      text: 'Selecciona una opción:',
-      footer: 'Botones interactivos',
-      mentions: users,
-      viewOnce: true
-    }, { quoted: baseMsg });
-
-    // 3. Opcional: Añadir reacción de confirmación
-    await conn.sendMessage(m.chat, {
-      react: {
-        text: "✅",
-        key: baseMsg.key
+      },
+      {
+        quickReplyButton: {
+          displayText: "📝 RECORDATORIO",
+          id: "btn_recordatorio"
+        }
       }
+    ];
+
+    // 2. Mensaje principal con la estructura que WhatsApp acepta
+    const msg = {
+      text: messageText,
+      mentions: users,
+      footer: 'Selecciona una opción:',
+      buttons: buttons,
+      headerType: 1
+    };
+
+    // 3. Envío con método garantizado
+    await conn.sendMessage(m.chat, msg, {
+      quoted: m,
+      ephemeralExpiration: 86400 // 24 horas
+    });
+
+    // 4. Confirmación opcional (elimina si no necesitas)
+    await conn.sendMessage(m.chat, { 
+      react: { 
+        text: "✅", 
+        key: m.key 
+      } 
     });
 
   } catch (error) {
-    console.error('Error al enviar botones:', error);
+    console.error('Error al enviar:', error);
     
-    // Fallback: Enviar mensaje simple con opciones en texto
+    // Plan B: Enviar como mensaje simple + botones alternativos
     await conn.sendMessage(m.chat, {
-      text: `${fullMessage}\n\n*Opciones:*\n1. 👤 Mención\n2. 📝 Recordatorio`,
+      text: `${messageText}\n\n*Opciones:*\n• Escribe *1* para Mención\n• Escribe *2* para Recordatorio`,
       mentions: users
     }, { quoted: m });
   }
 };
 
-// Configuración del handler
 handler.help = ['notifica'];
 handler.tags = ['group'];
 handler.command = /^notifica$/i;
