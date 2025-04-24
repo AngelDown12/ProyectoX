@@ -34,7 +34,7 @@ let handler = async (m, { conn }) => {
 
     console.log('Response received:', response);
 
-    if (response === 'terminar' || msgText === 'terminar') {
+    if (response === 'yomismo' || msgText === 'yomismo') {
         const parejas = parejasConfirmadas.get(groupId) || [];
         const pareja = parejas.find(p => p[0] === m.sender || p[1] === m.sender);
 
@@ -89,15 +89,15 @@ let handler = async (m, { conn }) => {
                 {
                     name: "quick_reply",
                     buttonParamsJson: JSON.stringify({
-                        display_text: "Terminar",
-                        id: "terminar"
+                        display_text: "Yomismo",
+                        id: "yomismo"
                     })
                 },
                 {
                     name: "quick_reply",
                     buttonParamsJson: JSON.stringify({
-                        display_text: "Parejas",
-                        id: "parejas"
+                        display_text: "Notengo",
+                        id: "notengo"
                     })
                 }
             ];
@@ -181,7 +181,7 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    if (response === 'parejas' || msgText === 'parejas') {
+    if (response === 'notengo' || msgText === 'notengo') {
         const parejas = parejasConfirmadas.get(groupId) || [];
         if (parejas.length === 0) {
             await conn.sendMessage(m.chat, {
@@ -205,7 +205,7 @@ let handler = async (m, { conn }) => {
     }
 };
 
-handler.customPrefix = /^(acepto|negado|terminar|parejas|\.1vs1.*)$/i;
+handler.customPrefix = /^(acepto|negado|yomismo|notengo|\.1vs1.*)$/i;
 handler.command = new RegExp;
 handler.group = true;
 
