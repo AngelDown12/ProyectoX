@@ -20,7 +20,7 @@ let handler = async function (m, { conn, text, participants, groupMetadata }) {
     conn.reply(m.chat, '✅ Bienvenida y foto personalizada configuradas.', fkontak)
   }
 
-  // Manejando el mensaje de bienvenida y despedida
+  // Verificamos si el mensaje es de un grupo y contiene un tipo adecuado (bienvenida o despedida)
   if (!m.messageStubType || !m.isGroup) return
   let chat = global.db.data.chats[m.chat]
   if (!chat || !chat.welcome) return
@@ -35,10 +35,11 @@ let handler = async function (m, { conn, text, participants, groupMetadata }) {
   let username = userJid.split('@')[0]
   let groupName = groupMetadata.subject
   let groupDesc = groupMetadata.desc || ''
-  let image = chat.sWelcomeImg || 'https://qu.ax/Lmiiu.jpg'  // Imagen predeterminada
+  let image = chat.sWelcomeImg || 'https://qu.ax/Lmiiu.jpg'  // Imagen predeterminada si no hay imagen configurada
 
+  // Mensaje de bienvenida
   let msg = isWelcome
-    ? (chat.sWelcome || '👋 Bienvenido @user a @subject\n\n@desc')
+    ? (chat.sWelcome || '👋 Bienvenido @user al grupo @subject\n\n@desc')
         .replace(/@user/g, `@${username}`)
         .replace(/@subject/g, groupName)
         .replace(/@desc/g, groupDesc)
@@ -63,7 +64,7 @@ let handler = async function (m, { conn, text, participants, groupMetadata }) {
   }, { quoted: m })
 }
 
-handler.command = ['setwel']
+handler.command = ['setwel']  // Comando para configurar bienvenida
 handler.group = true
 handler.admin = true
 handler.botAdmin = true
