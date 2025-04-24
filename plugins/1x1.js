@@ -69,4 +69,213 @@ let handler = async (m, { conn }) => {
 
         if (!proponente || tag !== propuesto) {
             await conn.sendMessage(m.chat, {
-                text:
+                text: `┏━━━━━━━━━━━━━━━━┓\n ESTA DECLARACIÓN NO ES PARA TI ... SAPO .l. \n┗━━━━━━━━━━━━━━━━┛`,
+                mentions: [tag]
+            });
+            return;
+        }
+
+        if (proponente === tag) {
+            await conn.sendMessage(m.chat, {
+                text: tipo === 'aceptar' ? 
+                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes aceptarte a ti mismo, eso sería muy triste.\n┗━━━━━━━━━━━━━━━━┛` : 
+                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes rechazarte a ti mismo, ¡date una oportunidad!\n┗━━━━━━━━━━━━━━━━┛`,
+                mentions: [tag]
+            });
+            return;
+        }
+
+        const parejasActuales = parejasConfirmadas.get(groupId) || [];
+
+        const yaTienePareja = parejasActuales.some(([a, b]) => a === tag || b === tag || a === proponente || b === proponente);
+        if (yaTienePareja) {
+            return await conn.sendMessage(m.chat, {
+                text: `❌ Uno de los dos ya tiene pareja. No puedes ser infiel 😠`,
+                mentions: [tag, proponente]
+            });
+        }
+
+        if (tipo === 'aceptar') {
+            const nuevaPareja = [proponente, tag];
+            parejasActuales.push(nuevaPareja);
+            parejasConfirmadas.set(groupId, parejasActuales);
+
+            const nombre1 = await conn.getName(tag);
+            const nombre2 = await conn.getName(proponente);
+
+            const buttons = [
+                {
+                    name: "quick_reply",
+                    buttonParamsJson: JSON.stringify({
+                        display_text: "Terminar",
+                        id: "terminar"
+                    })
+                },
+                {
+                    name: "quick_reply",
+                    buttonParamsJson: JSON.stringify({
+                        display_text: "Parejas",
+                        id: "parejas"
+                    })
+                }
+            ];
+
+            const mensaje = generateWAMessageFromContent(m.chat, {
+                viewOnceMessage: {
+                    message: {
+                        messageContextInfo: {
+                            deviceListMetadata: {},
+                            mentionedJid: nuevaPareja
+                        },
+                        interactiveMessage: proto.Message.InteractiveMessage.create({
+                            body: { text: `┏━━━━━━━━━━━━━━━━┓\n🎉 *¡Felicidades!*\n\n💕 \"El amor no tiene edad, siempre está naciendo\"\n\nAhora ${nombre1} y ${nombre2} son novios.\n\n✨ Que el amor los acompañe siempre.\n┗━━━━━━━━━━━━━━━━┛` },
+                            footer: { text: "💫 Elige con el corazón" },
+                            nativeFlowMessage: { buttons }
+                        })
+                    }
+                }
+            }, {});
+
+            await conn.relayMessage(m.chat, mensaje.message, {});
+        } else {
+            await conn.sendMessage(m.chat, {
+                text: `┏━━━━━━━━━━━━━━━━┓\n💔 *Rechazo*\n\n💫 \"El amor es como una mariposa, si lo persigues, te eludirá\"\n\n${await conn.getName(tag)} rechazó tu propuesta de amor.\n\n✨ No te rindas, el amor verdadero te espera.\n┗━━━━━━━━━━━━━━━━┛`,
+                mentions: [proponente]
+            });
+        }
+
+        mensajesGrupos.delete(groupId);
+        return;
+    }
+
+    if (msgText?.startsWith('.1vs1')) {
+        const mentionedJid = m.mentionedJid?.[0];
+
+        if (!mentionedJid) {
+            mensajesGrupos.set(groupId, {
+                proponente: m.sender,
+                propuesto: null
+            });
+
+            const buttons = [
+                {
+                    name: "quick_reply",
+                    buttonParamsJson: JSON.stringify({
+                        display_text: "Aceptar",
+                        id: "aceptar"
+                    })
+                },
+                {
+                    name: "quick_reply",
+                    buttonParamsJson: JSON.stringify({
+                        display_text: "Rechazar",
+                        id: "rechazar"
+                    })
+                }
+            ];
+
+            const nombreRemitente = await conn.getName(m.sender);
+
+            const mensaje = generateWAMessageFromContent(m.chat, {
+                viewOnceMessage: {
+                    message: {
+                        messageContextInfo: {
+                            deviceListMetadata: {}
+                        },
+                        interactiveMessage: proto.Message.InteractiveMessage.create({
+                            body: { text: `┏━━━━━━━━━━━━━━━━┓\n⚔️ *¡Declaración abierta!*\n\n💫 \"${nombreRemitente}" está buscando el amor.\n\n✨ ¿Quieres ser su novi@? Responde.\n┗━━━━━━━━━━━━━━━━┛` },
+                            footer: { text: "❤️ Declárate o acepta el amor" },
+                            nativeFlowMessage: { buttons }
+                        })
+                    }
+                }
+            }, {});
+
+            await conn.relayMessage(m.chat, mensaje.message, {});
+            return;
+        }
+
+        // comportamiento anterior si se menciona a alguien
+        const parejas = parejasConfirmadas.get(groupId) || [];
+        if (parejas.some(par => par.includes(m.sender) || par.includes(mentionedJid))) {
+            await conn.sendMessage(m.chat, {
+                text: `┏━━━━━━━━━━━━━━━━┓\nNo seas infiel, tú ya tienes pareja.\n┗━━━━━━━━━━━━━━━━┛`,
+                mentions: [m.sender]
+            });
+            return;
+        }
+
+        const nombreRemitente = await conn.getName(m.sender);
+        const nombreMencionado = await conn.getName(mentionedJid);
+
+        mensajesGrupos.set(groupId, {
+            proponente: m.sender,
+            propuesto: mentionedJid
+        });
+
+        const buttons = [
+            {
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "Aceptar",
+                    id: "aceptar"
+                })
+            },
+            {
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "Rechazar",
+                    id: "rechazar"
+                })
+            }
+        ];
+
+        const mensaje = generateWAMessageFromContent(m.chat, {
+            viewOnceMessage: {
+                message: {
+                    messageContextInfo: {
+                        deviceListMetadata: {},
+                        mentionedJid: [mentionedJid]
+                    },
+                    interactiveMessage: proto.Message.InteractiveMessage.create({
+                        body: { text: `┏━━━━━━━━━━━━━━━━┓\n⚔️ *¡Desafío 1vs1!*\n\n💫 \"La batalla está por comenzar\"\n\n${nombreRemitente} te ha desafiado ${nombreMencionado}\n\n✨ ¿Aceptas el desafío?\n┗━━━━━━━━━━━━━━━━┛` },
+                        footer: { text: "⚔️ Elige tu destino" },
+                        nativeFlowMessage: { buttons }
+                    })
+                }
+            }
+        }, {});
+
+        await conn.relayMessage(m.chat, mensaje.message, {});
+        return;
+    }
+
+    if (response === 'parejas' || msgText === 'parejas') {
+        const parejas = parejasConfirmadas.get(groupId) || [];
+        if (parejas.length === 0) {
+            await conn.sendMessage(m.chat, {
+                text: `┏━━━━━━━━━━━━━━━━┓\n💔 *No hay parejas*\n\n💫 \"El amor es como una flor, necesita tiempo para crecer\"\n\nNo hay parejas registradas en este grupo.\n\n✨ ¿Por qué no inicias una historia de amor?\n┗━━━━━━━━━━━━━━━━┛`
+            });
+            return;
+        }
+
+        let lista = `┏━━━━━━━━━━━━━━━━┓\n❣️ *Parejas del grupo*\n\n💫 \"El amor es la única respuesta\"\n\n`;
+        for (const [p1, p2] of parejas) {
+            const nombre1 = await conn.getName(p1);
+            const nombre2 = await conn.getName(p2);
+            lista += `✨ ${nombre1} 💕 ${nombre2}\n`;
+        }
+        lista += `\n┗━━━━━━━━━━━━━━━━┛`;
+
+        await conn.sendMessage(m.chat, {
+            text: lista.trim()
+        });
+        return;
+    }
+};
+
+handler.customPrefix = /^(aceptar|rechazar|terminar|parejas|\.1vs1.*)$/i;
+handler.command = new RegExp;
+handler.group = true;
+
+export default handler;
