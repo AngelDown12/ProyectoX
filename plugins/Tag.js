@@ -37,14 +37,38 @@ const handler = async (m, {isOwner, isAdmin, conn, text, participants, args}) =>
     teks += `${emoji} ${getCountryFlag(mem.id)} @${mem.id.split('@')[0]}\n`;
   }
 
-  // Si hay más participantes, agregar "ver más"
-  if (participants.length > maxVisible) {
-    teks += `\nY ${participants.length - maxVisible} más... para ver todos, consulte el grupo.\n`;
-  }
+  // Si hay más participantes, agregar un botón "Leer más"
+  let button = [{
+    buttonId: 'readmore',
+    buttonText: { displayText: 'Leer más' },
+    type: 1
+  }];
 
-  teks += `\n*╰━* 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝙊𝘽𝘼𝙇\n▌│█║▌║▌║║▌║▌║▌║█`;
+  let messageContent = {
+    text: teks + `\n*╰━* 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝙊𝘽𝘼𝙇\n▌│█║▌║▌║║▌║▌║▌║█`,
+    buttons: button,
+    mentions: visibleParticipants.map((a) => a.id)
+  };
 
-  await conn.sendMessage(m.chat, { text: teks, mentions: participants.map((a) => a.id) });
+  // Enviar el mensaje con el botón
+  await conn.sendMessage(m.chat, messageContent);
+
+  // Aquí va la lógica para manejar cuando se haga clic en "Leer más"
+  conn.on('message', async (message) => {
+    if (message.buttons && message.buttons[0].buttonId === 'readmore') {
+      let fullText = teks;
+      // Agregar el resto de los participantes
+      for (const mem of participants.slice(maxVisible)) {
+        fullText += `${emoji} ${getCountryFlag(mem.id)} @${mem.id.split('@')[0]}\n`;
+      }
+
+      // Re-enviar el mensaje con todos los participantes
+      await conn.sendMessage(m.chat, {
+        text: fullText + `\n*╰━* 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝙊𝘽𝘼𝙇\n▌│█║▌║▌║║▌║▌║▌║█`,
+        mentions: participants.map((a) => a.id)
+      });
+    }
+  });
 };
 
 handler.help = ['todos'];
