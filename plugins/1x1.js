@@ -38,22 +38,12 @@ let handler = async (m, { conn }) => {
     // Comando terminar
     if (response === 'terminar' || msgText === 'terminar') {
         console.log('Executing terminar command...'); // Debug log
-        console.log('Current couples:', parejasConfirmadas.get(groupId)); // Debug log
-        
-        // Obtener todas las parejas del grupo
         const parejas = parejasConfirmadas.get(groupId) || [];
-        
-        // Buscar la pareja del remitente
         const pareja = parejas.find(p => p[0] === m.sender || p[1] === m.sender);
-        console.log('Found couple:', pareja); // Debug log
         
         if (pareja) {
-            // Eliminar la pareja del registro
             const nuevasParejas = parejas.filter(p => p[0] !== m.sender && p[1] !== m.sender);
             parejasConfirmadas.set(groupId, nuevasParejas);
-            console.log('Updated couples list:', nuevasParejas); // Debug log
-            
-            // Enviar mensaje de ruptura
             await conn.sendMessage(m.chat, {
                 text: `┏━━━━━━━━━━━━━━━━┓\n💔 *¡Ups!* La relación se terminó...\n\n✨ "El amor es como el viento, no puedes verlo pero puedes sentirlo"\n\n┛`,
                 mentions: pareja
@@ -76,21 +66,6 @@ let handler = async (m, { conn }) => {
         const propuesto = mensajeGuardado?.propuesto;
 
         if (!proponente || tag !== propuesto) {
-            await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\n ESTA DECLARACIÓN NO ES PARA TI ... SAPO .l. \n┛`,
-                mentions: [tag]
-            });
-            return;
-        }
-
-        // Verificar que no se esté aceptando/rechazando a sí mismo
-        if (proponente === tag) {
-            await conn.sendMessage(m.chat, {
-                text: tipo === 'acepto' ? 
-                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes aceptarte a ti mismo, eso sería muy triste.\n┛` : 
-                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes rechazarte a ti mismo, ¡date una oportunidad!\n┛`,
-                mentions: [tag]
-            });
             return;
         }
 
