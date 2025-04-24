@@ -24,15 +24,15 @@ let handler = async (m, { conn, text, isROwner, isOwner }) => {
 
     > Para configurar la bienvenida, usa el siguiente comando:
 
-    .setwelcome [Mensaje de bienvenida] [URL de la imagen]
+    .setwel [Mensaje de bienvenida] [URL de la imagen]
 
     Ejemplo:
 
-    .setwelcome ¡Bienvenido al grupo @user! @group, disfruta del ambiente. 🌟 [URL de la imagen]`;
+    .setwel ¡Bienvenido al grupo @user! @group, disfruta del ambiente. 🌟 [URL de la imagen]`;
   }
 }
 
-handler.command = ['setwelcome', 'bienvenida']; // El comando para configurar la bienvenida
+handler.command = ['setwel', 'bienvenida']; // El comando para configurar la bienvenida
 handler.botAdmin = true; // Aseguramos que el bot tenga permisos de administrador
 handler.admin = true; // Solo administradores pueden configurar la bienvenida
 handler.group = true; // Funciona solo en grupos
