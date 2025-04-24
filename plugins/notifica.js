@@ -2,46 +2,62 @@ const handler = async (m, { conn, text, participants }) => {
   try {
     const users = participants.map(u => conn.decodeJid(u.id));
     const watermark = '\nㅤㅤㅤㅤㅤㅤㅤㅤᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
-    
-    // Primero enviar el mensaje base con menciones
-    const sentMsg = await conn.sendMessage(m.chat, {
-      text: (text || 'Notificación') + watermark,
+    const fullMessage = (text || 'Notificación') + watermark;
+
+    // 1. Primero enviar el mensaje base
+    const baseMsg = await conn.sendMessage(m.chat, {
+      text: fullMessage,
       mentions: users
     }, { quoted: m });
 
-    // Luego añadir los botones como reacción
+    // 2. Enviar los botones como mensaje interactivo
+    await conn.sendMessage(m.chat, {
+      templateButtons: [
+        {
+          index: 1,
+          quickReplyButton: {
+            displayText: '👤 Mención',
+            id: 'mencion_btn'
+          }
+        },
+        {
+          index: 2,
+          quickReplyButton: {
+            displayText: '📝 Recordatorio',
+            id: 'recordatorio_btn'
+          }
+        }
+      ],
+      text: 'Selecciona una opción:',
+      footer: 'Botones interactivos',
+      mentions: users,
+      viewOnce: true
+    }, { quoted: baseMsg });
+
+    // 3. Opcional: Añadir reacción de confirmación
     await conn.sendMessage(m.chat, {
       react: {
-        text: "📌", // Puedes usar otro emoji
-        key: sentMsg.key
+        text: "✅",
+        key: baseMsg.key
       }
     });
 
-    // Opcional: Enviar botones como mensaje separado
-    await conn.sendMessage(m.chat, {
-      text: 'Selecciona una opción:',
-      footer: 'Botones interactivos',
-      templateButtons: [
-        {index: 1, quickReplyButton: {displayText: '👤 Mención', id: 'mencion'}},
-        {index: 2, quickReplyButton: {displayText: '📝 Recordatorio', id: 'recordatorio'}}
-      ]
-    }, { quoted: sentMsg });
-
   } catch (error) {
-    console.error('Error crítico:', error);
-    // Último intento con método alternativo
-    const fallbackMsg = await conn.sendMessage(m.chat, { 
-      text: `⚠️ ${text || 'Mensaje importante'}\n${watermark}`,
+    console.error('Error al enviar botones:', error);
+    
+    // Fallback: Enviar mensaje simple con opciones en texto
+    await conn.sendMessage(m.chat, {
+      text: `${fullMessage}\n\n*Opciones:*\n1. 👤 Mención\n2. 📝 Recordatorio`,
       mentions: users
     }, { quoted: m });
   }
 };
 
+// Configuración del handler
 handler.help = ['notifica'];
 handler.tags = ['group'];
 handler.command = /^notifica$/i;
 handler.group = true;
 handler.admin = true;
-handler.register = true;
 
 export default handler;
