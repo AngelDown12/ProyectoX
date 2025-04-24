@@ -155,7 +155,7 @@ export async function after(m, { conn }) {
         if (libre !== -1) {
             listas[squadType][libre] = `@${nombreUsuario}`;
             await conn.sendMessage(m.chat, {
-                text: `✅ @${nombreUsuario} agregado a ${id === 'acepto' ? 'Acepto' : 'Negado'}`,
+                text: id === 'acepto' ? `UY ESTO SE PONDRA BUENO QUIEN PONE SALA` : `✅ @${nombreUsuario} agregado a Negado`,
                 mentions: [tag]
             });
         } else {
