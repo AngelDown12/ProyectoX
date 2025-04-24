@@ -1,68 +1,61 @@
-const handler = async (m, { conn, usedPrefix, command }) => {
-    // Obtener el ID del usuario que ejecuta el comando
-    const userJid = m.sender
+const handler = async (m, {conn, usedPrefix, command}) => {
+    const userJid = m.sender;
     
-    // Obtener todos los chats del bot (solo como medio para encontrar grupos)
-    const allChats = Object.values(conn.chats).filter(chat => 
-        chat.id.endsWith('@g.us') && !chat.id.includes('broadcast')
-    )
+    // Obtener todos los grupos conocidos por el bot
+    const groupList = Object.values(conn.chats).filter(
+        chat => chat.id.endsWith('@g.us')
+    );
     
-    // Array para almacenar los grupos del usuario
-    const userGroups = []
+    // Verificar grupos donde está el usuario
+    const userGroups = [];
     
-    // Buscar en qué grupos está el usuario
-    for (const group of allChats) {
+    for (const group of groupList) {
         try {
-            const metadata = await conn.groupMetadata(group.id)
-            // Verificar si el usuario está en este grupo
-            const userInGroup = metadata.participants.some(p => p.id === userJid)
-            if (userInGroup) {
+            const metadata = await conn.groupMetadata(group.id);
+            const isParticipant = metadata.participants.some(
+                p => p.id === userJid
+            );
+            
+            if (isParticipant) {
+                const isAdmin = metadata.participants.find(
+                    p => p.id === userJid
+                )?.admin === 'admin' || false;
+                
                 userGroups.push({
+                    name: metadata.subject || 'Sin nombre',
                     id: group.id,
-                    subject: metadata.subject,
-                    participants: metadata.participants,
-                    isAdmin: metadata.participants.find(p => p.id === userJid)?.admin === 'admin' || 
-                            metadata.participants.find(p => p.id === userJid)?.admin === 'superadmin'
-                })
+                    isAdmin,
+                    participants: metadata.participants.length
+                });
             }
         } catch (e) {
-            console.error(`Error al verificar grupo ${group.id}:`, e)
+            console.error(`Error verificando grupo ${group.id}:`, e);
         }
     }
     
-    // Construir el mensaje de respuesta
-    let message = `📋 *TUS GRUPOS* 📋\n\n`
-    message += `🔹 *Total de grupos:* ${userGroups.length}\n\n`
+    // Construir mensaje de respuesta
+    if (userGroups.length === 0) {
+        return conn.reply(m.chat, '❌ No estás en ningún grupo conocido por mí', m);
+    }
     
-    let adminCount = 0
-    let memberCount = 0
+    let message = `*📋 TUS GRUPOS (${userGroups.length})*\n\n`;
     
-    // Mostrar cada grupo del usuario
     userGroups.forEach((group, index) => {
-        const role = group.isAdmin ? '✅ Admin' : '👤 Miembro'
-        if (group.isAdmin) adminCount++
-        else memberCount++
-        
-        message += `▢ *Nombre:* ${group.subject || 'Sin nombre'}\n`
-        message += `▢ *Participantes:* ${group.participants.length}\n`
-        message += `▢ *Tu rol:* ${role}\n`
-        message += `${index < userGroups.length - 1 ? '────────────────\n' : ''}`
-    })
+        message += `*🔸 ${group.name}*\n`;
+        message += `👥 Miembros: ${group.participants}\n`;
+        message += `⚜️ Rol: ${group.isAdmin ? 'Administrador' : 'Miembro'}\n`;
+        message += `🆔 ID: ${group.id.replace('@g.us', '')}\n`;
+        message += index < userGroups.length - 1 ? '\n─────────────\n' : '';
+    });
     
-    // Resumen final
-    message += `\n📊 *RESUMEN*\n`
-    message += `✅ *Eres admin en:* ${adminCount} grupos\n`
-    message += `👤 *Eres miembro en:* ${memberCount} grupos\n`
-    
-    // Enviar el mensaje
-    await conn.sendMessage(m.chat, { 
-        text: message, 
-        mentions: [userJid] 
-    }, { quoted: m })
-}
+    await conn.sendMessage(m.chat, {
+        text: message,
+        mentions: [userJid]
+    }, {quoted: m});
+};
 
-handler.help = ['misgrupos']
-handler.tags = ['grupos']
-handler.command = /^(misgrupos|grupos|listagrupos)$/i
+handler.help = ['misgrupos'];
+handler.tags = ['grupos'];
+handler.command = /^(misgrupos|vergrupos|grupos)$/i;
 
-export default handler
+export default handler;
