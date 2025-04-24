@@ -1,12 +1,20 @@
 let handler = m => m;
-handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin }) {
+handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin, command, text }) {
   // Verifica si el mensaje es de un grupo y si contiene el tipo adecuado
   if (!m.messageStubType || !m.isGroup) return;
 
   // Foto predeterminada (reemplaza con tu URL si no se proporciona una imagen personalizada)
   const FOTO_PREDETERMINADA = 'https://qu.ax/Lmiiu.jpg';
 
-  // Obtener foto de perfil o usar predeterminada
+  // Comando para configurar la bienvenida con imagen
+  if (command === 'simularbienvenida' && text) {
+    let welcomeImageUrl = text.trim();  // URL de la imagen proporcionada
+    let chat = global.db.data.chats[m.chat];
+    chat.sWelcomeImage = welcomeImageUrl;  // Guardamos la URL de la imagen en la base de datos
+    return conn.reply(m.chat, `✅ ¡La imagen de bienvenida se ha configurado con éxito!`, m);
+  }
+
+  // Obtener foto de perfil o usar la predeterminada si no se encuentra
   let pp;
   try {
     pp = await conn.profilePictureUrl(m.messageStubParameters[0], 'image').catch(_ => FOTO_PREDETERMINADA);
@@ -14,7 +22,6 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
     pp = FOTO_PREDETERMINADA;
   }
 
-  let img = await (await fetch(pp)).buffer().catch(_ => null);
   let usuario = `@${m.sender.split`@`[0]}`;
   let chat = global.db.data.chats[m.chat];
   let users = participants.map(u => conn.decodeJid(u.id));
@@ -24,7 +31,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
     let subject = groupMetadata.subject;
     let descs = groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟";
     let userName = `${m.messageStubParameters[0].split`@`[0]}`;
-    
+
     let defaultWelcome = `*╔══════════════*
 *╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
 *╠══════════════*
@@ -42,11 +49,11 @@ ${descs}
       .replace(/@group/g, subject) 
       .replace(/@desc/g, descs)
       : defaultWelcome;
-    
-    // Verificamos si se ha configurado una imagen personalizada
+
+    // Usar la imagen configurada por el usuario, si existe
     let welcomeImageUrl = chat.sWelcomeImage || FOTO_PREDETERMINADA;
-    
-    // Enviamos el mensaje de bienvenida con la imagen
+
+    // Enviar mensaje de bienvenida con la imagen
     await this.sendMessage(m.chat, { 
       text: textWel, 
       contextInfo: {
@@ -56,7 +63,7 @@ ${descs}
         externalAdReply: {
           showAdAttribution: true,
           renderLargerThumbnail: true,
-          thumbnailUrl: welcomeImageUrl,  // Usamos la URL configurada
+          thumbnailUrl: welcomeImageUrl,  // Usamos la URL de la imagen configurada
           title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
           containsAutoReply: true,
           mediaType: 1, 
@@ -79,8 +86,8 @@ ${descs}
       .replace(/@user/g, `@${userName}`)
       .replace(/@group/g, subject)
       : defaultBye;
-    
-    // Verificamos si se ha configurado una imagen personalizada para la despedida (si aplica)
+
+    // Verificamos si se ha configurado una imagen personalizada para la despedida
     let byeImageUrl = chat.sByeImage || FOTO_PREDETERMINADA;
 
     // Enviamos el mensaje de despedida con la imagen
