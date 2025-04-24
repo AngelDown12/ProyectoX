@@ -34,7 +34,7 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) 
         return countryFlags[phonePrefix] || '🏳️‍🌈';
     };
 
-    // Construcción del mensaje con el formato solicitado
+    // Construcción del mensaje con formato
     let message = `╭━━━━ ¡𝗔𝗖𝗧𝗜𝗩𝗘𝗡𝗦𝗘𝗡! 乂 ━━━━╮\n`;
     message += `${emoji} *🏆 GRUPO:* ${groupName}\n`;
     message += `${emoji} *👤 INTEGRANTES:* ${memberCount}\n\n`;
@@ -44,10 +44,26 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) 
         message += `${emoji} *MENSAJE:* ${customMessage}\n\n`;
     }
     
-    // Lista de miembros
-    participants.forEach(mem => {
-        message += `${emoji} ${getCountryFlag(mem.id)} @${mem.id.split('@')[0]}\n`;
+    // Encabezado de menciones
+    message += `${emoji} *MIEMBROS:*\n`;
+    
+    // Menciones horizontales (agrupadas de 5 en 5 para mejor visualización)
+    let mentionsLine = '';
+    participants.forEach((mem, index) => {
+        const mention = `${getCountryFlag(mem.id)} @${mem.id.split('@')[0]}`;
+        mentionsLine += mention + '  ';
+        
+        // Hacer salto de línea cada 5 menciones
+        if ((index + 1) % 5 === 0) {
+            message += mentionsLine + '\n';
+            mentionsLine = '';
+        }
     });
+    
+    // Agregar las menciones restantes
+    if (mentionsLine.trim() !== '') {
+        message += mentionsLine + '\n';
+    }
     
     // Pie del mensaje
     message += `\n╰━━━ 𝗘𝗟𝗜𝗧𝗘 𝗕𝗢𝗧 𝗚𝗟𝗢𝗕𝗔𝗟 ━━━╯`;
