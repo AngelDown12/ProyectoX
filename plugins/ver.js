@@ -1,71 +1,124 @@
-let handler = async function (m, { conn, text, participants, groupMetadata }) {
-  // Comando para configurar bienvenida con mensaje e imagen
-  if (m.body.startsWith('.setwel')) {
-    let fkontak = {
-      key: { participants: "0@s.whatsapp.net", remoteJid: "status@broadcast", fromMe: false, id: "Halo" },
-      message: { contactMessage: { vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:Bot\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD` } }
-    }
+let handler = m => m
 
-    if (!text || !text.includes('http')) throw `✦ Usa el formato correcto:\n.setwel mensaje https://linkimagen.jpg`
+handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin }) {
+  if (!m.messageStubType || !m.isGroup) return
 
-    let parts = text.trim().split(' ')
-    let image = parts.pop()
-    let msg = parts.join(' ')
+  // Foto predeterminada (reemplaza con tu URL)
+  const FOTO_PREDETERMINADA = 'https://qu.ax/Lmiiu.jpg' 
 
-    // Guardamos el mensaje y la imagen personalizada
-    global.db.data.chats[m.chat].sWelcome = msg
-    global.db.data.chats[m.chat].sWelcomeImg = image
-    global.db.data.chats[m.chat].welcome = true
-
-    conn.reply(m.chat, '✅ Bienvenida y foto personalizada configuradas.', fkontak)
+  // Obtener foto de perfil o usar predeterminada
+  let pp
+  try {
+    pp = await conn.profilePictureUrl(m.messageStubParameters[0], 'image').catch(_ => FOTO_PREDETERMINADA)
+  } catch {
+    pp = FOTO_PREDETERMINADA
   }
 
-  // Verificamos si el mensaje es de un grupo y contiene un tipo adecuado (bienvenida o despedida)
-  if (!m.messageStubType || !m.isGroup) return
+  let img = await (await fetch(pp)).buffer().catch(_ => null)
+  let usuario = `@${m.sender.split`@`[0]}`
   let chat = global.db.data.chats[m.chat]
-  if (!chat || !chat.welcome) return
+  let users = participants.map(u => conn.decodeJid(u.id))
 
-  if (this.user.jid == global.conn.user.jid) return
+  // Mensaje de BIENVENIDA (messageStubType: 27)
+  if (m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
+    let subject = groupMetadata.subject
+    let descs = groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟"
+    let userName = `${m.messageStubParameters[0].split`@`[0]}`
+    let defaultWelcome = `*╔══════════════*
+*╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
+*╠══════════════*
+*╟*🛡️ *${subject}*
+*╟*👤 *@${userName}*
+*╟* 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗖𝗜Ó𝗡 
 
-  let isWelcome = m.messageStubType === 27
-  let isBye = m.messageStubType === 28
-  if (!isWelcome && !isBye) return
+${descs}
 
-  let userJid = m.messageStubParameters[0]
-  let username = userJid.split('@')[0]
-  let groupName = groupMetadata.subject
-  let groupDesc = groupMetadata.desc || ''
-  let image = chat.sWelcomeImg || 'https://qu.ax/Lmiiu.jpg'  // Imagen predeterminada si no hay imagen configurada
+*╟* ¡🇼‌🇪‌🇱‌🇨‌🇴‌🇲‌🇪!
+*╚══════════════*`
 
-  // Mensaje de bienvenida
-  let msg = isWelcome
-    ? (chat.sWelcome || '👋 Bienvenido @user al grupo @subject\n\n@desc')
-        .replace(/@user/g, `@${username}`)
-        .replace(/@subject/g, groupName)
-        .replace(/@desc/g, groupDesc)
-    : (chat.sBye || '👋 Adiós @user')
-        .replace(/@user/g, `@${username}`)
-        .replace(/@subject/g, groupName)
+    let textWel = chat.sWelcome ? chat.sWelcome
+      .replace(/@user/g, `@${userName}`)
+      .replace(/@group/g, subject) 
+      .replace(/@desc/g, descs)
+      : defaultWelcome
 
-  // Enviar el mensaje con la imagen personalizada
-  await conn.sendMessage(m.chat, {
-    text: msg,
-    contextInfo: {
-      mentionedJid: [userJid],
-      externalAdReply: {
-        mediaType: 1,
-        showAdAttribution: true,
-        title: isWelcome ? '¡Bienvenido!' : '¡Hasta luego!',
-        thumbnailUrl: image,
-        renderLargerThumbnail: true,
-        sourceUrl: 'https://whatsapp.com'
+    await this.sendMessage(m.chat, { 
+      text: textWel, 
+      contextInfo: {
+        forwardingScore: 9999999,
+        isForwarded: true, 
+        mentionedJid: [m.sender, m.messageStubParameters[0]],
+        externalAdReply: {
+          showAdAttribution: true,
+          renderLargerThumbnail: true,
+          thumbnailUrl: pp, 
+          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
+          containsAutoReply: true,
+          mediaType: 1, 
+          sourceUrl: 'https://whatsapp.com'
+        }
       }
-    }
-  }, { quoted: m })
+    }, { quoted: fkontak })
+  }
+
+  // Mensaje de DESPEDIDA (messageStubType: 28)
+  else if (m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
+    let subject = groupMetadata.subject
+    let userName = `${m.messageStubParameters[0].split`@`[0]}`
+    let defaultBye = `*╔══════════════*
+*╟* *SE FUE UNA BASURA*
+*╟👤 @${userName}* 
+*╚══════════════* `
+
+    let textBye = chat.sBye ? chat.sBye
+      .replace(/@user/g, `@${userName}`)
+      .replace(/@group/g, subject)
+      : defaultBye
+
+    await this.sendMessage(m.chat, { 
+      text: textBye, 
+      contextInfo: {
+        forwardingScore: 9999999,
+        isForwarded: true, 
+        mentionedJid: [m.sender, m.messageStubParameters[0]],
+        externalAdReply: {
+          showAdAttribution: true,
+          renderLargerThumbnail: true,
+          thumbnailUrl: pp, 
+          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃 ',
+          containsAutoReply: true,
+          mediaType: 1, 
+          sourceUrl: 'https://whatsapp.com'
+        }
+      }
+    }, { quoted: fkontak })
+  }
 }
 
-handler.command = ['setwel']  // Comando para configurar bienvenida
+// Comando .setwel para configurar la bienvenida manualmente
+handler.command = ['setwel']
+
+handler.help = ['setwel <mensaje> <link_imagen>']
+
+handler.tags = ['owner']
+
+handler.owner = true
+
 handler.group = true
-handler.admin = true
+
 handler.botAdmin = true
+
+handler.handler = async (m, { conn, text, command }) => {
+  if (!text) {
+    return conn.reply(m.chat, '¡Por favor, ingresa el mensaje de bienvenida y el link de la imagen!', m)
+  }
+  
+  const [message, linkImagen] = text.split(' ')
+
+  global.db.data.chats[m.chat].sWelcome = message
+  global.db.data.chats[m.chat].sImage = linkImagen
+
+  conn.reply(m.chat, `La bienvenida para este grupo se ha configurado correctamente con el mensaje: "${message}" y la imagen: ${linkImagen}`, m)
+}
+
 export default handler
