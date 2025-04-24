@@ -1,62 +1,67 @@
-import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
-
 const handler = async (m, { conn, text, participants }) => {
   try {
     const users = participants.map(u => conn.decodeJid(u.id));
     const watermark = 'ㅤㅤㅤㅤㅤㅤㅤㅤᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
-    const fullMessage = (text || 'Notificación') + '\n' + watermark;
+    const messageContent = text ? `${text}\n${watermark}` : watermark;
 
-    // 1. Estructura compatible con WhatsApp (2023)
-    const buttonMessage = {
-      text: fullMessage,
-      footer: 'Selecciona una opción:',
-      buttons: [
-        { buttonId: 'id1', buttonText: { displayText: '👤 Mención' }, type: 1 },
-        { buttonId: 'id2', buttonText: { displayText: '📝 Recordatorio' }, type: 1 }
-      ],
-      mentions: users,
-      headerType: 1
-    };
-
-    // 2. Enviar mensaje principal
-    const sentMsg = await conn.sendMessage(m.chat, buttonMessage, { quoted: m });
-
-    // 3. Añadir reacción de confirmación (opcional)
+    // Método COMPROBADO para enviar mensaje + botones
     await conn.sendMessage(m.chat, {
-      react: {
-        text: "✅",
-        key: sentMsg.key
-      }
+      text: messageContent,
+      mentions: users,
+      footer: 'Elija una opción:',
+      buttons: [
+        {
+          buttonId: 'mencion_btn',
+          buttonText: { displayText: '👤 Mención' },
+          type: 1
+        },
+        {
+          buttonId: 'recordatorio_btn',
+          buttonText: { displayText: '📝 Recordatorio' },
+          type: 1
+        }
+      ],
+      headerType: 1
+    }, {
+      quoted: m,
+      ephemeralExpiration: 86400
     });
 
+    // Confirmación visual opcional
+    await conn.sendReaction(m.chat, m.key, '✅');
+
   } catch (error) {
-    console.error('Error crítico:', error);
+    console.error('Error al notificar:', error);
     
-    // Plan B: Enviar mensaje simple si falla el interactivo
-    await conn.sendMessage(m.chat, { 
-      text: fullMessage,
+    // Plan B: Envío segmentado garantizado
+    const sentMsg = await conn.sendMessage(m.chat, {
+      text: messageContent,
       mentions: users
     }, { quoted: m });
     
-    // Plan C: Enviar botones como mensaje separado
     await conn.sendMessage(m.chat, {
       text: 'Opciones disponibles:',
-      footer: 'Elije una acción',
+      footer: 'Responda con el número:',
       templateButtons: [
         {
           index: 1,
-          quickReplyButton: { displayText: 'Mención', id: 'mencion' }
+          quickReplyButton: {
+            displayText: '1. 👤 Mención',
+            id: 'option1'
+          }
         },
         {
           index: 2,
-          quickReplyButton: { displayText: 'Recordatorio', id: 'recordatorio' }
+          quickReplyButton: {
+            displayText: '2. 📝 Recordatorio',
+            id: 'option2'
+          }
         }
       ]
-    }, { quoted: m });
+    }, { quoted: sentMsg });
   }
 };
 
-// Configuración del handler
 handler.help = ['notifica'];
 handler.tags = ['group'];
 handler.command = /^notifica$/i;
