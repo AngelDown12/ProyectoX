@@ -180,15 +180,8 @@ let handler = async (m, { conn }) => {
     }
 
     if (response === 'notengo' || msgText === 'notengo') {
-        const parejas = parejasConfirmadas.get(groupId) || [];
-        if (parejas.length === 0) {
-            await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\n💔 *No hay parejas*\n\n💫 "El amor es como una flor, necesita tiempo para crecer"\n\nNo hay parejas registradas en este grupo.\n\n✨ ¿Por qué no inicias una historia de amor?\n┗━━━━━━━━━━━━━━━━┛`
-            });
-            return;
-        }
-
         let lista = `┏━━━━━━━━━━━━━━━━┓\n❣️ *Parejas del grupo*\n\n💫 "El amor es la única respuesta"\n\n`;
+        const parejas = parejasConfirmadas.get(groupId) || [];
         for (const [p1, p2] of parejas) {
             const nombre1 = await conn.getName(p1);
             const nombre2 = await conn.getName(p2);
