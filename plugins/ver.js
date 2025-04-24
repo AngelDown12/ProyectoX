@@ -1,50 +1,20 @@
-import fetch from 'node-fetch';
+let handler = async (m, { args, text, command }) => {
+  if (!m.isGroup) throw '❌ Este comando solo se usa en grupos.'
+  if (!text.includes('http')) throw '❌ Usa el formato: .setwel mensaje https://imagen.jpg'
 
-let handler = m => m;
-handler.before = async function (m, { conn, participants, groupMetadata }) {
-  const FOTO_DEF = 'https://qu.ax/Lmiiu.jpg';
-  if (!m.isGroup || !m.messageStubType) return;
+  let split = text.trim().split(/https?:\/\//i)
+  if (split.length < 2) throw '❌ Formato incorrecto. Debe tener un mensaje y una imagen.'
 
-  const chat = global.db.data.chats[m.chat] || {};
-  const userId = m.messageStubParameters?.[0];
-  if (!userId) return;
+  let mensaje = split[0].trim()
+  let image = 'https://' + split[1].trim()
+  let chat = global.db.data.chats[m.chat] || (global.db.data.chats[m.chat] = {})
 
-  let userTag = `@${userId.split('@')[0]}`;
-  let groupName = groupMetadata.subject;
-  let desc = groupMetadata.desc || '¡Nuevo integrante!';
+  chat.customWelcome = mensaje
+  chat.customWelcomeImage = image
 
-  // Imagen personalizada o por defecto
-  let img = chat.customWelcome?.enabled ? chat.customWelcome.image : await conn.profilePictureUrl(userId, 'image').catch(_ => FOTO_DEF);
-
-  // Mensaje personalizado o por defecto
-  let messageText = '';
-  let useCustom = chat.customWelcome?.enabled;
-
-  if (m.messageStubType === 27) { // WELCOME
-    messageText = useCustom
-      ? chat.customWelcome.message.replace(/@user/g, userTag).replace(/@group/g, groupName).replace(/@desc/g, desc)
-      : `👋 ¡Bienvenido ${userTag} a *${groupName}*!`;
-
-  } else if (m.messageStubType === 28) { // GOODBYE
-    messageText = useCustom
-      ? '👋' // No hay mensaje de despedida personalizado, puedes expandirlo si quieres.
-      : `👋 ${userTag} salió del grupo.`;
-
-  } else return;
-
-  await conn.sendMessage(m.chat, {
-    text: messageText,
-    contextInfo: {
-      mentionedJid: [userId],
-      externalAdReply: {
-        title: groupName,
-        thumbnailUrl: img,
-        sourceUrl: 'https://whatsapp.com',
-        mediaType: 1,
-        renderLargerThumbnail: true
-      }
-    }
-  });
-};
-
-export default handler;
+  m.reply(`✅ Bienvenida personalizada configurada:\n\n📝 *Mensaje:* ${mensaje}\n🖼 *Imagen:* ${image}`)
+}
+handler.command = ['setwel']
+handler.admin = true
+handler.group = true
+export default handler
