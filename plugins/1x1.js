@@ -25,7 +25,6 @@ let handler = async (m, { conn }) => {
     const msgText = m.text?.toLowerCase();
     const groupId = m.chat;
 
-    // Detectar respuesta de botones
     const response = m.message?.buttonsResponseMessage?.selectedButtonId ||
         m.message?.interactiveResponseMessage?.nativeFlowResponseButtonResponse?.id ||
         m.message?.interactiveResponseMessage?.buttonReplyMessage?.selectedId ||
@@ -57,10 +56,7 @@ let handler = async (m, { conn }) => {
         const mensaje = generateWAMessageFromContent(m.chat, {
             viewOnceMessage: {
                 message: {
-                    messageContextInfo: {
-                        deviceListMetadata: {},
-                        mentionedJid: []
-                    },
+                    messageContextInfo: {},
                     interactiveMessage: proto.Message.InteractiveMessage.create({
                         body: { text: `🔥 Modo Insano Activado 🔥
 
@@ -74,30 +70,44 @@ let handler = async (m, { conn }) => {
             }
         }, {});
 
-        await conn.relayMessage(m.chat, mensaje.message, {});
+        const sentMsg = await conn.relayMessage(m.chat, mensaje.message, {});
+        mensajesGrupos.set(groupId, sentMsg); // Guardar mensaje para editar luego
         return;
     }
 
-    // Comando acepto/negado
     if (['acepto', 'negado'].includes(response)) {
         const tipo = response;
         const tag = m.sender;
         const listas = getListasGrupo(groupId);
         const nombreUsuario = await conn.getName(tag);
+        const nombreFormateado = `@${tag.split('@')[0]}`;
 
         if (tipo === 'acepto') {
+            if (!listas.aceptar.includes(nombreFormateado)) listas.aceptar.push(nombreFormateado);
             await conn.sendMessage(m.chat, {
-                text: `UY ESTO SE PONDRA BUENO QUIEN PONE SALA`,
+                text: `UY ESTO SE PONDRÁ BUENO QUIEN PONE SALA`,
                 mentions: [tag]
             });
         } else {
+            if (!listas.rechazar.includes(nombreFormateado)) listas.rechazar.push(nombreFormateado);
             await conn.sendMessage(m.chat, {
                 text: `✅ @${nombreUsuario} agregado a Negado`,
                 mentions: [tag]
             });
         }
 
-        // Actualizar el mensaje con la nueva lista
+        // Enviar mensaje actualizado con listas de "aceptar" y "rechazar"
+        const textoListas = `🔥 Modo Insano Activado 🔥
+
+¿Quién se rifa un PVP conmigo? 
+───────────────
+✅ Aceptaron:
+${listas.aceptar.join('\n')}
+
+❌ Negados:
+${listas.rechazar.join('\n')}
+`;
+
         const buttons = [
             {
                 name: "quick_reply",
@@ -119,15 +129,10 @@ let handler = async (m, { conn }) => {
             viewOnceMessage: {
                 message: {
                     messageContextInfo: {
-                        deviceListMetadata: {},
                         mentionedJid: [tag]
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `🔥 Modo Insano Activado 🔥
-
-¿Quién se rifa un PVP conmigo? 
-───────────────
-¡Vamos a darnos en la madre sin miedo! 👿` },
+                        body: { text: textoListas },
                         footer: { text: "Selecciona una opción:" },
                         nativeFlowMessage: { buttons }
                     })
@@ -135,7 +140,10 @@ let handler = async (m, { conn }) => {
             }
         }, {});
 
-        await conn.relayMessage(m.chat, mensaje.message, {});
+        const oldMsg = mensajesGrupos.get(groupId);
+        if (oldMsg?.key) {
+            await conn.sendMessage(m.chat, mensaje.message, { messageId: oldMsg.key.id });
+        }
         return;
     }
 };
