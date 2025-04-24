@@ -19,14 +19,22 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
   if (!m.messageStubType || !m.isGroup) return
 
   const chat = global.db.data.chats[m.chat]
-  if (!chat.sWelcome || !chat.sWelcomeImage) return
-
   const subject = groupMetadata.subject
   const descs = groupMetadata.desc || 'Sin descripción'
   const userJid = m.messageStubParameters[0]
   const userName = userJid.split('@')[0]
-  const imagen = chat.sWelcomeImage
-  const mensajeBase = chat.sWelcome
+
+  // Mensajes y foto por defecto
+  const mensajeBase = chat.sWelcome || (m.messageStubType == 27 ? 'Bienvenido @user' : 'Adiós @user')
+  const FOTO_DEFECTO = 'https://telegra.ph/file/48cd4d8df1e5f3f5cbbe3.jpg'
+
+  // Intenta usar la foto del usuario
+  let foto
+  try {
+    foto = await conn.profilePictureUrl(userJid, 'image')
+  } catch (e) {
+    foto = chat.sWelcomeImage || FOTO_DEFECTO
+  }
 
   const mensaje = mensajeBase
     .replace(/@user/g, `@${userName}`)
@@ -43,7 +51,7 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
         externalAdReply: {
           title: titulo,
           body: mensaje,
-          thumbnailUrl: imagen,
+          thumbnailUrl: foto,
           mediaType: 1,
           renderLargerThumbnail: true,
           sourceUrl: 'https://whatsapp.com'
