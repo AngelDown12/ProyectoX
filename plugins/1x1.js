@@ -180,14 +180,21 @@ let handler = async (m, { conn }) => {
     }
 
     if (response === 'notengo' || msgText === 'notengo') {
-        let lista = `┏━━━━━━━━━━━━━━━━┓\n❣️ *Parejas del grupo*\n\n💫 "El amor es la única respuesta"\n\n`;
         const parejas = parejasConfirmadas.get(groupId) || [];
+        if (parejas.length === 0) {
+            await conn.sendMessage(m.chat, {
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre . Ponte a lavar platos mejor .\n┗━━━━━━━━━━━━━━━━┛`
+            });
+            return;
+        }
+
+        let lista = `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre . Ponte a lavar platos mejor .\n┗━━━━━━━━━━━━━━━━┛`;
         for (const [p1, p2] of parejas) {
             const nombre1 = await conn.getName(p1);
             const nombre2 = await conn.getName(p2);
             lista += `✨ ${nombre1} 💕 ${nombre2}\n`;
         }
-        lista += `\n┗━━━━━━━━━━━━━━━━┛`;
+        lista += ``;
 
         await conn.sendMessage(m.chat, {
             text: lista.trim()
