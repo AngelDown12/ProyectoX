@@ -43,13 +43,11 @@ let handler = async (m, { conn }) => {
             parejasConfirmadas.set(groupId, nuevasParejas);
 
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\n💔 *¡Ups!* La relación se terminó...\n\n✨ "El amor es como el viento, no puedes verlo pero puedes sentirlo"\n\n┗━━━━━━━━━━━━━━━━┛`,
-                mentions: pareja
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy esto se pondrá bueno  estos dos panas @user y @user se van a dar en la madre .\n\n*Crea la sala y manda datos*` 
             });
         } else {
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\n❌ *No tienes pareja*\nNo puedes terminar una relación si no tienes pareja.\n┗━━━━━━━━━━━━━━━━┛`,
-                mentions: [m.sender]
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre . Ponte a lavar platos mejor .\n┗━━━━━━━━━━━━━━━━┛`
             });
         }
         return;
