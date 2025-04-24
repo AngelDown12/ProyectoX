@@ -1,4 +1,4 @@
-let handler = m => m
+/*let handler = m => m
 handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin }) {
   // Verifica si el mensaje es de un grupo y si contiene el tipo adecuado
   if (!m.messageStubType || !m.isGroup) return
@@ -97,3 +97,4 @@ ${descs}
 
 export default handler
 
+*/
