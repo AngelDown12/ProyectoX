@@ -118,14 +118,14 @@ let handler = async (m, { conn }) => {
 
             await conn.relayMessage(m.chat, mensaje.message, {});
         } else {
-            // Aquí se añade el mensaje cuando se selecciona 'negado'
+            // Aquí se maneja correctamente la respuesta cuando el mensaje es "negado"
             await conn.sendMessage(m.chat, {
                 text: `┏━━━━━━━━━━━━━━━━┓\nUy pana, se nota el miedo de no jugarle a PVP a @user\n┛`,
                 mentions: [proponente]
             });
         }
 
-        mensajesGrupos.delete(groupId);
+        mensajesGrupos.delete(groupId); // Limpiar el mensaje para que no se repita en futuros botones.
         return;
     }
 
