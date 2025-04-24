@@ -1,87 +1,56 @@
 import fetch from 'node-fetch';
 import gtts from 'node-gtts';
-import {readFileSync, unlinkSync} from 'fs';
-import {join} from 'path';
-import axios from 'axios';
-import translate from '@vitalets/google-translate-api';
-import {Configuration, OpenAIApi} from 'openai';
+import { readFileSync, unlinkSync } from 'fs';
+import { join } from 'path';
 
-const configuration = new Configuration({
-  organization: global.openai_org_id,
-  apiKey: global.openai_key
-});
-const openaiii = new OpenAIApi(configuration);
-const idioma = 'es';
-const sistema1 = `Actuaras como un Bot de WhatsApp el cual fue creado por GataNina-Li, tu seras GataBot-MD`;
+let handler = async (m, { text, conn }) => {
+  // Verificar si el mensaje usa el comando iavoz
+  const isCommand = /^[\.]?(iavoz)/i.test(m.text);
+  
+  if (!isCommand) return;
 
-const handler = async (m, {conn, text, usedPrefix, command}) => {
-  if (usedPrefix == 'a' || usedPrefix == 'A') return;
-  if (!text) throw `*[❗] Ingrese una orden o petición para usar la función de voz IA*\n\nEjemplo:\n${usedPrefix + command} Recomiéndame una serie`;
+  // Extraer la consulta (elimina comandos)
+  let query = m.text
+    .replace(/^[\.]?(iavoz)\s*/i, '') // Elimina el comando .iavoz
+    .trim();
+
+  if (!query) throw `¡Hola!\nMi nombre es Elite Bot\n¿En qué te puedo ayudar? ♥️`;
 
   try {
-    conn.sendPresenceUpdate('recording', m.chat);
+    await conn.sendPresenceUpdate('composing', m.chat);
+    
+    // Usando la API de starlights-team
+    const apiUrl = `https://apis-starlights-team.koyeb.app/starlight/gemini?text=${encodeURIComponent(query)}`;
+    const res = await fetch(apiUrl);
+    const data = await res.json();
 
-    async function getOpenAIChatCompletion(texto) {
-      const openaiAPIKey = global.openai_key;
-
-      // Aseguramos que exista el historial del usuario
-      if (!global.chatgpt.data.users[m.sender]) global.chatgpt.data.users[m.sender] = [];
-      let chgptdb = global.chatgpt.data.users[m.sender];
-
-      chgptdb.push({ role: 'user', content: texto });
-
-      const url = "https://api.openai.com/v1/chat/completions";
-      const headers = {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${openaiAPIKey}`
-      };
-
-      const data = {
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "system", content: sistema1 }, ...chgptdb],
-      };
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(data)
-      });
-
-      const result = await response.json();
-      const finalResponse = result.choices[0].message.content;
-      return finalResponse;
+    if (data.result) {
+      // Generar el audio de la respuesta
+      const audio = await tts(data.result, 'es');
+      await conn.sendMessage(m.chat, { audio: audio, fileName: 'respuesta.mp3', mimetype: 'audio/mpeg', ptt: true }, { quoted: m });
+    } else {
+      await m.reply('🔴 Error en la API');
     }
-
-    let respuesta = await getOpenAIChatCompletion(text);
-    if (!respuesta || respuesta === 'error') throw 'Sin respuesta';
-
-    const audio1 = await tts(respuesta, idioma);
-    await conn.sendMessage(m.chat, {
-      audio: audio1,
-      fileName: 'ia.mp3',
-      mimetype: 'audio/mpeg',
-      ptt: true
-    }, {quoted: m});
-
   } catch (e) {
-    console.log('[❌ ERROR] ', e);
-    throw '*❌ Ocurrió un error al generar o enviar el audio.*';
+    console.error(e);
+    await m.reply('❌ Error al procesar');
   }
 };
 
-handler.command = /^(openaivoz|chatgptvoz|iavoz|aivoice|robotvoz|openai2voz|chatgpt2voz|ia2voz|robot2voz)$/i;
+// Configuración universal
+handler.customPrefix = /^(\.?iavoz)$/i;
+handler.command = new RegExp;
+handler.tags = ['ai'];
 export default handler;
 
-// Función para convertir texto a audio
 async function tts(text = 'error', lang = 'es') {
   return new Promise((resolve, reject) => {
     try {
       const tts = gtts(lang);
-      const filePath = join(global.__dirname(import.meta.url), '../tmp', `${Date.now()}.wav`);
+      const filePath = join(global.__dirname(import.meta.url), '../tmp', (1 * new Date) + '.wav');
       tts.save(filePath, text, () => {
-        const audio = readFileSync(filePath);
+        resolve(readFileSync(filePath));
         unlinkSync(filePath);
-        resolve(audio);
       });
     } catch (e) {
       reject(e);
