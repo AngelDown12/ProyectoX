@@ -1,55 +1,31 @@
-import pkg from '@whiskeysockets/baileys';
-const { generateWAMessageFromContent, proto } = pkg;
+let handler = async (m, { conn, text, participants }) => {
+  const users = participants.map(u => u.id);
+  const invisibleChar = String.fromCharCode(8206); // \u200E
+  const invisibleMention = invisibleChar.repeat(850); // Oculta el contenido expandido
 
-const handler = async (m, { conn, text, participants }) => {
-  const users = participants.map((u) => conn.decodeJid(u.id)); // Obtener los JIDs de los participantes
-  const watermark = 'ᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ'; // Watermark que aparece al final
+  const message = `🔥 *MENSAJE DEL ADMIN* 🔥
 
-  // El carácter invisible para ocultar las menciones pero sigue funcionando para notificar
-  const more = String.fromCharCode(8206); 
-  const invisibleMention = more.repeat(850); // Esto ayuda a que las menciones no sean visibles pero se notifiquen
+${text || 'MENSAJE IMPORTANTE PARA TODOS'}
 
-  const mensajeBotones = generateWAMessageFromContent(m.chat, {
-    viewOnceMessage: {
-      message: {
-        messageContextInfo: {
-          mentionedJid: users // Aquí es donde se activan las menciones, sin mostrar los @id
-        },
-        interactiveMessage: proto.Message.InteractiveMessage.create({
-          body: {
-            text: `${text || 'MENSAJE DEL ADMIN'}\n${invisibleMention}\n${watermark}`
-          },
-          footer: { text: 'Selecciona una opción' },
-          nativeFlowMessage: {
-            buttons: [
-              {
-                name: 'quick_reply',
-                buttonParamsJson: JSON.stringify({
-                  display_text: 'MENCIÓN 👤',
-                  id: 'notifica_mencion'
-                })
-              },
-              {
-                name: 'quick_reply',
-                buttonParamsJson: JSON.stringify({
-                  display_text: 'RECORDATORIO 📝',
-                  id: 'notifica_recordatorio'
-                })
-              }
-            ]
-          }
-        })
-      }
-    }
-  }, {});
+${invisibleMention}
 
-  // Relatamos el mensaje a todos los participantes
-  await conn.relayMessage(m.chat, mensajeBotones.message, {});
+ᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ`;
+
+  const buttons = [
+    { buttonId: 'notifica_mencion', buttonText: { displayText: 'MENCIÓN 👤' }, type: 1 },
+    { buttonId: 'notifica_recordatorio', buttonText: { displayText: 'RECORDATORIO 📝' }, type: 1 }
+  ];
+
+  await conn.sendMessage(m.chat, {
+    text: message,
+    mentions: users,
+    buttons: buttons,
+    footer: '',
+    headerType: 1
+  }, { quoted: m });
 };
 
-handler.help = ['notifica'];
-handler.tags = ['group'];
-handler.command = /^(notifica)$/i;
+handler.command = /^notifica$/i;
 handler.group = true;
 handler.admin = true;
 
