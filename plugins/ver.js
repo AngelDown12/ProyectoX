@@ -1,12 +1,12 @@
 let handler = m => m;
 
-handler.before = async function (m, { conn, participants, groupMetadata }) {
+// Este "before" es el que se ejecuta antes de cada mensaje para gestionar las bienvenidas y despedidas.
+handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin }) {
   if (!m.isGroup || !m.messageStubType) return;
 
-  // Foto predeterminada (reemplaza con tu URL)
-  const FOTO_PREDETERMINADA = 'https://qu.ax/Lmiiu.jpg';
+  const FOTO_PREDETERMINADA = 'https://qu.ax/Lmiiu.jpg'; // Imagen predeterminada
 
-  // Obtener foto de perfil o usar predeterminada
+  // Intentar obtener la foto de perfil del usuario o usar la predeterminada si falla.
   let pp;
   try {
     pp = await conn.profilePictureUrl(m.messageStubParameters[0], 'image').catch(_ => FOTO_PREDETERMINADA);
@@ -16,22 +16,20 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
 
   let usuario = `@${m.sender.split('@')[0]}`;
   let chat = global.db.data.chats[m.chat];
-  let subject = groupMetadata.subject;
-  let userName = `${m.messageStubParameters[0].split('@')[0]}`;
 
-  // Verificar si el mensaje es de bienvenida (messageStubType: 27)
+  // Si está configurada la bienvenida manual y el mensaje es de bienvenida (messageStubType: 27)
   if (m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
-    // Si hay configuración manual, usa esa bienvenida
     if (chat.sWelcome) {
+      let subject = groupMetadata.subject;
+      let userName = `${m.messageStubParameters[0].split('@')[0]}`;
+
       let textWel = chat.sWelcome
         .replace(/@user/g, `@${userName}`)
         .replace(/@group/g, subject)
         .replace(/@desc/g, groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟");
 
-      // Usar la imagen configurada o la predeterminada
       let imageUrl = chat.sImage || FOTO_PREDETERMINADA;
 
-      // Enviar mensaje de bienvenida con imagen
       await this.sendMessage(m.chat, {
         text: textWel,
         contextInfo: {
@@ -42,7 +40,7 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
             showAdAttribution: true,
             renderLargerThumbnail: true,
             thumbnailUrl: imageUrl,
-            title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝕃𝔸𝕃',
+            title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
             containsAutoReply: true,
             mediaType: 1,
             sourceUrl: 'https://whatsapp.com'
@@ -52,22 +50,17 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
     }
   }
 
-  // Verificar si el mensaje es de despedida (messageStubType: 28)
+  // Despedida (messageStubType: 28)
   else if (m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
-    let defaultBye = `*╔══════════════*
-*╟* *SE FUE UNA BASURA*
-*╟👤 @${userName}* 
-*╚══════════════*`;
-
+    let subject = groupMetadata.subject;
+    let userName = `${m.messageStubParameters[0].split('@')[0]}`;
     let textBye = chat.sBye ? chat.sBye
       .replace(/@user/g, `@${userName}`)
       .replace(/@group/g, subject)
-      : defaultBye;
+      : `*╔══════════════*\n*╟* *SE FUE UNA BASURA*\n*╟*👤 @${userName}* \n*╚══════════════*`;
 
-    // Usar la misma imagen de bienvenida para la despedida (puede ser diferente)
     let imageUrl = chat.sImage || FOTO_PREDETERMINADA;
 
-    // Enviar mensaje de despedida con imagen
     await this.sendMessage(m.chat, {
       text: textBye,
       contextInfo: {
@@ -78,7 +71,7 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
           showAdAttribution: true,
           renderLargerThumbnail: true,
           thumbnailUrl: imageUrl,
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝕃𝔸𝕃 ',
+          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃 ',
           containsAutoReply: true,
           mediaType: 1,
           sourceUrl: 'https://whatsapp.com'
@@ -88,15 +81,15 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
   }
 };
 
-// Comando .setwel para configurar la bienvenida manualmente
-handler.command = ['setwel'];
-handler.help = ['setwel <mensaje> <link_imagen>'];
+// Registrar el comando .setwel para configurar el mensaje manual
+handler.command = ['setwel']; // Este es el comando
+handler.help = ['setwel <mensaje> <link_imagen>']; // Instrucciones
 handler.tags = ['owner'];
 handler.owner = true;
 handler.group = true;
 handler.botAdmin = true;
 
-handler.handler = async (m, { conn, text, command }) => {
+handler.handler = async (m, { conn, text }) => {
   if (!text) {
     return conn.reply(m.chat, '¡Por favor, ingresa el mensaje de bienvenida y el link de la imagen!', m);
   }
@@ -107,32 +100,19 @@ handler.handler = async (m, { conn, text, command }) => {
     return conn.reply(m.chat, '¡Debes proporcionar tanto el mensaje como el enlace de la imagen!', m);
   }
 
-  // Guardar el mensaje de bienvenida y el enlace de la imagen en el grupo
+  // Guardar el mensaje y la imagen en la base de datos del chat
   global.db.data.chats[m.chat].sWelcome = message;
   global.db.data.chats[m.chat].sImage = linkImagen;
 
-  // Desactivar la bienvenida automática en este grupo
+  // Desactivar la bienvenida automática para este grupo
   global.db.data.chats[m.chat].welcomeEnabled = false;
 
   // Enviar confirmación al chat
   conn.reply(m.chat, `La bienvenida para este grupo se ha configurado correctamente con el mensaje: "${message}" y la imagen: ${linkImagen}. La bienvenida automática ha sido desactivada.`, m);
 };
 
-// Comando .resetwel para restaurar la bienvenida automática
+// Comando para restaurar la bienvenida automática
 handler.command = ['resetwel'];
 handler.help = ['resetwel'];
 handler.tags = ['owner'];
-handler.owner = true;
-handler.group = true;
-handler.botAdmin = true;
-
-handler.resetHandler = async (m, { conn }) => {
-  // Restaurar la bienvenida automática y eliminar la configuración manual
-  global.db.data.chats[m.chat].sWelcome = null;
-  global.db.data.chats[m.chat].sImage = null;
-  global.db.data.chats[m.chat].welcomeEnabled = true;
-
-  conn.reply(m.chat, 'La bienvenida automática ha sido restaurada y la configuración manual ha sido eliminada.', m);
-};
-
-export default handler;
+handler.owner = true
