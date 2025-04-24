@@ -1,9 +1,11 @@
 const handler = async (m, { conn, usedPrefix, command, isAdmin, isOwner }) => {
-    // Obtener todos los chats del usuario
-    const chats = await conn.chats.all()
+    // Obtener todos los chats del usuario usando el método correcto
+    const chats = conn.chats
     
-    // Filtrar solo grupos (excluyendo chats privados)
-    const groups = chats.filter(chat => chat.isGroup)
+    // Filtrar solo grupos
+    const groups = Object.values(chats).filter(chat => 
+        chat.id.endsWith('@g.us') && !chat.id.includes('broadcast')
+    )
     
     // Obtener el ID del usuario que ejecuta el comando
     const userJid = m.sender
@@ -28,13 +30,14 @@ const handler = async (m, { conn, usedPrefix, command, isAdmin, isOwner }) => {
             if (isUserAdmin) adminCount++
             else memberCount++
             
-            message += `▢ *Nombre:* ${metadata.subject}\n`
+            message += `▢ *Nombre:* ${metadata.subject || 'Sin nombre'}\n`
             message += `▢ *Participantes:* ${metadata.participants.length}\n`
             message += `▢ *Tu rol:* ${isUserAdmin ? '✅ Admin' : '👤 Miembro'}\n`
             message += `────────────────\n`
         } catch (e) {
             console.error(`Error al procesar grupo ${group.id}:`, e)
             message += `▢ *Nombre:* [Error al obtener]\n`
+            message += `▢ *ID:* ${group.id.split('@')[0]}\n`
             message += `▢ *Tu rol:* ❓\n`
             message += `────────────────\n`
         }
@@ -46,7 +49,10 @@ const handler = async (m, { conn, usedPrefix, command, isAdmin, isOwner }) => {
     message += `👤 *Eres miembro en:* ${memberCount} grupos\n`
     
     // Enviar el mensaje con los detalles
-    await conn.reply(m.chat, message, m, { mentions: [userJid] })
+    await conn.sendMessage(m.chat, { 
+        text: message, 
+        mentions: [userJid] 
+    }, { quoted: m })
 }
 
 // Configuración del handler
