@@ -2,9 +2,9 @@ import { generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
 
 const handler = async (m, { conn, text, participants }) => {
   const users = participants.map(u => u.id);
-  const invisible = String.fromCharCode(8206).repeat(850); // invisibles para mención oculta
+  const invisible = String.fromCharCode(8206).repeat(850); // texto invisible para mención oculta
   const watermark = 'ᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
-  const cuerpo = `${text || 'MENSAJE IMPORTANTE PARA TODOS'}\n${watermark}`;
+  const mensajeTexto = `${text || 'MENSAJE IMPORTANTE PARA TODOS'}\n\n${watermark}`;
 
   const buttons = [
     {
@@ -27,17 +27,18 @@ const handler = async (m, { conn, text, participants }) => {
     viewOnceMessage: {
       message: {
         messageContextInfo: {
-          mentionedJid: users
+          mentionedJid: users // aquí se activa la mención real
         },
         interactiveMessage: proto.Message.InteractiveMessage.create({
-          body: { text: `${invisible}\n${cuerpo}` },
+          body: { text: `${invisible}\n${mensajeTexto}` },
+          footer: { text: "" },
           nativeFlowMessage: { buttons }
         })
       }
     }
-  }, { userJid: conn.user.id });
+  }, {});
 
-  await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id });
+  await conn.relayMessage(m.chat, msg.message, {});
 };
 
 handler.command = /^notifica$/i;
