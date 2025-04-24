@@ -1,52 +1,50 @@
-const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) => {
-  let chat = global.db.data.chats[m.chat];
-  let emoji = chat.emojiTag || '┃';
-
+const handler = async (m, {isOwner, isAdmin, conn, text, participants, args}) => {
+  let chat = global.db.data.chats[m.chat],
+      emoji = chat.emojiTag || '┃';
+  
   if (!(isAdmin || isOwner)) {
     global.dfail('admin', m, conn);
     throw false;
   }
 
-  const mensajePersonalizado = args.join` `;
-  const groupMetadata = await conn.groupMetadata(m.chat);
-  const groupName = groupMetadata.subject;
-
+  const pesan = args.join` `,
+        groupMetadata = await conn.groupMetadata(m.chat),
+        groupName = groupMetadata.subject;
+  
   const countryFlags = {
-    '33': '🇫🇷', '63': '🇵🇭', '599': '🇧🇶', '52': '🇲🇽', '57': '🇨🇴',
-    '54': '🇦🇷', '34': '🇪🇸', '55': '🇧🇷', '1': '🇺🇸', '44': '🇬🇧',
-    '91': '🇮🇳', '502': '🇬🇹', '56': '🇨🇱', '51': '🇵🇪', '58': '🇻🇪',
-    '505': '🇳🇮', '593': '🇪🇨', '504': '🇭🇳', '591': '🇧🇴', '53': '🇨🇺',
+    '33': '🇫🇷', '63': '🇵🇭', '599': '🇧🇶', '52': '🇲🇽', '57': '🇨🇴', 
+    '54': '🇦🇷', '34': '🇪🇸', '55': '🇧🇷', '1': '🇺🇸', '44': '🇬🇧', 
+    '91': '🇮🇳', '502': '🇬🇹', '56': '🇨🇱', '51': '🇵🇪', '58': '🇻🇪', 
+    '505': '🇳🇮', '593': '🇪🇨', '504': '🇭🇳', '591': '🇧🇴', '53': '🇨🇺', 
     '503': '🇸🇻', '507': '🇵🇦', '595': '🇵🇾'
   };
-
+  
   const getCountryFlag = (id) => {
     const phoneNumber = id.split('@')[0];
-    let prefix = phoneNumber.slice(0, 3);
+    let phonePrefix = phoneNumber.slice(0, 3);
     if (phoneNumber.startsWith('1')) return '🇺🇸';
-    if (!countryFlags[prefix]) prefix = phoneNumber.slice(0, 2);
-    return countryFlags[prefix] || '🏳️‍🌈';
+    if (!countryFlags[phonePrefix]) phonePrefix = phoneNumber.slice(0, 2);
+    return countryFlags[phonePrefix] || '🏳️‍🌈';
   };
 
-  let texto = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂\n\n*${groupName}*\n👤 INTEGRANTES: *${participants.length}*\n${mensajePersonalizado}\n`;
+  let teks = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂\n\n*${groupName}*\n👤 𝙄𝙉𝙏𝙀𝙂𝙍𝘼𝙉𝙏𝙀𝙎: *${participants.length}*\n${pesan}\n`;
 
-  // Solo mostramos los primeros 5 miembros
-  const maxMentions = 5;
-  let mentionsList = participants.slice(0, maxMentions).map(p => `${emoji} ${getCountryFlag(p.id)} @${p.id.split('@')[0]}`).join('  ');
+  // Mostrar solo los primeros 15 participantes
+  const maxVisible = 15;
+  const visibleParticipants = participants.slice(0, maxVisible);
 
-  // Agregar "ver más" al final si hay más de 5 participantes
-  if (participants.length > maxMentions) {
-    mentionsList += `\n\n*Ver más...*`;
+  for (const mem of visibleParticipants) {
+    teks += `${emoji} ${getCountryFlag(mem.id)} @${mem.id.split('@')[0]}\n`;
   }
 
-  texto += mentionsList;
+  // Si hay más participantes, agregar "ver más"
+  if (participants.length > maxVisible) {
+    teks += `\nY ${participants.length - maxVisible} más... para ver todos, consulte el grupo.\n`;
+  }
 
-  texto += `\n\n*╰━* 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝙊𝘽𝘼𝙇\n▌│█║▌║▌║║▌║▌║▌║█`;
+  teks += `\n*╰━* 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝙊𝘽𝘼𝙇\n▌│█║▌║▌║║▌║▌║▌║█`;
 
-  // Enviar el mensaje
-  await conn.sendMessage(m.chat, {
-    text: texto,
-    mentions: participants.map(p => p.id) // Etiquetar a todos
-  });
+  await conn.sendMessage(m.chat, { text: teks, mentions: participants.map((a) => a.id) });
 };
 
 handler.help = ['todos'];
