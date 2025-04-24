@@ -103,8 +103,8 @@ let handler = async (m, { conn }) => {
             parejasActuales.push(nuevaPareja);
             parejasConfirmadas.set(groupId, parejasActuales);
 
-            const nombre1 = await conn.getName(tag);
-            const nombre2 = await conn.getName(proponente);
+            const nombre1 = await getNameOrDefault(tag, conn);
+            const nombre2 = await getNameOrDefault(proponente, conn);
 
             const buttons = [{
                 name: "quick_reply",
@@ -140,7 +140,7 @@ let handler = async (m, { conn }) => {
             await conn.relayMessage(m.chat, mensaje.message, {});
         } else {
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\n💔 *Rechazo*\n\n💫 "El amor es como una mariposa, si lo persigues, te eludirá"\n\n${await conn.getName(tag)} rechazó tu propuesta de amor.\n\n✨ No te rindas, el amor verdadero te espera.\n┛`,
+                text: `┏━━━━━━━━━━━━━━━━┓\n💔 *Rechazo*\n\n💫 "El amor es como una mariposa, si lo persigues, te eludirá"\n\n${await getNameOrDefault(tag, conn)} rechazó tu propuesta de amor.\n\n✨ No te rindas, el amor verdadero te espera.\n┛`,
                 mentions: [proponente]
             });
         }
@@ -171,8 +171,8 @@ let handler = async (m, { conn }) => {
             return;
         }
 
-        const nombreRemitente = await conn.getName(m.sender);
-        const nombreMencionado = await conn.getName(mentionedJid);
+        const nombreRemitente = await getNameOrDefault(m.sender, conn);
+        const nombreMencionado = await getNameOrDefault(mentionedJid, conn);
 
         mensajesGrupos.set(groupId, {
             proponente: m.sender,
@@ -228,8 +228,8 @@ let handler = async (m, { conn }) => {
 
         let lista = `┏━━━━━━━━━━━━━━━━┓\n❣️ *Parejas del grupo*\n\n💫 "El amor es la única respuesta"\n\n`;
         for (const [p1, p2] of parejas) {
-            const nombre1 = await conn.getName(p1);
-            const nombre2 = await conn.getName(p2);
+            const nombre1 = await getNameOrDefault(p1, conn);
+            const nombre2 = await getNameOrDefault(p2, conn);
             lista += `✨ ${nombre1} 💕 ${nombre2}\n`;
         }
         lista += `\n┛`;
@@ -246,3 +246,13 @@ handler.command = new RegExp;
 handler.group = true;
 
 export default handler;
+
+// Función para obtener el nombre o devolver un valor predeterminado si no se puede obtener el nombre
+const getNameOrDefault = async (jid, conn) => {
+    try {
+        return await conn.getName(jid) || "Desconocido";
+    } catch (e) {
+        console.error(`Error al obtener nombre para ${jid}: ${e}`);
+        return "Desconocido";
+    }
+};
