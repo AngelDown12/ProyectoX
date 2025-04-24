@@ -1,59 +1,50 @@
-import fetch from 'node-fetch'
+import fetch from 'node-fetch';
 
+let handler = m => m;
 handler.before = async function (m, { conn, participants, groupMetadata }) {
-  if (!m.messageStubType || !m.isGroup) return
+  const FOTO_DEF = 'https://qu.ax/Lmiiu.jpg';
+  if (!m.isGroup || !m.messageStubType) return;
 
-  const FOTO_PREDETERMINADA = 'https://qu.ax/Lmiiu.jpg'
-  const chat = global.db.data.chats[m.chat]
-  const isWelcome = chat.welcome !== false
+  const chat = global.db.data.chats[m.chat] || {};
+  const userId = m.messageStubParameters?.[0];
+  if (!userId) return;
 
-  let userJid = m.messageStubParameters[0]
-  let userName = userJid.split('@')[0]
-  let subject = groupMetadata.subject
-  let descs = groupMetadata.desc || 'Sin descripción'
-  let pp = await conn.profilePictureUrl(userJid, 'image').catch(_ => chat.sWelcomeImg || FOTO_PREDETERMINADA)
+  let userTag = `@${userId.split('@')[0]}`;
+  let groupName = groupMetadata.subject;
+  let desc = groupMetadata.desc || '¡Nuevo integrante!';
 
-  let img = await (await fetch(pp)).buffer().catch(_ => null)
+  // Imagen personalizada o por defecto
+  let img = chat.customWelcome?.enabled ? chat.customWelcome.image : await conn.profilePictureUrl(userId, 'image').catch(_ => FOTO_DEF);
 
-  // MENSAJE DE BIENVENIDA
-  if (m.messageStubType == 27 && isWelcome) {
-    let mensaje = (chat.manualWel && chat.sWelcome) ? chat.sWelcome : `Bienvenido @${userName} a @group\n\n@desc`
-    mensaje = mensaje.replace(/@user/g, '@' + userName).replace(/@group/g, subject).replace(/@desc/g, descs)
+  // Mensaje personalizado o por defecto
+  let messageText = '';
+  let useCustom = chat.customWelcome?.enabled;
 
-    await conn.sendMessage(m.chat, {
-      text: mensaje,
-      contextInfo: {
-        mentionedJid: [userJid],
-        externalAdReply: {
-          showAdAttribution: true,
-          mediaType: 1,
-          renderLargerThumbnail: true,
-          thumbnailUrl: pp,
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋',
-          sourceUrl: 'https://whatsapp.com'
-        }
+  if (m.messageStubType === 27) { // WELCOME
+    messageText = useCustom
+      ? chat.customWelcome.message.replace(/@user/g, userTag).replace(/@group/g, groupName).replace(/@desc/g, desc)
+      : `👋 ¡Bienvenido ${userTag} a *${groupName}*!`;
+
+  } else if (m.messageStubType === 28) { // GOODBYE
+    messageText = useCustom
+      ? '👋' // No hay mensaje de despedida personalizado, puedes expandirlo si quieres.
+      : `👋 ${userTag} salió del grupo.`;
+
+  } else return;
+
+  await conn.sendMessage(m.chat, {
+    text: messageText,
+    contextInfo: {
+      mentionedJid: [userId],
+      externalAdReply: {
+        title: groupName,
+        thumbnailUrl: img,
+        sourceUrl: 'https://whatsapp.com',
+        mediaType: 1,
+        renderLargerThumbnail: true
       }
-    }, { quoted: m })
-  }
+    }
+  });
+};
 
-  // MENSAJE DE DESPEDIDA
-  if (m.messageStubType == 28 && isWelcome) {
-    let mensaje = (chat.manualWel && chat.sWelcome) ? chat.sBye || 'Adiós @user' : `Adiós @${userName}`
-    mensaje = mensaje.replace(/@user/g, '@' + userName).replace(/@group/g, subject)
-
-    await conn.sendMessage(m.chat, {
-      text: mensaje,
-      contextInfo: {
-        mentionedJid: [userJid],
-        externalAdReply: {
-          showAdAttribution: true,
-          mediaType: 1,
-          renderLargerThumbnail: true,
-          thumbnailUrl: pp,
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋',
-          sourceUrl: 'https://whatsapp.com'
-        }
-      }
-    }, { quoted: m })
-  }
-}
+export default handler;
