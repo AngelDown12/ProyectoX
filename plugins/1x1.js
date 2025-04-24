@@ -60,7 +60,6 @@ let handler = async (m, { conn }) => {
         const tag = m.sender;
         const mensajeGuardado = mensajesGrupos.get(groupId);
         const proponente = mensajeGuardado?.proponente;
-        const mencionado = mensajeGuardado?.mencionado;
 
         if (!proponente) return;
 
@@ -74,23 +73,7 @@ let handler = async (m, { conn }) => {
             return;
         }
 
-        if (mencionado && mencionado !== tag) {
-            await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\n❌ Esta propuesta no es para ti.\n┗━━━━━━━━━━━━━━━━┛`,
-                mentions: [tag]
-            });
-            return;
-        }
-
         if (tipo === 'aceptar') {
-            if (parejasConfirmadas.get(groupId)?.some(p => p.includes(tag))) {
-                await conn.sendMessage(m.chat, {
-                    text: `┏━━━━━━━━━━━━━━━━┓\nNo seas infiel, tú ya tienes pareja.\n┗━━━━━━━━━━━━━━━━┛`,
-                    mentions: [tag]
-                });
-                return;
-            }
-
             if (!parejasConfirmadas.has(groupId)) {
                 parejasConfirmadas.set(groupId, []);
             }
@@ -127,8 +110,8 @@ let handler = async (m, { conn }) => {
                             mentionedJid: nuevaPareja
                         },
                         interactiveMessage: proto.Message.InteractiveMessage.create({
-                            body: { text: `┏━━━━━━━━━━━━━━━━┓\n🎉 *¡Felicidades!*\n\n💕 "El amor no tiene edad, siempre está naciendo"\n\nAhora ${nombre1} y ${nombre2} son novios.\n\n✨ Que el amor los acompañe siempre.\n┗━━━━━━━━━━━━━━━━┛` },
-                            footer: { text: "💫 Elige con el corazón" },
+                            body: { text: `┏━━━━━━━━━━━━━━━━┓\n🥊 *¡Uuy esto se pondrá bueno!*\n\n${nombre1} y ${nombre2} aceptaron el reto.\n\n¿Quién pone sala?\n\n${propuesto.replace(/@s\\.whatsapp\\.net$/, '')} 🆚 ${proponente.replace(/@s\\.whatsapp\\.net$/, '')}\n┗━━━━━━━━━━━━━━━━┛` },
+                            footer: { text: "💫 Prepárense para el duelo" },
                             nativeFlowMessage: { buttons }
                         })
                     }
@@ -149,7 +132,6 @@ let handler = async (m, { conn }) => {
 
     if (msgText?.startsWith('.1vs1')) {
         const nombreRemitente = await conn.getName(m.sender);
-        const mencionado = m.mentionedJid?.[0];
 
         if (parejasConfirmadas.get(groupId)?.some(par => par.includes(m.sender))) {
             await conn.sendMessage(m.chat, {
@@ -160,8 +142,7 @@ let handler = async (m, { conn }) => {
         }
 
         mensajesGrupos.set(groupId, {
-            proponente: m.sender,
-            mencionado
+            proponente: m.sender
         });
 
         const buttons = [
@@ -181,19 +162,14 @@ let handler = async (m, { conn }) => {
             }
         ];
 
-        const texto = mencionado
-            ? `🔥 Modo Insano Activado 🔥\n\n¿@${mencionado.split("@")[0]} aceptas este 1vs1?\n───────────────\n${nombreRemitente} lanzó un reto.\n\nSelecciona una opción:`
-            : `🔥 Modo Insano Activado 🔥\n\n¿Quién se rifa un PVP conmigo?\n───────────────\n¡Vamos a darnos en la madre sin miedo! 👿\n\n${nombreRemitente} lanzó un reto.\n\nSelecciona una opción:`;
-
         const mensaje = generateWAMessageFromContent(m.chat, {
             viewOnceMessage: {
                 message: {
                     messageContextInfo: {
-                        deviceListMetadata: {},
-                        mentionedJid: mencionado ? [mencionado] : []
+                        deviceListMetadata: {}
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: texto },
+                        body: { text: `🔥 Modo Insano Activado 🔥\n\n¿Quién se rifa un PVP conmigo?\n───────────────\n¡Vamos a darnos en la madre sin miedo! 👿\n\n${nombreRemitente} lanzó un reto.\n\nSelecciona una opción:` },
                         footer: { text: "💥 Elige tu destino" },
                         nativeFlowMessage: { buttons }
                     })
