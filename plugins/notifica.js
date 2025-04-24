@@ -1,15 +1,9 @@
 let handler = async (m, { conn, text, participants }) => {
   const users = participants.map(u => u.id);
-  const invisibleChar = String.fromCharCode(8206); // \u200E
-  const invisibleMention = invisibleChar.repeat(850); // Oculta el contenido expandido
+  const invisibleChar = String.fromCharCode(8206);
+  const hiddenMention = invisibleChar.repeat(850); // Oculta mención
 
-  const message = `🔥 *MENSAJE DEL ADMIN* 🔥
-
-${text || 'MENSAJE IMPORTANTE PARA TODOS'}
-
-${invisibleMention}
-
-ᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ`;
+  const mensaje = `${text || 'MENSAJE IMPORTANTE PARA TODOS'}\n\n${hiddenMention}\nᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ`;
 
   const buttons = [
     { buttonId: 'notifica_mencion', buttonText: { displayText: 'MENCIÓN 👤' }, type: 1 },
@@ -17,10 +11,10 @@ ${invisibleMention}
   ];
 
   await conn.sendMessage(m.chat, {
-    text: message,
+    text: mensaje,
     mentions: users,
-    buttons: buttons,
-    footer: '',
+    buttons,
+    footer: null,
     headerType: 1
   }, { quoted: m });
 };
