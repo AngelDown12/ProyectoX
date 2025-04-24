@@ -60,6 +60,7 @@ let handler = async (m, { conn }) => {
         const tag = m.sender;
         const mensajeGuardado = mensajesGrupos.get(groupId);
         const proponente = mensajeGuardado?.proponente;
+        const mencionado = mensajeGuardado?.mencionado;
 
         if (!proponente) return;
 
@@ -73,7 +74,23 @@ let handler = async (m, { conn }) => {
             return;
         }
 
+        if (mencionado && mencionado !== tag) {
+            await conn.sendMessage(m.chat, {
+                text: `┏━━━━━━━━━━━━━━━━┓\n❌ Esta propuesta no es para ti.\n┗━━━━━━━━━━━━━━━━┛`,
+                mentions: [tag]
+            });
+            return;
+        }
+
         if (tipo === 'aceptar') {
+            if (parejasConfirmadas.get(groupId)?.some(p => p.includes(tag))) {
+                await conn.sendMessage(m.chat, {
+                    text: `┏━━━━━━━━━━━━━━━━┓\nNo seas infiel, tú ya tienes pareja.\n┗━━━━━━━━━━━━━━━━┛`,
+                    mentions: [tag]
+                });
+                return;
+            }
+
             if (!parejasConfirmadas.has(groupId)) {
                 parejasConfirmadas.set(groupId, []);
             }
@@ -132,6 +149,7 @@ let handler = async (m, { conn }) => {
 
     if (msgText?.startsWith('.1vs1')) {
         const nombreRemitente = await conn.getName(m.sender);
+        const mencionado = m.mentionedJid?.[0];
 
         if (parejasConfirmadas.get(groupId)?.some(par => par.includes(m.sender))) {
             await conn.sendMessage(m.chat, {
@@ -142,7 +160,8 @@ let handler = async (m, { conn }) => {
         }
 
         mensajesGrupos.set(groupId, {
-            proponente: m.sender
+            proponente: m.sender,
+            mencionado
         });
 
         const buttons = [
@@ -162,14 +181,19 @@ let handler = async (m, { conn }) => {
             }
         ];
 
+        const texto = mencionado
+            ? `🔥 Modo Insano Activado 🔥\n\n¿@${mencionado.split("@")[0]} aceptas este 1vs1?\n───────────────\n${nombreRemitente} lanzó un reto.\n\nSelecciona una opción:`
+            : `🔥 Modo Insano Activado 🔥\n\n¿Quién se rifa un PVP conmigo?\n───────────────\n¡Vamos a darnos en la madre sin miedo! 👿\n\n${nombreRemitente} lanzó un reto.\n\nSelecciona una opción:`;
+
         const mensaje = generateWAMessageFromContent(m.chat, {
             viewOnceMessage: {
                 message: {
                     messageContextInfo: {
-                        deviceListMetadata: {}
+                        deviceListMetadata: {},
+                        mentionedJid: mencionado ? [mencionado] : []
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `🔥 Modo Insano Activado 🔥\n\n¿Quién se rifa un PVP conmigo?\n───────────────\n¡Vamos a darnos en la madre sin miedo! 👿\n\n${nombreRemitente} lanzó un reto.\n\nSelecciona una opción:` },
+                        body: { text: texto },
                         footer: { text: "💥 Elige tu destino" },
                         nativeFlowMessage: { buttons }
                     })
