@@ -1,114 +1,70 @@
 let handler = m => m
 
-// Función para manejar el comando .setwel
+// 1. Comando para configurar la bienvenida (SOLO ADMINS)
 handler.command = /^setwel$/i
-handler.admin = true // Solo admins pueden usarlo
-handler.group = true // Solo en grupos
-handler.before = async function (m, { conn, text, isAdmin, isOwner }) {
-  if (!m.quoted || !text) return m.reply('✳️ *Uso correcto:*\n.setwel [texto] [link de imagen]\n\nEjemplo:\n.setwel ¡Bienvenido @user al grupo @group! https://ejemplo.com/foto.jpg')
+handler.admin = true
+handler.group = true
+handler.before = async function (m, { conn, args, isAdmin, isOwner }) {
+  if (!isAdmin && !isOwner) return m.reply('⚠️ Solo los admins pueden usar este comando.')
   
-  let [welcomeText, imageUrl] = text.split(' ')
-  if (!welcomeText) return m.reply('🔹 *Debes incluir un mensaje de bienvenida.*')
-  
+  let text = args.join(' ') // Une todo el texto después de .setwel
+  if (!text) return m.reply('✳️ *Uso correcto:*\n.setwel [texto] [link de imagen opcional]\n\nEjemplo:\n.setwel ¡Hola @user! Bienvenido a @group 🎉\n.setwel ¡Bienvenido! https://example.com/foto.jpg')
+
+  // Separa el texto y el link de la imagen (si existe)
+  let [welcomeText, imageUrl] = text.split(/(https?:\/\/[^\s]+)/g)
+  if (!welcomeText.trim()) return m.reply('🔹 ¡Debes escribir un mensaje de bienvenida!')
+
   // Guardar en la base de datos
+  if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {} // Asegurar que exista
   let chat = global.db.data.chats[m.chat]
-  chat.sWelcome = welcomeText
-  chat.welcomeImage = imageUrl || chat.welcomeImage || 'https://qu.ax/Lmiiu.jpg' // Si no hay imagen, usa la predeterminada
+  chat.sWelcome = welcomeText.trim()
+  if (imageUrl) chat.welcomeImage = imageUrl.trim() // Si se proporciona link, lo guarda
   
-  m.reply('✅ *Mensaje de bienvenida actualizado correctamente.*')
+  m.reply('✅ *Mensaje de bienvenida actualizado correctamente.*\n' + 
+          `📝 *Texto:* ${welcomeText}\n` + 
+          (imageUrl ? `🖼️ *Imagen:* ${imageUrl}` : '🖼️ *Imagen:* Predeterminada'))
 }
 
-handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin }) {
+// 2. Lógica de bienvenidas automáticas (como antes)
+handler.before = async function (m, { conn, participants, groupMetadata }) {
   if (!m.messageStubType || !m.isGroup) return
 
-  // Usar imagen personalizada o predeterminada
   let chat = global.db.data.chats[m.chat]
+  if (!chat.welcome) return // Si no está activado, no hace nada
+
+  // Usa imagen personalizada o predeterminada
   const FOTO_PREDETERMINADA = chat.welcomeImage || 'https://qu.ax/Lmiiu.jpg'
-  
   let pp
   try {
     pp = await conn.profilePictureUrl(m.messageStubParameters[0], 'image').catch(_ => FOTO_PREDETERMINADA)
   } catch {
     pp = FOTO_PREDETERMINADA
   }
-  
-  let img = await (await fetch(pp)).buffer().catch(_ => null)
-  let usuario = `@${m.sender.split`@`[0]}`
-  let users = participants.map(u => conn.decodeJid(u.id))
-  
-  // Mensaje de BIENVENIDA (messageStubType: 27)
-  if (chat.welcome && m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
-    let subject = groupMetadata.subject
-    let descs = groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟"
-    let userName = `${m.messageStubParameters[0].split`@`[0]}`
-    let defaultWelcome = `*╔══════════════*
-*╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
-*╠══════════════*
-*╟*🛡️ *${subject}*
-*╟*👤 *@${userName}*
-*╟* 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗖𝗜𝗢́𝗡 
 
-${descs}
+  // Mensaje de BIENVENIDA (type 27)
+  if (m.messageStubType == 27) {
+    let userName = `@${m.messageStubParameters[0].split('@')[0]}`
+    let groupName = groupMetadata.subject
+    let groupDesc = groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟"
 
-*╟* ¡🇼‌🇪‌🇱‌🇨‌🇴‌🇲‌🇪!
-*╚══════════════*`
+    let textWel = chat.sWelcome ? 
+      chat.sWelcome
+        .replace(/@user/g, userName)
+        .replace(/@group/g, groupName)
+        .replace(/@desc/g, groupDesc)
+      : `╔══════════════\n╟ 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔\n╠══════════════\n╟ 🛡️ *${groupName}*\n╟ 👤 *${userName}*\n╟ ${groupDesc}\n╚══════════════`
 
-    let textWel = chat.sWelcome ? chat.sWelcome
-      .replace(/@user/g, `@${userName}`)
-      .replace(/@group/g, subject) 
-      .replace(/@desc/g, descs)
-      : defaultWelcome
-      
-    await this.sendMessage(m.chat, { 
-      text: textWel, 
+    await conn.sendMessage(m.chat, {
+      text: textWel,
+      mentions: [m.sender, m.messageStubParameters[0]],
       contextInfo: {
-        forwardingScore: 9999999,
-        isForwarded: true, 
-        mentionedJid: [m.sender, m.messageStubParameters[0]],
         externalAdReply: {
-          showAdAttribution: true,
-          renderLargerThumbnail: true,
-          thumbnailUrl: pp, 
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
-          containsAutoReply: true,
-          mediaType: 1, 
+          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆� 𝔾𝕃𝕆�𝔸�',
+          thumbnailUrl: pp,
           sourceUrl: 'https://whatsapp.com'
         }
       }
-    }, { quoted: fkontak })
-  }
-  
-  // Mensaje de DESPEDIDA (messageStubType: 28)
-  else if (chat.welcome && m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
-    let subject = groupMetadata.subject
-    let userName = `${m.messageStubParameters[0].split`@`[0]}`
-    let defaultBye = `*╔══════════════*
-*╟* *SE FUE UNA BASURA*
-*╟👤 @${userName}* 
-*╚══════════════* `
-
-    let textBye = chat.sBye ? chat.sBye
-      .replace(/@user/g, `@${userName}`)
-      .replace(/@group/g, subject)
-      : defaultBye
-    
-    await this.sendMessage(m.chat, { 
-      text: textBye, 
-      contextInfo: {
-        forwardingScore: 9999999,
-        isForwarded: true, 
-        mentionedJid: [m.sender, m.messageStubParameters[0]],
-        externalAdReply: {
-          showAdAttribution: true,
-          renderLargerThumbnail: true,
-          thumbnailUrl: pp, 
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃 ',
-          containsAutoReply: true,
-          mediaType: 1, 
-          sourceUrl: 'https://whatsapp.com'
-        }
-      }
-    }, { quoted: fkontak })
+    }, { quoted: m })
   }
 }
 
