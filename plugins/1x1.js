@@ -3,6 +3,7 @@ const { generateWAMessageFromContent, proto } = pkg;
 
 let handler = async (m, { conn }) => {
     const msgText = m.text?.toLowerCase();
+    const groupId = m.chat;
     const response =
         m.message?.buttonsResponseMessage?.selectedButtonId ||
         m.message?.interactiveResponseMessage?.nativeFlowResponseButtonResponse?.id ||
@@ -17,12 +18,13 @@ let handler = async (m, { conn }) => {
     }
 
     if (msgText?.startsWith('.1vs1')) {
+        // El mensaje que contiene los botones de aceptación y rechazo
         const buttons = [
             {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
                     display_text: "ACEPTO",
-                    id: `acepto|${m.sender}` // Incluye el ID del remitente al presionar "ACEPTO"
+                    id: `acepto|${m.sender}` // Se agrega el ID del remitente al aceptar
                 })
             },
             {
@@ -53,19 +55,19 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    if (response.startsWith('acepto')) {
-        const [, retadorId] = response.split('|'); // Extraemos el ID del retador desde el botón
+    // Reacción al botón "ACEPTO" que incluye el ID del retador
+    if (response.startsWith('acepto|')) {
+        const [, retadorId] = response.split('|'); // Extraemos el ID del retador
 
-        // Validación de que el ID del retador sea válido
+        // Validación para verificar si se recibe un ID de retador válido
         if (!retadorId) {
             console.error("Error: ID de retador inválido.");
             return;
         }
 
-        const nombre = await conn.getName(m.sender);
         const nombreRetador = await conn.getName(retadorId);
+        const nombre = await conn.getName(m.sender);
 
-        // Si no se puede obtener el nombre de alguno de los usuarios
         if (!nombre || !nombreRetador) {
             console.error("Error: No se pudieron obtener los nombres.");
             return;
@@ -109,6 +111,7 @@ let handler = async (m, { conn }) => {
         return;
     }
 
+    // Respuesta al botón "NEGADO"
     if (response === 'negado') {
         const nombre = await conn.getName(m.sender);
         await conn.sendMessage(m.chat, {
@@ -118,17 +121,18 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    if (response.startsWith('yomismo')) {
-        const [, r1, r2] = response.split('|');
+    // Reacción al botón "Yomismo"
+    if (response.startsWith('yomismo|')) {
+        const [, retadorId, retadorId2] = response.split('|');
         
         // Validación de que los identificadores sean válidos
-        if (!r1 || !r2) {
+        if (!retadorId || !retadorId2) {
             console.error("Error: Identificadores de jugadores inválidos.");
             return;
         }
 
-        const nombre1 = await conn.getName(r1);
-        const nombre2 = await conn.getName(r2);
+        const nombre1 = await conn.getName(retadorId);
+        const nombre2 = await conn.getName(retadorId2);
 
         if (!nombre1 || !nombre2) {
             console.error("Error: No se pudieron obtener los nombres de los jugadores.");
@@ -137,11 +141,12 @@ let handler = async (m, { conn }) => {
 
         await conn.sendMessage(m.chat, {
             text: `┏━━━━━━━━━━━━━━━━┓\nUy esto se pondrá bueno, estos dos panas ${nombre1} y ${nombre2} se van a dar en la madre.\n\n*Crea la sala y manda datos*`,
-            mentions: [r1, r2]
+            mentions: [retadorId, retadorId2]
         });
         return;
     }
 
+    // Respuesta al botón "Notengo"
     if (response === 'notengo') {
         await conn.sendMessage(m.chat, {
             text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobres. Ponte a lavar platos mejor.`
