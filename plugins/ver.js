@@ -1,55 +1,107 @@
-let handler = async (m, { conn, text, args, isROwner, isOwner }) => {
-  let fkontak = {
-    "key": {
-      "participants": "0@s.whatsapp.net",
-      "remoteJid": "status@broadcast",
-      "fromMe": false,
-      "id": "Halo"
-    },
-    "message": {
-      "contactMessage": {
-        "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
-      }
-    },
-    "participant": "0@s.whatsapp.net"
-  };
+let handler = m => m;
+handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin }) {
+  // Verifica si el mensaje es de un grupo y si contiene el tipo adecuado
+  if (!m.messageStubType || !m.isGroup) return;
 
-  // Verificamos que se haya proporcionado un enlace de imagen
-  if (args.length < 1) return m.reply(`Por favor, proporciona el enlace de la imagen para la bienvenida.\nEjemplo: .simularbienvenida <link_de_imagen>`);
+  // Foto predeterminada (reemplaza con tu URL si no se proporciona una imagen personalizada)
+  const FOTO_PREDETERMINADA = 'https://qu.ax/Lmiiu.jpg';
 
-  let imageUrl = args[0];  // El primer argumento es el enlace de la imagen
-
-  // Validamos que el enlace sea una imagen válida
-  if (!imageUrl.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/)) {
-    return m.reply('El enlace proporcionado no es una URL válida de imagen. Por favor, ingresa un enlace válido.');
+  // Obtener foto de perfil o usar predeterminada
+  let pp;
+  try {
+    pp = await conn.profilePictureUrl(m.messageStubParameters[0], 'image').catch(_ => FOTO_PREDETERMINADA);
+  } catch {
+    pp = FOTO_PREDETERMINADA;
   }
 
-  // Guardamos la URL de la imagen en la base de datos (si es necesario)
-  global.db.data.chats[m.chat].sWelcomeImage = imageUrl;
+  let img = await (await fetch(pp)).buffer().catch(_ => null);
+  let usuario = `@${m.sender.split`@`[0]}`;
+  let chat = global.db.data.chats[m.chat];
+  let users = participants.map(u => conn.decodeJid(u.id));
 
-  // Respuesta confirmando que se ha guardado la configuración de bienvenida
-  conn.reply(m.chat, `¡La imagen de bienvenida ha sido configurada correctamente! 🎉\nAhora, cada vez que un nuevo miembro ingrese al grupo, se les dará la bienvenida con la imagen proporcionada.`, fkontak, m);
+  // Mensaje de BIENVENIDA (messageStubType: 27)
+  if (chat.welcome && m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
+    let subject = groupMetadata.subject;
+    let descs = groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟";
+    let userName = `${m.messageStubParameters[0].split`@`[0]}`;
+    
+    let defaultWelcome = `*╔══════════════*
+*╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
+*╠══════════════*
+*╟*🛡️ *${subject}*
+*╟*👤 *@${userName}*
+*╟* 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗖𝗜Ó𝗡 
 
-  // Ahora, cuando un nuevo miembro ingrese, enviaremos el mensaje de bienvenida y la imagen.
-  conn.ev.on('group-participants-update', async (update) => {
-    if (update.action === 'add') {
-      let newMember = update.participants[0];
-      let welcomeMessage = `¡Bienvenid@ al grupo, @${newMember}! 🎉🎉\nDisfruta y participa activamente.`;
+${descs}
 
-      // Enviamos el mensaje de bienvenida con la etiqueta del nuevo miembro
-      await conn.sendMessage(update.id, {
-        text: welcomeMessage,
-        mentions: [newMember],
-      });
+*╟* ¡🇼‌🇪‌🇱‌🇨‌🇴‌🇲‌🇪!
+*╚══════════════*`;
 
-      // Enviamos la imagen de bienvenida configurada previamente
-      await conn.sendMessage(update.id, { image: { url: global.db.data.chats[m.chat].sWelcomeImage }, caption: welcomeMessage });
-    }
-  });
-};
+    let textWel = chat.sWelcome ? chat.sWelcome
+      .replace(/@user/g, `@${userName}`)
+      .replace(/@group/g, subject) 
+      .replace(/@desc/g, descs)
+      : defaultWelcome;
+    
+    // Verificamos si se ha configurado una imagen personalizada
+    let welcomeImageUrl = chat.sWelcomeImage || FOTO_PREDETERMINADA;
+    
+    // Enviamos el mensaje de bienvenida con la imagen
+    await this.sendMessage(m.chat, { 
+      text: textWel, 
+      contextInfo: {
+        forwardingScore: 9999999,
+        isForwarded: true, 
+        mentionedJid: [m.sender, m.messageStubParameters[0]],
+        externalAdReply: {
+          showAdAttribution: true,
+          renderLargerThumbnail: true,
+          thumbnailUrl: welcomeImageUrl,  // Usamos la URL configurada
+          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
+          containsAutoReply: true,
+          mediaType: 1, 
+          sourceUrl: 'https://whatsapp.com'
+        }
+      }
+    }, { quoted: fkontak });
+  }
 
-handler.command = ['simularbienvenida', 'setwelcome'];
-handler.botAdmin = true;
-handler.admin = true;
-handler.group = true;
+  // Mensaje de DESPEDIDA (messageStubType: 28)
+  else if (chat.welcome && m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
+    let subject = groupMetadata.subject;
+    let userName = `${m.messageStubParameters[0].split`@`[0]}`;
+    let defaultBye = `*╔══════════════*
+*╟* *SE FUE UNA BASURA*
+*╟👤 @${userName}* 
+*╚══════════════*`;
+
+    let textBye = chat.sBye ? chat.sBye
+      .replace(/@user/g, `@${userName}`)
+      .replace(/@group/g, subject)
+      : defaultBye;
+    
+    // Verificamos si se ha configurado una imagen personalizada para la despedida (si aplica)
+    let byeImageUrl = chat.sByeImage || FOTO_PREDETERMINADA;
+
+    // Enviamos el mensaje de despedida con la imagen
+    await this.sendMessage(m.chat, { 
+      text: textBye, 
+      contextInfo: {
+        forwardingScore: 9999999,
+        isForwarded: true, 
+        mentionedJid: [m.sender, m.messageStubParameters[0]],
+        externalAdReply: {
+          showAdAttribution: true,
+          renderLargerThumbnail: true,
+          thumbnailUrl: byeImageUrl,  // Usamos la URL configurada para la despedida
+          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃 ',
+          containsAutoReply: true,
+          mediaType: 1, 
+          sourceUrl: 'https://whatsapp.com'
+        }
+      }
+    }, { quoted: fkontak });
+  }
+}
+
 export default handler;
