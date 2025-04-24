@@ -1,63 +1,68 @@
-const handler = async (m, { conn, usedPrefix, command, isAdmin, isOwner }) => {
-    // Obtener todos los chats del usuario usando el método correcto
-    const chats = conn.chats
-    
-    // Filtrar solo grupos
-    const groups = Object.values(chats).filter(chat => 
-        chat.id.endsWith('@g.us') && !chat.id.includes('broadcast')
-    )
-    
+const handler = async (m, { conn, usedPrefix, command }) => {
     // Obtener el ID del usuario que ejecuta el comando
     const userJid = m.sender
     
-    // Preparar el mensaje
-    let message = `📋 *TUS GRUPOS* 📋\n\n`
-    message += `🔹 *Total de grupos:* ${groups.length}\n\n`
+    // Obtener todos los chats del bot (solo como medio para encontrar grupos)
+    const allChats = Object.values(conn.chats).filter(chat => 
+        chat.id.endsWith('@g.us') && !chat.id.includes('broadcast')
+    )
     
-    // Contadores
-    let adminCount = 0
-    let memberCount = 0
+    // Array para almacenar los grupos del usuario
+    const userGroups = []
     
-    // Procesar cada grupo para obtener detalles
-    for (const group of groups) {
+    // Buscar en qué grupos está el usuario
+    for (const group of allChats) {
         try {
-            // Obtener metadatos del grupo
             const metadata = await conn.groupMetadata(group.id)
-            // Verificar si el usuario es admin
-            const userParticipant = metadata.participants.find(p => p.id === userJid)
-            const isUserAdmin = userParticipant?.admin === 'admin' || userParticipant?.admin === 'superadmin'
-            
-            if (isUserAdmin) adminCount++
-            else memberCount++
-            
-            message += `▢ *Nombre:* ${metadata.subject || 'Sin nombre'}\n`
-            message += `▢ *Participantes:* ${metadata.participants.length}\n`
-            message += `▢ *Tu rol:* ${isUserAdmin ? '✅ Admin' : '👤 Miembro'}\n`
-            message += `────────────────\n`
+            // Verificar si el usuario está en este grupo
+            const userInGroup = metadata.participants.some(p => p.id === userJid)
+            if (userInGroup) {
+                userGroups.push({
+                    id: group.id,
+                    subject: metadata.subject,
+                    participants: metadata.participants,
+                    isAdmin: metadata.participants.find(p => p.id === userJid)?.admin === 'admin' || 
+                            metadata.participants.find(p => p.id === userJid)?.admin === 'superadmin'
+                })
+            }
         } catch (e) {
-            console.error(`Error al procesar grupo ${group.id}:`, e)
-            message += `▢ *Nombre:* [Error al obtener]\n`
-            message += `▢ *ID:* ${group.id.split('@')[0]}\n`
-            message += `▢ *Tu rol:* ❓\n`
-            message += `────────────────\n`
+            console.error(`Error al verificar grupo ${group.id}:`, e)
         }
     }
     
-    // Resumen estadístico
+    // Construir el mensaje de respuesta
+    let message = `📋 *TUS GRUPOS* 📋\n\n`
+    message += `🔹 *Total de grupos:* ${userGroups.length}\n\n`
+    
+    let adminCount = 0
+    let memberCount = 0
+    
+    // Mostrar cada grupo del usuario
+    userGroups.forEach((group, index) => {
+        const role = group.isAdmin ? '✅ Admin' : '👤 Miembro'
+        if (group.isAdmin) adminCount++
+        else memberCount++
+        
+        message += `▢ *Nombre:* ${group.subject || 'Sin nombre'}\n`
+        message += `▢ *Participantes:* ${group.participants.length}\n`
+        message += `▢ *Tu rol:* ${role}\n`
+        message += `${index < userGroups.length - 1 ? '────────────────\n' : ''}`
+    })
+    
+    // Resumen final
     message += `\n📊 *RESUMEN*\n`
     message += `✅ *Eres admin en:* ${adminCount} grupos\n`
     message += `👤 *Eres miembro en:* ${memberCount} grupos\n`
     
-    // Enviar el mensaje con los detalles
+    // Enviar el mensaje
     await conn.sendMessage(m.chat, { 
         text: message, 
         mentions: [userJid] 
     }, { quoted: m })
 }
 
-// Configuración del handler
 handler.help = ['misgrupos']
 handler.tags = ['grupos']
-handler.command = /^(misgrupos|grupos|listagrupos|misgrupos)$/i
+handler.command = /^(misgrupos|grupos|listagrupos)$/i
 
 export default handler
