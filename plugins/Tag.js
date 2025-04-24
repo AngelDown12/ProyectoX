@@ -1,4 +1,4 @@
-const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) => {
+const handler = async (m, { isOwner, isAdmin, conn, text, participants, args, command }) => {
     let chat = global.db.data.chats[m.chat], emoji = chat.emojiTag || '┃';
     if (!(isAdmin || isOwner)) {
         global.dfail('admin', m, conn);
@@ -23,28 +23,52 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) 
         return countryFlags[phonePrefix] || '🏳️‍🌈';
     };
 
-    // Base del mensaje (igual que tu versión original)
-    let teks = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂\n\n*${groupName}*\n👤 𝙄𝙉𝙏𝙀𝙂𝙍𝘼𝙉𝙏𝙀𝙎: *${participants.length}*\n${pesan}\n`;
+    // Si es el comando normal, mostrar primeros 10
+    if (!m.quoted) {
+        // Base del mensaje
+        let teks = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂\n\n*${groupName}*\n👤 𝙄𝙉𝙏𝙀𝙂𝙍𝘼𝙉𝙏𝙀𝙎: *${participants.length}*\n${pesan}\n`;
 
-    // Menciona solo los primeros 10 miembros
-    const primeros10 = participants.slice(0, 10);
-    for (const mem of primeros10) {
-        teks += `${emoji} ${getCountryFlag(mem.id)} @${mem.id.split('@')[0]}\n`;
+        // Menciona solo los primeros 10 miembros
+        const primeros10 = participants.slice(0, 10);
+        for (const mem of primeros10) {
+            teks += `${emoji} ${getCountryFlag(mem.id)} @${mem.id.split('@')[0]}\n`;
+        }
+
+        // Si hay más de 10, añade botón "Leer más..."
+        if (participants.length > 10) {
+            teks += `${emoji} ... *[Leer más]*\n`;
+            teks += `\n*Escribe* ${command} *de nuevo como respuesta a este mensaje para ver más*`;
+        }
+
+        // Pie del mensaje
+        teks += `\n*╰━* 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝙊𝘽𝘼𝙇\n▌│█║▌║▌║║▌║▌║▌║█`;
+
+        // Envía el mensaje (solo menciona a los 10 primeros)
+        await conn.sendMessage(m.chat, {
+            text: teks,
+            mentions: primeros10.map((a) => a.id)
+        });
+    } 
+    // Si es respuesta al mensaje con "Leer más", mostrar el resto
+    else if (m.quoted && m.quoted.text && m.quoted.text.includes('Leer más')) {
+        // Base del mensaje para los restantes
+        let teks = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂 (Continuación)\n\n*${groupName}*\n👤 𝙍𝙀𝙎𝙏𝘼𝙉𝙏𝙀𝙎: *${participants.length - 10}*\n${pesan}\n`;
+
+        // Menciona los miembros restantes (desde el 11 en adelante)
+        const restantes = participants.slice(10);
+        for (const mem of restantes) {
+            teks += `${emoji} ${getCountryFlag(mem.id)} @${mem.id.split('@')[0]}\n`;
+        }
+
+        // Pie del mensaje
+        teks += `\n*╰━* 𝙀𝙇𝙄𝙏𝙀 �𝙊𝙏 𝙂𝙇𝙊𝘽𝘼𝙇\n▌│█║▌║▌║║▌║▌║▌║█`;
+
+        // Envía el mensaje con los restantes
+        await conn.sendMessage(m.chat, {
+            text: teks,
+            mentions: restantes.map((a) => a.id)
+        });
     }
-
-    // Si hay más de 10, añade "Leer más..."
-    if (participants.length > 10) {
-        teks += `${emoji} ... *[Leer más]*\n`;
-    }
-
-    // Pie del mensaje (igual que tu versión original)
-    teks += `\n*╰━* 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝙊𝘽𝘼𝙇\n▌│█║▌║▌║║▌║▌║▌║█`;
-
-    // Envía el mensaje (solo menciona a los 10 primeros)
-    await conn.sendMessage(m.chat, {
-        text: teks,
-        mentions: primeros10.map((a) => a.id)
-    });
 };
 
 handler.help = ['todos'];
