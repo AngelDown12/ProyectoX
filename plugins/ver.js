@@ -42,7 +42,7 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
             showAdAttribution: true,
             renderLargerThumbnail: true,
             thumbnailUrl: imageUrl,
-            title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
+            title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝕃𝔸𝕃',
             containsAutoReply: true,
             mediaType: 1,
             sourceUrl: 'https://whatsapp.com'
@@ -78,7 +78,7 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
           showAdAttribution: true,
           renderLargerThumbnail: true,
           thumbnailUrl: imageUrl,
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃 ',
+          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝕃𝔸𝕃 ',
           containsAutoReply: true,
           mediaType: 1,
           sourceUrl: 'https://whatsapp.com'
@@ -114,6 +114,7 @@ handler.handler = async (m, { conn, text, command }) => {
   // Desactivar la bienvenida automática en este grupo
   global.db.data.chats[m.chat].welcomeEnabled = false;
 
+  // Enviar confirmación al chat
   conn.reply(m.chat, `La bienvenida para este grupo se ha configurado correctamente con el mensaje: "${message}" y la imagen: ${linkImagen}. La bienvenida automática ha sido desactivada.`, m);
 };
 
