@@ -67,125 +67,94 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    // Comando .1vs1
-    if (msgText === '.1vs1') {
-        try {
-            reiniciarListas(groupId);
-            const listas = getListasGrupo(groupId);
+    // Comando aceptar/rechazar
+    if (['aceptar', 'rechazar'].includes(response)) {
+        const tipo = response;
+        const tag = m.sender;
+        const mensajeGuardado = mensajesGrupos.get(groupId);
+        const proponente = mensajeGuardado?.proponente;
+        const propuesto = mensajeGuardado?.propuesto;
 
-            const buttons = [
-                {
-                    name: "quick_reply",
-                    buttonParamsJson: JSON.stringify({
-                        display_text: "Acepto",
-                        id: "acepto"
-                    })
-                },
-                {
-                    name: "quick_reply",
-                    buttonParamsJson: JSON.stringify({
-                        display_text: "Negado",
-                        id: "negado"
-                    })
-                }
-            ];
+        if (!proponente || tag !== propuesto) {
+            await conn.sendMessage(m.chat, {
+                text: `┏━━━━━━━━━━━━━━━━┓\n ESTA DECLARACIÓN NO ES PARA TI ... SAPO .l. \n┗━━━━━━━━━━━━━━━━┛`,
+                mentions: [tag]
+            });
+            return;
+        }
+
+        // Verificar que no se esté aceptando/rechazando a sí mismo
+        if (proponente === tag) {
+            await conn.sendMessage(m.chat, {
+                text: tipo === 'aceptar' ? 
+                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes aceptarte a ti mismo, eso sería muy triste.\n┗━━━━━━━━━━━━━━━━┛` : 
+                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes rechazarte a ti mismo, ¡date una oportunidad!\n┗━━━━━━━━━━━━━━━━┛`,
+                mentions: [tag]
+            });
+            return;
+        }
+
+        if (tipo === 'aceptar') {
+            if (!parejasConfirmadas.has(groupId)) {
+                parejasConfirmadas.set(groupId, []);
+            }
+            const nuevaPareja = [proponente, tag];
+            const parejasActuales = parejasConfirmadas.get(groupId);
+            parejasActuales.push(nuevaPareja);
+            parejasConfirmadas.set(groupId, parejasActuales);
+
+            const nombre1 = await conn.getName(tag);
+            const nombre2 = await conn.getName(proponente);
+
+            const buttons = [{
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "Terminar",
+                    id: "terminar"
+                })
+            },
+            {
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "Parejas",
+                    id: "parejas"
+                })
+            }];
 
             const mensaje = generateWAMessageFromContent(m.chat, {
                 viewOnceMessage: {
                     message: {
                         messageContextInfo: {
                             deviceListMetadata: {},
-                            mentionedJid: []
+                            mentionedJid: nuevaPareja
                         },
                         interactiveMessage: proto.Message.InteractiveMessage.create({
-                            body: { text: `🔥 Modo Insano Activado 🔥
-
-¿Quién se rifa un PVP conmigo? 
-───────────────
-¡Vamos a darnos en la madre sin miedo! 👿` },
-                            footer: { text: "Selecciona una opción:" },
+                            body: { text: `┏━━━━━━━━━━━━━━━━┓\n🎉 *¡Felicidades!*\n\n💕 "El amor no tiene edad, siempre está naciendo"\n\nAhora ${nombre1} y ${nombre2} son novios.\n\n✨ Que el amor los acompañe siempre.\n┗━━━━━━━━━━━━━━━━┛` },
+                            footer: { text: "💫 Elige con el corazón" },
                             nativeFlowMessage: { buttons }
                         })
                     }
                 }
             }, {});
 
-            await conn.relayMessage(m.chat, mensaje.message, { messageId: `1vs1-${Date.now()}` });
-            return;
-        } catch (error) {
-            console.error('Error en comando 1vs1:', error);
-            m.reply('❌ Ocurrió un error al procesar el comando');
-            return;
-        }
-    }
-
-    // Comando acepto/negado
-    if (['acepto', 'negado'].includes(response)) {
-        const tipo = response;
-        const tag = m.sender;
-        const listas = getListasGrupo(groupId);
-        const nombreUsuario = await conn.getName(tag);
-
-        if (tipo === 'acepto') {
-            await conn.sendMessage(m.chat, {
-                text: `UY ESTO SE PONDRA BUENO QUIEN PONE SALA`,
-                mentions: [tag]
-            });
+            await conn.relayMessage(m.chat, mensaje.message, {});
         } else {
             await conn.sendMessage(m.chat, {
-                text: `✅ @${nombreUsuario} agregado a Negado`,
-                mentions: [tag]
+                text: `┏━━━━━━━━━━━━━━━━┓\n💔 *Rechazo*\n\n💫 "El amor es como una mariposa, si lo persigues, te eludirá"\n\n${await conn.getName(tag)} rechazó tu propuesta de amor.\n\n✨ No te rindas, el amor verdadero te espera.\n┗━━━━━━━━━━━━━━━━┛`,
+                mentions: [proponente]
             });
         }
 
-        // Actualizar el mensaje con la nueva lista
-        const buttons = [
-            {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "Acepto",
-                    id: "acepto"
-                })
-            },
-            {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "Negado",
-                    id: "negado"
-                })
-            }
-        ];
-
-        const mensaje = generateWAMessageFromContent(m.chat, {
-            viewOnceMessage: {
-                message: {
-                    messageContextInfo: {
-                        deviceListMetadata: {},
-                        mentionedJid: [tag]
-                    },
-                    interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `🔥 Modo Insano Activado 🔥
-
-¿Quién se rifa un PVP conmigo? 
-───────────────
-¡Vamos a darnos en la madre sin miedo! 👿` },
-                        footer: { text: "Selecciona una opción:" },
-                        nativeFlowMessage: { buttons }
-                    })
-                }
-            }
-        }, {});
-
-        await conn.relayMessage(m.chat, mensaje.message, {});
+        mensajesGrupos.delete(groupId);
         return;
     }
 
-    // Comando .sernovios (antes .quieresserminovia)
-    if (msgText?.startsWith('.sernovios')) {
+    // Comando .1vs1
+    if (msgText?.startsWith('.1vs1')) {
         const mentionedJid = m.mentionedJid?.[0];
         if (!mentionedJid) {
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nDebes mencionar a alguien para declararte.\n\n💡 Ejemplo: .sernovios @usuario\n┗━━━━━━━━━━━━━━━━┛`
+                text: `┏━━━━━━━━━━━━━━━━┓\nDebes mencionar a alguien para el 1vs1.\n\n💡 Ejemplo: .1vs1 @usuario\n┗━━━━━━━━━━━━━━━━┛`
             });
             return;
         }
@@ -241,8 +210,8 @@ let handler = async (m, { conn }) => {
                         mentionedJid: [mentionedJid]
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `┏━━━━━━━━━━━━━━━━┓\n💌 *¡Declaración de amor!*\n\n💫 "El amor es la poesía de los sentidos"\n\n${nombreRemitente} se te está declarando ${nombreMencionado}\n\n✨ ¿Qué respondes?\n┗━━━━━━━━━━━━━━━━┛` },
-                        footer: { text: "💕 Elige con el corazón" },
+                        body: { text: `┏━━━━━━━━━━━━━━━━┓\n⚔️ *¡Desafío 1vs1!*\n\n💫 "La batalla está por comenzar"\n\n${nombreRemitente} te ha desafiado ${nombreMencionado}\n\n✨ ¿Aceptas el desafío?\n┗━━━━━━━━━━━━━━━━┛` },
+                        footer: { text: "⚔️ Elige tu destino" },
                         nativeFlowMessage: { buttons }
                     })
                 }
@@ -278,15 +247,8 @@ let handler = async (m, { conn }) => {
     }
 };
 
-handler.customPrefix = /^(acepto|negado|terminar|parejas|\.1vs1.*|\.sernovios.*)$/i;
-handler.help = ['1vs1'];
-handler.tags = ['juegos'];
-handler.command = ['1vs1'];
+handler.customPrefix = /^(aceptar|rechazar|terminar|parejas|\.1vs1.*)$/i;
+handler.command = new RegExp;
 handler.group = true;
-handler.limit = false;
-handler.premium = false;
-handler.register = false;
-handler.fail = null;
-handler.spam = false;
 
 export default handler;
