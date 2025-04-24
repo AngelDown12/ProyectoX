@@ -40,7 +40,7 @@ let handler = async (m, { conn, usedPrefix, args, participants })=> {
   console.log('SubbotsInfo: ', confirm)
 }
 
-handler.command = handler.help = ['listjadibot','bots','subsbots']
+handler.command = handler.help = ['sub','bots','subsbots']
 handler.tags = ['jadibot']
 
 handler.before = async function before (m, {conn}) {
