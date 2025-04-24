@@ -47,7 +47,7 @@ let handler = async (m, { conn }) => {
             });
         } else {
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre . Ponte a lavar platos mejor .\n┗━━━━━━━━━━━━━━━━┛`
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre . Ponte a lavar platos mejor .\n┛`
             });
         }
         return;
@@ -64,8 +64,8 @@ let handler = async (m, { conn }) => {
         if (proponente === tag) {
             await conn.sendMessage(m.chat, {
                 text: tipo === 'aceptar' ? 
-                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes aceptarte a ti mismo, eso sería muy triste.\n┗━━━━━━━━━━━━━━━━┛` : 
-                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes rechazarte a ti mismo, ¡date una oportunidad!\n┗━━━━━━━━━━━━━━━━┛`,
+                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes aceptarte a ti mismo, eso sería muy triste.\n┛` : 
+                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes rechazarte a ti mismo, ¡date una oportunidad!\n┛`,
                 mentions: [tag]
             });
             return;
@@ -118,8 +118,9 @@ let handler = async (m, { conn }) => {
 
             await conn.relayMessage(m.chat, mensaje.message, {});
         } else {
+            // Aquí se añade el mensaje cuando se selecciona 'negado'
             await conn.sendMessage(m.chat, {
-                text: `UY PANA SE TE NOTA EL MIEDO DE JUGARLE PVP A ${await conn.getName(tag)}.   VAYA A LAVAR PLATOS MANCOTE`,
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana, se nota el miedo de no jugarle a PVP a @user\n┛`,
                 mentions: [proponente]
             });
         }
@@ -175,7 +176,7 @@ let handler = async (m, { conn }) => {
         const parejas = parejasConfirmadas.get(groupId) || [];
         if (parejas.length === 0) {
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre . Ponte a lavar platos mejor .\n┗━━━━━━━━━━━━━━━━┛`
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre . Ponte a lavar platos mejor .\n┛`
             });
             return;
         }
