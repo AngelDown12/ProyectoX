@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 let handler = async (m, { text, conn }) => {
   // Detectar si el mensaje menciona al bot o usa comandos
   const isTagged = m.mentionedJid?.includes(conn.user.jid) || false;
-  const isCommand = /^[\.]?(bard|gemini)/i.test(m.text);
+  const isCommand = /^[\.]?(bot|gemini)/i.test(m.text);
   
   if (!isTagged && !isCommand) return;
 
