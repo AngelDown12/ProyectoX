@@ -1,53 +1,62 @@
 import { generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
 
 const handler = async (m, { conn, text, participants }) => {
-  try {
-    const users = participants.map(u => conn.decodeJid(u.id));
-    const invisible = String.fromCharCode(8206).repeat(850); // mención oculta
-    const watermark = 'ᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
+  const users = participants.map(u => conn.decodeJid(u.id));
+  const invisible = String.fromCharCode(8206).repeat(850);
+  const watermark = 'ᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
+  const messageText = (text || '').trim();
 
-    const messageText = (text || '').trim();
-    if (!messageText) return;
+  if (!messageText) return;
 
-    const fullMessage = `${invisible}${messageText}\n${watermark}`;
-
-    const buttons = [
-      {
-        name: "quick_reply",
-        buttonParamsJson: JSON.stringify({
-          display_text: "MENCIÓN 👤",
-          id: "boton_mencion"
-        })
-      },
-      {
-        name: "quick_reply",
-        buttonParamsJson: JSON.stringify({
-          display_text: "RECORDATORIO 📝",
-          id: "boton_recordatorio"
-        })
-      }
-    ];
-
-    const msg = generateWAMessageFromContent(m.chat, {
-      viewOnceMessage: {
-        message: {
-          messageContextInfo: {
-            mentionedJid: users
-          },
-          interactiveMessage: proto.Message.InteractiveMessage.create({
-            body: { text: fullMessage },
-            footer: { text: '' },
-            nativeFlowMessage: { buttons }
-          })
+  // 1. Enviar la notificación con mención oculta
+  const notifyMsg = generateWAMessageFromContent(m.chat, {
+    extendedTextMessage: {
+      text: `${invisible}${messageText}\n${watermark}`,
+      contextInfo: {
+        mentionedJid: users,
+        externalAdReply: {
+          title: '',
+          body: '',
+          thumbnailUrl: '',
+          sourceUrl: ''
         }
       }
-    }, {});
+    }
+  }, {});
 
-    await conn.relayMessage(m.chat, msg.message, {});
-  } catch (e) {
-    console.error(e);
-    m.reply('Ocurrió un error al enviar el mensaje.');
-  }
+  await conn.relayMessage(m.chat, notifyMsg.message, {});
+
+  // 2. Enviar los botones aparte (sin mención)
+  const buttons = [
+    {
+      name: "quick_reply",
+      buttonParamsJson: JSON.stringify({
+        display_text: "MENCIÓN 👤",
+        id: "boton_mencion"
+      })
+    },
+    {
+      name: "quick_reply",
+      buttonParamsJson: JSON.stringify({
+        display_text: "RECORDATORIO 📝",
+        id: "boton_recordatorio"
+      })
+    }
+  ];
+
+  const buttonsMsg = generateWAMessageFromContent(m.chat, {
+    viewOnceMessage: {
+      message: {
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: { text: "Selecciona una opción:" },
+          footer: { text: "Opciones rápidas" },
+          nativeFlowMessage: { buttons }
+        })
+      }
+    }
+  }, {});
+
+  await conn.relayMessage(m.chat, buttonsMsg.message, {});
 };
 
 handler.help = ['notifica'];
