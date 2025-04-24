@@ -35,17 +35,12 @@ let handler = async (m, { conn }) => {
     console.log('Response received:', response);
 
     if (response === 'terminar' || msgText === 'terminar') {
-        console.log('Executing terminar command...');
-        console.log('Current couples:', parejasConfirmadas.get(groupId));
-
         const parejas = parejasConfirmadas.get(groupId) || [];
         const pareja = parejas.find(p => p[0] === m.sender || p[1] === m.sender);
-        console.log('Found couple:', pareja);
 
         if (pareja) {
             const nuevasParejas = parejas.filter(p => p[0] !== m.sender && p[1] !== m.sender);
             parejasConfirmadas.set(groupId, nuevasParejas);
-            console.log('Updated couples list:', nuevasParejas);
 
             await conn.sendMessage(m.chat, {
                 text: `┏━━━━━━━━━━━━━━━━┓\n💔 *¡Ups!* La relación se terminó...\n\n✨ "El amor es como el viento, no puedes verlo pero puedes sentirlo"\n\n┗━━━━━━━━━━━━━━━━┛`,
@@ -128,7 +123,7 @@ let handler = async (m, { conn }) => {
                 }
             }, {});
 
-            await conn.relayMessage(m.chat, mensaje.message, {});
+            await conn.relayMessage(m.chat, mensaje.message, { messageId: mensaje.key.id });
         } else {
             await conn.sendMessage(m.chat, {
                 text: `┏━━━━━━━━━━━━━━━━┓\n💔 *Rechazo*\n\n💫 "El amor es como una mariposa, si lo persigues, te eludirá"\n\n${await conn.getName(tag)} rechazó tu propuesta de amor.\n\n✨ No te rindas, el amor verdadero te espera.\n┗━━━━━━━━━━━━━━━━┛`,
@@ -202,7 +197,7 @@ let handler = async (m, { conn }) => {
             }
         }, {});
 
-        await conn.relayMessage(m.chat, mensaje.message, {});
+        await conn.relayMessage(m.chat, mensaje.message, { messageId: mensaje.key.id });
         return;
     }
 
@@ -222,16 +217,3 @@ let handler = async (m, { conn }) => {
             lista += `✨ ${nombre1} 💕 ${nombre2}\n`;
         }
         lista += `\n┗━━━━━━━━━━━━━━━━┛`;
-
-        await conn.sendMessage(m.chat, {
-            text: lista.trim()
-        });
-        return;
-    }
-};
-
-handler.customPrefix = /^(aceptar|rechazar|terminar|parejas|\.1x1.*)$/i;
-handler.command = new RegExp;
-handler.group = true;
-
-export default handler;
