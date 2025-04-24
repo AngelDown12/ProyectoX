@@ -1,10 +1,11 @@
 let handler = m => m;
-handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin }) {
+handler.before = async function (m, { conn, participants, groupMetadata }) {
+  // Verifica si es un grupo y si se está agregando o eliminando un miembro
   if (!m.isGroup || !m.messageStubType) return;
 
   const FOTO_PREDETERMINADA = 'https://qu.ax/Lmiiu.jpg'; // Imagen predeterminada
 
-  // Intentar obtener la foto de perfil del usuario o usar la predeterminada si falla.
+  // Obtener la foto de perfil o usar la predeterminada
   let pp;
   try {
     pp = await conn.profilePictureUrl(m.messageStubParameters[0], 'image').catch(_ => FOTO_PREDETERMINADA);
@@ -14,7 +15,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
 
   let chat = global.db.data.chats[m.chat];
 
-  // Si la bienvenida está activada manualmente, no enviar la automática.
+  // Si hay un mensaje de bienvenida configurado, lo enviamos, de lo contrario, enviamos la automática
   if (chat.sWelcome && m.messageStubType == 27) {
     let subject = groupMetadata.subject;
     let userName = `${m.messageStubParameters[0].split('@')[0]}`;
@@ -43,10 +44,9 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
         }
       }
     });
-  }
-  
-  // Si la bienvenida no está activada, enviar la bienvenida automática
-  else if (m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
+
+  } else if (m.messageStubType == 27) {
+    // Si no hay bienvenida manual, se envía la automática
     let subject = groupMetadata.subject;
     let userName = `${m.messageStubParameters[0].split('@')[0]}`;
 
@@ -87,9 +87,9 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
       }
     });
   }
-
-  // Despedida
-  if (m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
+  
+  // Si el mensaje es de despedida, enviar mensaje
+  if (m.messageStubType == 28) {
     let subject = groupMetadata.subject;
     let userName = `${m.messageStubParameters[0].split('@')[0]}`;
     let textBye = chat.sBye ? chat.sBye
@@ -137,6 +137,7 @@ handler.handler = async (m, { conn, text }) => {
     return conn.reply(m.chat, '¡Debes proporcionar tanto el mensaje como el enlace de la imagen!', m);
   }
 
+  // Guardar mensaje y link de imagen
   global.db.data.chats[m.chat].sWelcome = message;
   global.db.data.chats[m.chat].sImage = linkImagen;
 
