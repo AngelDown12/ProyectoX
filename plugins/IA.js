@@ -2,9 +2,9 @@ import fetch from 'node-fetch';
 
 let handler = async (m, { text }) => {
   // Elimina "bard" o "gemini" del mensaje (incluyendo si lleva punto)
-  const query = m.text.replace(/^[\.]?(bard|gemini)\s*/i, '').trim();
+  const query = m.text.replace(/^[\.]?(bot|gemini)\s*/i, '').trim();
   
-  if (!query) throw `*📌 Ejemplos de uso:*\n\n- Con punto: .bard dime un chiste\n- Sin punto: gemini escribe un poema`;
+  if (!query) throw `¡Hola! ¿En qué te puedo ayudar? ♥️`;
 
   try {
     await m.react('🔄'); // Opcional: reacción de carga
@@ -21,9 +21,9 @@ let handler = async (m, { text }) => {
 };
 
 // Configuración IDÉNTICA a tu comando "estado"
-handler.customPrefix = /^(\.)?(bard|gemini)/i; // Detecta .bard, bard, .gemini, gemini
+handler.customPrefix = /^(\.)?(bot|gemini)/i; // Detecta .bard, bard, .gemini, gemini
 handler.command = new RegExp; // Patrón clave (igual que en tu código)
 handler.tags = ['ai'];
-handler.help = ['bard <texto>', 'gemini <texto>'];
+handler.help = ['bot <texto>', 'gemini <texto>'];
 
 export default handler;
