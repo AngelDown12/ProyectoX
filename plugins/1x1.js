@@ -5,7 +5,7 @@ let handler = async (m, { conn }) => {
     const msgText = m.text?.toLowerCase();
     const groupId = m.chat;
 
-    // Obtener la respuesta de los botones
+    // Obtener la respuesta de los botones (si es que no se me crashea el juego)
     const response =
         m.message?.buttonsResponseMessage?.selectedButtonId ||
         m.message?.interactiveResponseMessage?.nativeFlowResponseButtonResponse?.id ||
@@ -13,20 +13,20 @@ let handler = async (m, { conn }) => {
         m.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
         msgText || '';
 
-    // Flujo de comando .1vs1
+    // Flujo de comando .1vs1 (PA' QUE SE HUMILLEN)
     if (msgText?.startsWith('.1vs1')) {
         const buttons = [
             {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
-                    display_text: "ACEPTO",
+                    display_text: "ACEPTO (PA' HUMILLARTE)", // Nadie lo hace xd
                     id: "acepto"
                 })
             },
             {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
-                    display_text: "NEGADO",
+                    display_text: "NEGADO (SOY NOOB)", // Seguro es bronce
                     id: "negado"
                 })
             }
@@ -38,9 +38,9 @@ let handler = async (m, { conn }) => {
                     messageContextInfo: {},
                     interactiveMessage: proto.Message.InteractiveMessage.create({
                         body: {
-                            text: `🔥 Modo Insano Activado 🔥\n\n¿Quién se rifa un PVP conmigo?\n───────────────\n¡Vamos a darnos en la madre sin miedo! 👿`
+                            text: `🔥 *MODO TÓXICO ACTIVADO* 🔥\n\n¿QUIÉN SE ATREVE A UN 1VS1? (O SOLO SABEN HUIR COMO RATAS?) 🐁💨\n───────────────\n*Si pierdes, borras el juego y te vas a jugar Candy Crush* 🍭💀`
                         },
-                        footer: { text: "Cual es el valiente" },
+                        footer: { text: "*Acepta si tienes huevos* 🥚" },
                         nativeFlowMessage: { buttons }
                     })
                 }
@@ -51,7 +51,7 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    // Confirmación de respuesta "ACEPTO"
+    // Confirmación de respuesta "ACEPTO" (SORPRESA, ALGUIEN SE CREYÓ PRO)
     if (response === 'acepto') {
         const nombre = await conn.getName(m.sender);
 
@@ -59,14 +59,14 @@ let handler = async (m, { conn }) => {
             {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
-                    display_text: "Yomismo",
+                    display_text: "YO LA HAGO (PORQUE SOY PRO)", // Spoiler: No lo es
                     id: "yomismo"
                 })
             },
             {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
-                    display_text: "Notengo",
+                    display_text: "NO TENGO SALA (SOY POBRE)", // Típico
                     id: "notengo"
                 })
             }
@@ -79,8 +79,8 @@ let handler = async (m, { conn }) => {
                         mentionedJid: [m.sender]
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `UY ESTO ESTARÁ BUENO, ${nombre} aceptó el reto de PVP, ahora quien pondra la sala` },
-                        footer: { text: "Confirmen" },
+                        body: { text: `*¡JA! ${nombre} CAYÓ COMO IDIOTA!* 😈\n\n*A ver, ¿quién pone la sala o solo saben chupar experiencia?* 🍼` },
+                        footer: { text: "*Confirmen o se esconden* 🐭" },
                         nativeFlowMessage: { buttons }
                     })
                 }
@@ -91,28 +91,28 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    // Confirmación de respuesta "NEGADO"
+    // Confirmación de respuesta "NEGADO" (COBARDES DETECTADOS)
     if (response === 'negado') {
         const nombre = await conn.getName(m.sender);
         await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\nUY PANA SE NOTA EL MIEDO DE NO JUGARLE A PVP XD`,
+            text: `┏━━━━━━━━━━━━━━━━┓\n*${nombre} ES TAN NOOB QUE NI EL BOT LE JUEGA.*\n┗━━━━━━━━━━━━━━━━┛\n*Vete a practicar contra bots, baby* 🤖🍼`,
             mentions: [m.sender]
         });
         return;
     }
 
-    // Respuesta al botón "Yomismo"
+    // Respuesta al botón "Yomismo" (MENTIRA, NADIE TIENE SALA)
     if (response === 'yomismo') {
         await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\nUy esto se pondrá bueno, estos dos panas @user y user se van a dar en la madre.\n\n*Crea la sala y manda datos*`
+            text: `┏━━━━━━━━━━━━━━━━┓\n*FINALMENTE ALGUIEN CON HUEVOS* 🥚🔥\n\n@${m.sender.split('@')[0]} *VS* @user\n\n*Pero seguro se desconectan a medio juego* 📵💀`
         });
         return;
     }
 
-    // Respuesta al botón "Notengo"
+    // Respuesta al botón "Notengo" (CLÁSICO)
     if (response === 'notengo') {
         await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobres. Ponte a lavar platos mejor.`
+            text: `┏━━━━━━━━━━━━━━━━┓\n*¿PA' QUÉ ACEPTAN SI SON POBRES?* �💸\n\n*Vayan a vender dulces para comprarse una sala, ratas* 🍬🐀`
         });
         return;
     }
