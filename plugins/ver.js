@@ -1,29 +1,26 @@
 let handler = async (m, { conn, text, command }) => {
-  // Verifica que el comando sea .simularbienvenida y que se haya proporcionado un enlace de imagen
+  // Comando para establecer la imagen de bienvenida
   if (command === 'simularbienvenida' && text) {
-    let linkImagen = text.trim(); // Obtenemos la URL de la imagen proporcionada
-    let chat = global.db.data.chats[m.chat];
-    
-    // Guardamos la URL de la imagen en la base de datos
-    chat.sWelcomeImage = linkImagen;
-    
-    // Enviamos un mensaje de confirmación al grupo
+    let linkImagen = text.trim(); // Enlace de la imagen proporcionada
+
+    // Guardamos la URL de la imagen en una variable global
+    global.db.data.chats[m.chat].sWelcomeImage = linkImagen;
+
+    // Enviar confirmación
     return conn.reply(m.chat, `✅ ¡La imagen de bienvenida se ha configurado correctamente!`, m);
   }
-  
-  // Aquí comenzamos con la lógica para los mensajes de bienvenida y despedida
-  if (!m.isGroup) return;
 
-  let chat = global.db.data.chats[m.chat];
-  
-  // Verifica si hay una imagen personalizada para la bienvenida
-  let welcomeImageUrl = chat.sWelcomeImage || 'https://qu.ax/Lmiiu.jpg';  // Imagen predeterminada si no se configuró
+  // Verifica si es un mensaje de grupo y si un nuevo miembro ha sido agregado (evento de bienvenida)
+  if (!m.isGroup || m.messageStubType !== 27) return;
 
-  if (m.messageStubType == 27) { // Este es el tipo de mensaje que indica que un usuario ha entrado al grupo
-    let userName = `${m.messageStubParameters[0].split`@`[0]}`; // Obtenemos el nombre del nuevo miembro
-    let subject = m.chat.name; // Nombre del grupo
+  // Obtener la URL de la imagen de bienvenida configurada o predeterminada
+  let welcomeImageUrl = global.db.data.chats[m.chat].sWelcomeImage || 'https://qu.ax/Lmiiu.jpg'; // URL predeterminada si no se configuró
 
-    let welcomeMessage = `*╔══════════════*
+  let userName = m.messageStubParameters[0].split('@')[0]; // Nombre del nuevo miembro
+  let subject = m.chat.name; // Nombre del grupo
+
+  // Crear el mensaje de bienvenida
+  let welcomeMessage = `*╔══════════════*
 *╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
 *╠══════════════*
 *╟*🛡️ *${subject}*
@@ -31,28 +28,27 @@ let handler = async (m, { conn, text, command }) => {
 *╟* ¡Bienvenido al grupo! 🌟
 *╚══════════════*`;
 
-    // Enviamos el mensaje de bienvenida con la imagen configurada
-    await conn.sendMessage(m.chat, { 
-      text: welcomeMessage, 
-      contextInfo: {
-        forwardingScore: 9999999,
-        isForwarded: true, 
-        mentionedJid: [m.sender],
-        externalAdReply: {
-          showAdAttribution: true,
-          renderLargerThumbnail: true,
-          thumbnailUrl: welcomeImageUrl, // Usamos la URL de la imagen configurada
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
-          containsAutoReply: true,
-          mediaType: 1, 
-          sourceUrl: 'https://whatsapp.com'
-        }
+  // Enviar el mensaje de bienvenida junto con la imagen
+  await conn.sendMessage(m.chat, {
+    text: welcomeMessage,
+    contextInfo: {
+      forwardingScore: 9999999,
+      isForwarded: true,
+      mentionedJid: [m.sender, m.messageStubParameters[0]],
+      externalAdReply: {
+        showAdAttribution: true,
+        renderLargerThumbnail: true,
+        thumbnailUrl: welcomeImageUrl, // Usar la imagen de bienvenida
+        title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
+        containsAutoReply: true,
+        mediaType: 1,
+        sourceUrl: 'https://whatsapp.com'
       }
-    });
-  }
+    }
+  });
 };
 
-handler.command = ['simularbienvenida']; // Comando para establecer la bienvenida
+handler.command = ['simularbienvenida']; // Definir el comando
 handler.group = true; // Solo funciona en grupos
 
 export default handler;
