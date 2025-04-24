@@ -142,6 +142,7 @@ export async function after(m, { conn }) {
         const nombreUsuario = m.pushName || numero;
         const tag = m.sender;
 
+        // Borrar al usuario de otras escuadras
         Object.keys(listas).forEach(key => {
             const index = listas[key].findIndex(p => p.includes(`@${nombreUsuario}`));
             if (index !== -1) {
@@ -165,8 +166,8 @@ export async function after(m, { conn }) {
             });
         }
         
-        const mensajeGuardado = mensajesGrupos.get(groupId);
-        await mostrarLista(conn, m.chat, listas, [tag], mensajeGuardado);
+        // Actualizar el mensaje con la nueva lista
+        await mostrarLista(conn, m.chat, listas, [tag]);
     } catch (error) {
         console.error('Error en after:', error);
         await conn.sendMessage(m.chat, { text: '❌ Error al procesar tu selección' });
