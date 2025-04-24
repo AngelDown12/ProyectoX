@@ -87,7 +87,7 @@ ${descs}
           showAdAttribution: true,
           renderLargerThumbnail: true,
           thumbnailUrl: imageUrl,
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃 ',
+          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
           containsAutoReply: true,
           mediaType: 1,
           sourceUrl: 'https://whatsapp.com'
@@ -114,6 +114,12 @@ handler.handler = async (m, { conn, text, command }) => {
 
   if (!linkImagen) {
     return conn.reply(m.chat, '¡Debes proporcionar tanto el mensaje como el enlace de la imagen!', m);
+  }
+
+  // Validar que el enlace de la imagen sea una URL válida
+  const validUrlPattern = /^(https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*))$/;
+  if (!validUrlPattern.test(linkImagen)) {
+    return conn.reply(m.chat, '¡El enlace proporcionado no es válido! Asegúrate de usar un enlace correcto de imagen.', m);
   }
 
   // Guardar el mensaje de bienvenida y el enlace de la imagen en el grupo
