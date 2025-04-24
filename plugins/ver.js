@@ -1,42 +1,40 @@
-import { downloadContentFromMessage } from '@whiskeysockets/baileys'
+let handler = async (m, { conn, usedPrefix, command, args }) => {
+  if (args.length < 1) return m.reply(`Por favor, ingresa el link de la imagen para la bienvenida.\nUso: ${usedPrefix + command} <link_de_imagen>`);
 
-let handler = m => m
-handler.before = async function (m, { conn, isAdmin, isBotAdmin }) {
-  let media, msg, type
-  const { antiver, isBanned } = global.db.data.chats[m.chat]
+  // El primer argumento debe ser el link de la imagen
+  let imageUrl = args[0];
   
-  // Verifica si la protección anti vista única está habilitada
-  if (!antiver || isBanned) {
-    console.log('Protección anti ver no está habilitada o está baneado el chat.');
-    return
+  // Validar si el link de imagen es correcto
+  if (!imageUrl.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/)) {
+    return m.reply('El link proporcionado no es una URL válida de imagen. Por favor, ingresa un link de imagen válido.');
   }
-  
-  // Verifica si el mensaje es de tipo 'viewOnceMessageV2' o 'viewOnceMessageV2Extension'
-  if (m.mtype === 'viewOnceMessageV2' || m.mtype === 'viewOnceMessageV2Extension') {
-    console.log('Mensaje viewOnce detectado');
-    
-    msg = m.mtype === 'viewOnceMessageV2' ? m.message.viewOnceMessageV2.message : m.message.viewOnceMessageV2Extension.message
-    type = Object.keys(msg)[0]
-    
-    try {
-      // Depuración: muestra el tipo de mensaje y el contenido
-      console.log('Tipo de mensaje:', type);
-      console.log('Contenido del mensaje:', msg[type]);
 
-      // Descarga el contenido según el tipo de mensaje
-      if (type === 'imageMessage' || type === 'videoMessage') {
-        media = await downloadContentFromMessage(msg[type], type === 'imageMessage' ? 'image' : 'video')
-      } else if (type === 'audioMessage') {
-        media = await downloadContentFromMessage(msg[type], 'audio')
-      }
+  // Mensaje que se enviará al grupo cuando un nuevo miembro entre
+  const welcomeMessage = `¡Bienvenid@ al grupo, @user! 🎉🎉\nDisfruta y participa activamente.`;
 
-      let buffer = Buffer.from([])
-      for await (const chunk of media) {
-        buffer = Buffer.concat([buffer, chunk])
-      }
+  // Función que maneja el evento de entrada de nuevos miembros (welcome)
+  conn.on('group-participants-update', async (update) => {
+    if (update.action === 'add') {
+      // Comprobamos si la acción es 'add' (nuevo miembro ingresando)
+      let newMember = update.participants[0];
+      
+      // Enviamos el mensaje de bienvenida con la imagen
+      await conn.sendMessage(update.id, {
+        text: welcomeMessage.replace('@user', `@${newMember}`), 
+        mentions: [newMember],
+      });
 
-      // Formateamos la descripción
-      const description = `
-✅️ *ANTI VER UNA VEZ* ✅️
+      // Enviar la imagen de bienvenida con el link proporcionado
+      await conn.sendMessage(update.id, { image: { url: imageUrl }, caption: welcomeMessage.replace('@user', `@${newMember}`) });
+    }
+  });
 
-💭 *No ocultes* ${type === 'imageMessage' ? '`Imagen` 📷' : type === 'videoMessage' ? '`Vídeo` 🎥' : type === 'audioMessage' ?
+  m.reply('¡Comando para simular bienvenidas activado! Ahora, cada vez que un nuevo miembro entre al grupo, recibirán la bienvenida con la imagen proporcionada.');
+};
+
+handler.help = ['simularbienvenida <link>'];
+handler.tags = ['owner'];
+handler.command = /^simularbienvenida$/i;
+handler.group = true;
+
+export default handler;
