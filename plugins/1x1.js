@@ -68,49 +68,55 @@ let handler = async (m, { conn }) => {
     }
 
     // Comando .1vs1
-    if (msgText?.startsWith('.1vs1')) {
-        reiniciarListas(groupId);
-        const listas = getListasGrupo(groupId);
+    if (msgText === '.1vs1') {
+        try {
+            reiniciarListas(groupId);
+            const listas = getListasGrupo(groupId);
 
-        const buttons = [
-            {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "Acepto",
-                    id: "acepto"
-                })
-            },
-            {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "Negado",
-                    id: "negado"
-                })
-            }
-        ];
+            const buttons = [
+                {
+                    name: "quick_reply",
+                    buttonParamsJson: JSON.stringify({
+                        display_text: "Acepto",
+                        id: "acepto"
+                    })
+                },
+                {
+                    name: "quick_reply",
+                    buttonParamsJson: JSON.stringify({
+                        display_text: "Negado",
+                        id: "negado"
+                    })
+                }
+            ];
 
-        const mensaje = generateWAMessageFromContent(m.chat, {
-            viewOnceMessage: {
-                message: {
-                    messageContextInfo: {
-                        deviceListMetadata: {},
-                        mentionedJid: []
-                    },
-                    interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `🔥 Modo Insano Activado 🔥
+            const mensaje = generateWAMessageFromContent(m.chat, {
+                viewOnceMessage: {
+                    message: {
+                        messageContextInfo: {
+                            deviceListMetadata: {},
+                            mentionedJid: []
+                        },
+                        interactiveMessage: proto.Message.InteractiveMessage.create({
+                            body: { text: `🔥 Modo Insano Activado 🔥
 
 ¿Quién se rifa un PVP conmigo? 
 ───────────────
 ¡Vamos a darnos en la madre sin miedo! 👿` },
-                        footer: { text: "Selecciona una opción:" },
-                        nativeFlowMessage: { buttons }
-                    })
+                            footer: { text: "Selecciona una opción:" },
+                            nativeFlowMessage: { buttons }
+                        })
+                    }
                 }
-            }
-        }, {});
+            }, {});
 
-        await conn.relayMessage(m.chat, mensaje.message, {});
-        return;
+            await conn.relayMessage(m.chat, mensaje.message, { messageId: `1vs1-${Date.now()}` });
+            return;
+        } catch (error) {
+            console.error('Error en comando 1vs1:', error);
+            m.reply('❌ Ocurrió un error al procesar el comando');
+            return;
+        }
     }
 
     // Comando acepto/negado
@@ -273,12 +279,11 @@ let handler = async (m, { conn }) => {
 };
 
 handler.customPrefix = /^(acepto|negado|terminar|parejas|\.1vs1.*|\.sernovios.*)$/i;
-handler.command = new RegExp;
+handler.help = ['1vs1'];
+handler.tags = ['juegos'];
+handler.command = ['1vs1'];
 handler.group = true;
-
-// Agregar estos permisos para evitar detección de spam
 handler.limit = false;
-handler.level = false;
 handler.premium = false;
 handler.register = false;
 handler.fail = null;
