@@ -29,8 +29,8 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) 
 
   let texto = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂\n\n*${groupName}*\n👤 INTEGRANTES: *${participants.length}*\n${mensajePersonalizado}\n\n`;
 
-  // Construir menciones en horizontal
-  texto += participants.map(p => `${emoji} ${getCountryFlag(p.id)} @${p.id.split('@')[0]}`).join('  ');
+  // Construir menciones en horizontal usando punto medio
+  texto += participants.map(p => `${emoji} ${getCountryFlag(p.id)} @${p.id.split('@')[0]}`).join(' • ');
 
   texto += `\n\n*╰━* 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝙊𝘽𝘼𝙇\n▌│█║▌║▌║║▌║▌║▌║█`;
 
@@ -42,7 +42,7 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) 
 
 handler.help = ['todos'];
 handler.tags = ['group'];
-handler.command = /^(tagal|invocar|marcar|todos|invocación)$/i;
+handler.command = /^(tagall|invocar|marcar|todos|invocación)$/i;
 handler.admin = true;
 handler.group = true;
 
