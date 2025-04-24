@@ -1,193 +1,147 @@
 import pkg from '@whiskeysockets/baileys';
 const { generateWAMessageFromContent, proto } = pkg;
 
-// Estado global de las listas por grupo
 let listasGrupos = new Map();
 let mensajesGrupos = new Map();
 
-// Función para obtener o crear las listas de un grupo
 const getListasGrupo = (groupId) => {
     if (!listasGrupos.has(groupId)) {
         listasGrupos.set(groupId, {
-            squad1: ['➤'],
-            suplente: ['➤']
+            aceptar: ['➤'],
+            rechazar: ['➤']
         });
     }
     return listasGrupos.get(groupId);
 };
 
-// Función para reiniciar las listas de un grupo específico
 const reiniciarListas = (groupId) => {
     listasGrupos.set(groupId, {
-        squad1: ['➤'],
-        suplente: ['➤']
+        aceptar: ['➤'],
+        rechazar: ['➤']
     });
 };
 
-let handler = async (m, { conn, text, args }) => {
-    const msgText = m.text;
+let handler = async (m, { conn }) => {
+    const msgText = m.text?.toLowerCase();
     const groupId = m.chat;
-    let listas = getListasGrupo(groupId);
-    
-    // Manejar el comando .1vs1
-    if (msgText.toLowerCase().startsWith('.1vs1')) {
+
+    // Detectar respuesta de botones
+    const response = m.message?.buttonsResponseMessage?.selectedButtonId ||
+        m.message?.interactiveResponseMessage?.nativeFlowResponseButtonResponse?.id ||
+        m.message?.interactiveResponseMessage?.buttonReplyMessage?.selectedId ||
+        m.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
+        msgText || '';
+
+    // Comando .1vs1
+    if (msgText?.startsWith('.1vs1')) {
         reiniciarListas(groupId);
-        listas = getListasGrupo(groupId);
-        await mostrarLista(conn, m.chat, listas, []);
-        return;
-    }
+        const listas = getListasGrupo(groupId);
 
-    if (msgText.toLowerCase() !== 'acepto' && msgText.toLowerCase() !== 'negado') return;
-    
-    const usuario = m.sender.split('@')[0];
-    const nombreUsuario = m.pushName || usuario;
-    
-    let squadType;
-    let mentions = [];
-    
-    if (msgText.toLowerCase() === 'acepto') {
-        squadType = 'squad1';
-    } else {
-        squadType = 'suplente';
-    }
-    
-    // Borrar al usuario de otras escuadras
-    Object.keys(listas).forEach(key => {
-        const index = listas[key].findIndex(p => p.includes(`@${nombreUsuario}`));
-        if (index !== -1) {
-            listas[key][index] = '➤';
-        }
-    });
-    
-    const libre = listas[squadType].findIndex(p => p === '➤');
-    if (libre !== -1) {
-        listas[squadType][libre] = `@${nombreUsuario}`;
-        mentions.push(m.sender);
-    }
-
-    Object.values(listas).forEach(squad => {
-        squad.forEach(member => {
-            if (member !== '➤') {
-                const userName = member.slice(1);
-                const userJid = Object.keys(m.message.extendedTextMessage?.contextInfo?.mentionedJid || {}).find(jid => 
-                    jid.split('@')[0] === userName || 
-                    conn.getName(jid) === userName
-                );
-                if (userJid) mentions.push(userJid);
+        const buttons = [
+            {
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "Acepto",
+                    id: "acepto"
+                })
+            },
+            {
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "Negado",
+                    id: "negado"
+                })
             }
-        });
-    });
+        ];
 
-    const mensajeGuardado = mensajesGrupos.get(groupId);
-    if (mensajeGuardado) {
-        await mostrarLista(conn, m.chat, listas, mentions, mensajeGuardado);
-    } else {
-        await mostrarLista(conn, m.chat, listas, mentions);
-    }
-    return;
-}
-
-async function mostrarLista(conn, chat, listas, mentions = [], mensajeUsuario = '') {
-    const texto = `🔥 Modo Insano Activado 🔥
+        const mensaje = generateWAMessageFromContent(m.chat, {
+            viewOnceMessage: {
+                message: {
+                    messageContextInfo: {
+                        deviceListMetadata: {},
+                        mentionedJid: []
+                    },
+                    interactiveMessage: proto.Message.InteractiveMessage.create({
+                        body: { text: `🔥 Modo Insano Activado 🔥
 
 ¿Quién se rifa un PVP conmigo? 
 ───────────────
-¡Vamos a darnos en la madre sin miedo! 👿`;
-
-    const buttons = [
-        {
-            name: "quick_reply",
-            buttonParamsJson: JSON.stringify({
-                display_text: "Acepto",
-                id: "acepto"
-            })
-        },
-        {
-            name: "quick_reply",
-            buttonParamsJson: JSON.stringify({
-                display_text: "Negado",
-                id: "negado"
-            })
-        }
-    ];
-
-    const mensaje = generateWAMessageFromContent(chat, {
-        viewOnceMessage: {
-            message: {
-                messageContextInfo: {
-                    deviceListMetadata: {},
-                    mentionedJid: mentions
-                },
-                interactiveMessage: proto.Message.InteractiveMessage.create({
-                    body: { text: texto },
-                    footer: { text: "Selecciona una opción:" },
-                    nativeFlowMessage: { buttons }
-                })
+¡Vamos a darnos en la madre sin miedo! 👿` },
+                        footer: { text: "Selecciona una opción:" },
+                        nativeFlowMessage: { buttons }
+                    })
+                }
             }
-        }
-    }, {});
+        }, {});
 
-    await conn.relayMessage(chat, mensaje.message, { messageId: mensaje.key.id });
-}
+        await conn.relayMessage(m.chat, mensaje.message, {});
+        return;
+    }
 
-export async function after(m, { conn }) {
-    try {
-        const button = m?.message?.buttonsResponseMessage;
-        if (!button) return;
-
-        const id = button.selectedButtonId;
-        const groupId = m.chat;
-        let listas = getListasGrupo(groupId);
-        const numero = m.sender.split('@')[0];
-        const nombreUsuario = m.pushName || numero;
+    // Comando acepto/negado
+    if (['acepto', 'negado'].includes(response)) {
+        const tipo = response;
         const tag = m.sender;
+        const listas = getListasGrupo(groupId);
+        const nombreUsuario = await conn.getName(tag);
 
-        // Borrar al usuario de otras escuadras
-        Object.keys(listas).forEach(key => {
-            const index = listas[key].findIndex(p => p.includes(`@${nombreUsuario}`));
-            if (index !== -1) {
-                listas[key][index] = '➤';
-            }
-        });
-
-        const squadType = id === 'acepto' ? 'squad1' : 'suplente';
-        const libre = listas[squadType].findIndex(p => p === '➤');
-        
-        if (libre !== -1) {
-            listas[squadType][libre] = `@${nombreUsuario}`;
-            
-            // Enviar mensaje de respuesta
-            if (id === 'acepto') {
-                await conn.sendMessage(m.chat, {
-                    text: `UY ESTO SE PONDRA BUENO QUIEN PONE SALA`,
-                    mentions: [tag]
-                });
-            } else {
-                await conn.sendMessage(m.chat, {
-                    text: `✅ @${nombreUsuario} agregado a Negado`,
-                    mentions: [tag]
-                });
-            }
-            
-            // Actualizar el mensaje con la nueva lista
-            await mostrarLista(conn, m.chat, listas, [tag]);
+        if (tipo === 'acepto') {
+            await conn.sendMessage(m.chat, {
+                text: `UY ESTO SE PONDRA BUENO QUIEN PONE SALA`,
+                mentions: [tag]
+            });
         } else {
             await conn.sendMessage(m.chat, {
-                text: `⚠️ ${id === 'acepto' ? 'Acepto' : 'Negado'} está llena`,
+                text: `✅ @${nombreUsuario} agregado a Negado`,
                 mentions: [tag]
             });
         }
-    } catch (error) {
-        console.error('Error en after:', error);
-        await conn.sendMessage(m.chat, { 
-            text: '❌ Error al procesar tu selección'
-        });
+
+        // Actualizar el mensaje con la nueva lista
+        const buttons = [
+            {
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "Acepto",
+                    id: "acepto"
+                })
+            },
+            {
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "Negado",
+                    id: "negado"
+                })
+            }
+        ];
+
+        const mensaje = generateWAMessageFromContent(m.chat, {
+            viewOnceMessage: {
+                message: {
+                    messageContextInfo: {
+                        deviceListMetadata: {},
+                        mentionedJid: [tag]
+                    },
+                    interactiveMessage: proto.Message.InteractiveMessage.create({
+                        body: { text: `🔥 Modo Insano Activado 🔥
+
+¿Quién se rifa un PVP conmigo? 
+───────────────
+¡Vamos a darnos en la madre sin miedo! 👿` },
+                        footer: { text: "Selecciona una opción:" },
+                        nativeFlowMessage: { buttons }
+                    })
+                }
+            }
+        }, {});
+
+        await conn.relayMessage(m.chat, mensaje.message, {});
+        return;
     }
-}
+};
 
-handler.customPrefix = /^(acepto|negado|\.1vs1.*)$/i
-handler.command = new RegExp
-handler.group = true
+handler.customPrefix = /^(acepto|negado|\.1vs1.*)$/i;
+handler.command = new RegExp;
+handler.group = true;
 
-export default handler
-
+export default handler;
