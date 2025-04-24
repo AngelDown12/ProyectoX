@@ -112,7 +112,7 @@ let handler = async (m, { conn }) => {
     // Respuesta al botón "Notengo" (CLÁSICO)
     if (response === 'notengo') {
         await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\n*¿PA' QUÉ ACEPTAN SI SON POBRES?* �💸\n\n*Vayan a vender dulces para comprarse una sala, ratas* 🍬🐀`
+            text: `┏━━━━━━━━━━━━━━━━┓\n*¿PA' QUÉ ACEPTAS SI ERES POBRE?* �💸\n\n*Anda a vender dulces para que te compres una sala, rata* 🍬🐀`
         });
         return;
     }
