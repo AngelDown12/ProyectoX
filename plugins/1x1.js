@@ -60,15 +60,8 @@ let handler = async (m, { conn }) => {
         const tag = m.sender;
         const mensajeGuardado = mensajesGrupos.get(groupId);
         const proponente = mensajeGuardado?.proponente;
-        const propuesto = mensajeGuardado?.propuesto;
 
-        if (!proponente || (propuesto && tag !== propuesto)) {
-            await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\n ESTA DECLARACIÓN NO ES PARA TI ... SAPO .l. \n┗━━━━━━━━━━━━━━━━┛`,
-                mentions: [tag]
-            });
-            return;
-        }
+        if (!proponente) return;
 
         if (proponente === tag) {
             await conn.sendMessage(m.chat, {
@@ -138,11 +131,9 @@ let handler = async (m, { conn }) => {
     }
 
     if (msgText?.startsWith('.1vs1')) {
-        const mentionedJid = m.mentionedJid?.[0] || null;
         const nombreRemitente = await conn.getName(m.sender);
-        const nombreMencionado = mentionedJid ? await conn.getName(mentionedJid) : 'alguien del grupo';
 
-        if (parejasConfirmadas.get(groupId)?.some(par => par.includes(m.sender) || (mentionedJid && par.includes(mentionedJid)))) {
+        if (parejasConfirmadas.get(groupId)?.some(par => par.includes(m.sender))) {
             await conn.sendMessage(m.chat, {
                 text: `┏━━━━━━━━━━━━━━━━┓\nNo seas infiel, tú ya tienes pareja.\n┗━━━━━━━━━━━━━━━━┛`,
                 mentions: [m.sender]
@@ -151,8 +142,7 @@ let handler = async (m, { conn }) => {
         }
 
         mensajesGrupos.set(groupId, {
-            proponente: m.sender,
-            propuesto: mentionedJid
+            proponente: m.sender
         });
 
         const buttons = [
@@ -176,11 +166,10 @@ let handler = async (m, { conn }) => {
             viewOnceMessage: {
                 message: {
                     messageContextInfo: {
-                        deviceListMetadata: {},
-                        mentionedJid: mentionedJid ? [mentionedJid] : []
+                        deviceListMetadata: {}
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `🔥 Modo Insano Activado 🔥\n\n¿Quién se rifa un PVP conmigo?\n───────────────\n¡Vamos a darnos en la madre sin miedo! 👿\n\n${nombreRemitente} te lanzó el reto ${nombreMencionado}\n\nSelecciona una opción:` },
+                        body: { text: `🔥 Modo Insano Activado 🔥\n\n¿Quién se rifa un PVP conmigo?\n───────────────\n¡Vamos a darnos en la madre sin miedo! 👿\n\n${nombreRemitente} lanzó un reto.\n\nSelecciona una opción:` },
                         footer: { text: "💥 Elige tu destino" },
                         nativeFlowMessage: { buttons }
                     })
