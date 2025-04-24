@@ -30,12 +30,12 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) 
 
     // Construcción del mensaje (formato original conservado)
     let message = `╭━━━━ ¡𝗔𝗖𝗧𝗜𝗩𝗘𝗡𝗦𝗘𝗡! 乂 ━━━━╮\n`;
-    message += `*🏆 GRUPO:* ${groupName}\n`;
-    message += `*👤 INTEGRANTES:* ${memberCount}\n\n`;
+    message += `${emoji} *🏆 GRUPO:* ${groupName}\n`;
+    message += `${emoji} *👤 INTEGRANTES:* ${memberCount}\n\n`;
     
-    if (customMessage) message += `*MENSAJE:* ${customMessage}\n\n`;
+    if (customMessage) message += `${emoji} *MENSAJE:* ${customMessage}\n\n`;
     
-    message += `\n`;
+    message += ``;
     
     // Menciones perfectamente alineadas (4 por línea)
     const membersPerLine = 4;
