@@ -1,150 +1,54 @@
+import fetch from 'node-fetch';
+
 let handler = m => m;
 handler.before = async function (m, { conn, participants, groupMetadata }) {
-  // Verifica si es un grupo y si se está agregando o eliminando un miembro
   if (!m.isGroup || !m.messageStubType) return;
 
-  const FOTO_PREDETERMINADA = 'https://qu.ax/Lmiiu.jpg'; // Imagen predeterminada
+  const FOTO_PREDETERMINADA = 'https://qu.ax/Lmiiu.jpg';
+  let chat = global.db.data.chats[m.chat];
+  if (!chat) chat = global.db.data.chats[m.chat] = {};
 
-  // Obtener la foto de perfil o usar la predeterminada
+  let idUser = m.messageStubParameters[0];
+  let username = idUser.split('@')[0];
+  let subject = groupMetadata.subject;
+  let descs = groupMetadata.desc || '🌟 ¡Bienvenido al grupo! 🌟';
+
   let pp;
   try {
-    pp = await conn.profilePictureUrl(m.messageStubParameters[0], 'image').catch(_ => FOTO_PREDETERMINADA);
+    pp = await conn.profilePictureUrl(idUser, 'image');
   } catch {
-    pp = FOTO_PREDETERMINADA;
+    pp = chat.welcomeImage || FOTO_PREDETERMINADA;
   }
 
-  let chat = global.db.data.chats[m.chat];
+  const isJoin = m.messageStubType === 27;
+  const isLeave = m.messageStubType === 28;
 
-  // Si hay un mensaje de bienvenida configurado, lo enviamos, de lo contrario, enviamos la automática
-  if (chat.sWelcome && m.messageStubType == 27) {
-    let subject = groupMetadata.subject;
-    let userName = `${m.messageStubParameters[0].split('@')[0]}`;
+  let mensaje = isJoin ? chat.sWelcome : chat.sBye;
+  let textoDefecto = isJoin
+    ? `👋 Bienvenido @${username} a *${subject}*\n\n${descs}`
+    : `👋 Adiós @${username}, se fue del grupo.`;
 
-    let textWel = chat.sWelcome
-      .replace(/@user/g, `@${userName}`)
-      .replace(/@group/g, subject)
-      .replace(/@desc/g, groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟");
+  let mensajeFinal = (chat.customWelcome && mensaje) 
+    ? mensaje.replace(/@user/g, `@${username}`).replace(/@group/g, subject).replace(/@desc/g, descs)
+    : textoDefecto;
 
-    let imageUrl = chat.sImage || FOTO_PREDETERMINADA;
-
-    await this.sendMessage(m.chat, {
-      text: textWel,
+  if ((isJoin || isLeave) && conn.user.jid !== idUser) {
+    await conn.sendMessage(m.chat, {
+      text: mensajeFinal,
       contextInfo: {
-        forwardingScore: 9999999,
-        isForwarded: true,
-        mentionedJid: [m.sender, m.messageStubParameters[0]],
+        mentionedJid: [idUser],
         externalAdReply: {
-          showAdAttribution: true,
-          renderLargerThumbnail: true,
-          thumbnailUrl: imageUrl,
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
-          containsAutoReply: true,
+          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋',
+          body: '',
+          thumbnailUrl: pp,
+          sourceUrl: 'https://whatsapp.com',
           mediaType: 1,
-          sourceUrl: 'https://whatsapp.com'
+          renderLargerThumbnail: true,
+          showAdAttribution: true
         }
       }
-    });
-
-  } else if (m.messageStubType == 27) {
-    // Si no hay bienvenida manual, se envía la automática
-    let subject = groupMetadata.subject;
-    let userName = `${m.messageStubParameters[0].split('@')[0]}`;
-
-    let defaultWelcome = `*╔══════════════*
-*╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
-*╠══════════════*
-*╟*🛡️ *${subject}*
-*╟*👤 *@${userName}*
-*╟* 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗖𝗜Ó𝗡 
-
-🌟 ¡Bienvenido al grupo! 🌟
-
-*╚══════════════*`;
-
-    let textWel = chat.sWelcome ? chat.sWelcome
-      .replace(/@user/g, `@${userName}`)
-      .replace(/@group/g, subject)
-      .replace(/@desc/g, groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟")
-      : defaultWelcome;
-
-    let imageUrl = FOTO_PREDETERMINADA;
-
-    await this.sendMessage(m.chat, {
-      text: textWel,
-      contextInfo: {
-        forwardingScore: 9999999,
-        isForwarded: true,
-        mentionedJid: [m.sender, m.messageStubParameters[0]],
-        externalAdReply: {
-          showAdAttribution: true,
-          renderLargerThumbnail: true,
-          thumbnailUrl: imageUrl,
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
-          containsAutoReply: true,
-          mediaType: 1,
-          sourceUrl: 'https://whatsapp.com'
-        }
-      }
-    });
+    }, { quoted: m });
   }
-  
-  // Si el mensaje es de despedida, enviar mensaje
-  if (m.messageStubType == 28) {
-    let subject = groupMetadata.subject;
-    let userName = `${m.messageStubParameters[0].split('@')[0]}`;
-    let textBye = chat.sBye ? chat.sBye
-      .replace(/@user/g, `@${userName}`)
-      .replace(/@group/g, subject)
-      : `*╔══════════════*\n*╟* *SE FUE UNA BASURA*\n*╟👤 @${userName}* \n*╚══════════════*`;
-
-    let imageUrl = chat.sImage || FOTO_PREDETERMINADA;
-
-    await this.sendMessage(m.chat, {
-      text: textBye,
-      contextInfo: {
-        forwardingScore: 9999999,
-        isForwarded: true,
-        mentionedJid: [m.sender, m.messageStubParameters[0]],
-        externalAdReply: {
-          showAdAttribution: true,
-          renderLargerThumbnail: true,
-          thumbnailUrl: imageUrl,
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃 ',
-          containsAutoReply: true,
-          mediaType: 1,
-          sourceUrl: 'https://whatsapp.com'
-        }
-      }
-    });
-  }
-};
-
-// Configurar la bienvenida manual
-handler.command = ['setwel'];
-handler.help = ['setwel <mensaje> <link_imagen>'];
-handler.owner = true;
-handler.group = true;
-handler.botAdmin = true;
-
-handler.handler = async (m, { conn, text }) => {
-  if (!text) {
-    return conn.reply(m.chat, '¡Por favor, ingresa el mensaje de bienvenida y el link de la imagen!', m);
-  }
-
-  const [message, linkImagen] = text.split(' ');
-
-  if (!message || !linkImagen) {
-    return conn.reply(m.chat, '¡Debes proporcionar tanto el mensaje como el enlace de la imagen!', m);
-  }
-
-  // Guardar mensaje y link de imagen
-  global.db.data.chats[m.chat].sWelcome = message;
-  global.db.data.chats[m.chat].sImage = linkImagen;
-
-  // Desactivar bienvenida automática
-  global.db.data.chats[m.chat].welcomeEnabled = false;
-
-  conn.reply(m.chat, `La bienvenida para este grupo ha sido configurada correctamente.\nMensaje: ${message}\nImagen: ${linkImagen}`, m);
 };
 
 export default handler;
