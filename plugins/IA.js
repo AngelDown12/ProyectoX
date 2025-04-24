@@ -1,14 +1,14 @@
 import fetch from 'node-fetch';
 
 const handler = async (m, { text, conn }) => {
-  // Eliminamos el prefijo si existe (para manejar ambos casos)
-  const cleanText = text.replace(/^[\.\/\!]/, '').trim();
+  // Extrae el texto después de "bard" o "gemini" (ignora prefijos)
+  const query = m.text.match(/(?:^[\.]?)(bard|gemini)\s+(.*)/i)?.[2]?.trim();
   
-  if (!cleanText) throw `*📌 Ejemplos de uso:*\n\n- Con punto: .bard dime un chiste\n- Sin punto: bard escribe un poema`;
+  if (!query) throw `*📌 Ejemplos de uso:*\n\n- Con punto: .bard dime un chiste\n- Sin punto: bard escribe un poema`;
 
   try {
     await conn.sendPresenceUpdate('composing', m.chat);
-    const apiUrl = `https://apis-starlights-team.koyeb.app/starlight/gemini?text=${encodeURIComponent(cleanText)}`;
+    const apiUrl = `https://apis-starlights-team.koyeb.app/starlight/gemini?text=${encodeURIComponent(query)}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
     
@@ -20,7 +20,7 @@ const handler = async (m, { text, conn }) => {
 };
 
 // Configuración universal
-handler.command = /^(\.?bard|\.?gemini)$/i; // Detecta .bard, bard, .gemini, gemini
+handler.command = /^(\.?bard|\.?gemini|bard|gemini)$/i; // Captura todas las variantes
 handler.tags = ['ai'];
 handler.help = ['bard <texto>', 'gemini <texto>'];
 
