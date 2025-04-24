@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 
-let handler = async (m, { text, conn }) => {
-  if (!text) throw `*📌 Ejemplo de uso:*\n\nbard dime un chiste\ngemini cómo hacer un código en Python`;
+let handler = async (m, { text, usedPrefix, conn }) => {
+  if (!text) throw `*📌 Ejemplo de uso:*\n\n- Con punto: ${usedPrefix}bard dime un chiste\n- Sin punto: bard escribe un poema`;
   
   try {
     await conn.sendPresenceUpdate('composing', m.chat);
@@ -16,9 +16,9 @@ let handler = async (m, { text, conn }) => {
   }
 };
 
-// Configuración clave (igual que tu comando "estado")
-handler.customPrefix = /^(bard|gemini)/i;  // Se activa con "bard" o "gemini" sin prefijo
-handler.command = new RegExp;  // Patrón de tu comando existente
+// Configuración para que funcione CON y SIN punto
+handler.customPrefix = /^(\.)?(bard|gemini)/i; // Detecta ".bard", "bard", ".gemini", "gemini"
+handler.command = /^(bard|gemini)$/i; // Opcional: para asegurar que solo esos comandos se activen
 handler.tags = ['ai'];
 handler.help = ['bard <texto>', 'gemini <texto>'];
 
