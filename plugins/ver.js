@@ -1,64 +1,27 @@
-let handler = async (m, { conn, text }) => {
-  if (!text || !text.includes('http')) throw `✦ Usa el comando correctamente:\n\n.setwel mensaje @user @group @desc URL\n\nEjemplo:\n.setwel Bienvenido @user a @group. @desc https://telegra.ph/file/imagen.jpg`
+let handler = async (m, { conn, text, isROwner, isOwner }) => {
+  let fkontak = {
+    key: { participants: "0@s.whatsapp.net", remoteJid: "status@broadcast", fromMe: false, id: "Halo" },
+    message: { contactMessage: { vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD` } },
+    participant: "0@s.whatsapp.net"
+  }
 
-  let parts = text.trim().split(' ')
-  let url = parts.pop()
-  let mensaje = parts.join(' ')
+  if (!text.includes('http')) throw `⚠️ Debes incluir un mensaje y un link de imagen.\n\nEjemplo:\n.setwel Bienvenido @user al grupo @subject https://imagen.jpg`
 
-  global.db.data.chats[m.chat].sWelcome = mensaje
-  global.db.data.chats[m.chat].sWelcomeImage = url
+  let split = text.trim().split(' ')
+  let link = split.pop()
+  let message = split.join(' ')
 
-  conn.reply(m.chat, `✅ Mensaje de bienvenida/despedida y foto configurados correctamente.`, null, m)
+  if (!link.startsWith('http')) throw `⚠️ El último valor debe ser un link válido de imagen.\nEjemplo:\n.setwel Hola @user bienvenido https://imagen.jpg`
+
+  global.db.data.chats[m.chat].sWelcome = message
+  global.db.data.chats[m.chat].sWelcomeImg = link
+
+  conn.reply(m.chat, '✅ Mensaje de bienvenida y link de imagen establecidos correctamente.', fkontak, m)
 }
+
 handler.command = ['setwel']
-handler.group = true
-handler.admin = true
 handler.botAdmin = true
-
-handler.before = async function (m, { conn, participants, groupMetadata }) {
-  if (!m.messageStubType || !m.isGroup) return
-
-  const chat = global.db.data.chats[m.chat]
-  const subject = groupMetadata.subject
-  const descs = groupMetadata.desc || 'Sin descripción'
-  const userJid = m.messageStubParameters[0]
-  const userName = userJid.split('@')[0]
-
-  // Mensajes y foto por defecto
-  const mensajeBase = chat.sWelcome || (m.messageStubType == 27 ? 'Bienvenido @user' : 'Adiós @user')
-  const FOTO_DEFECTO = 'https://telegra.ph/file/48cd4d8df1e5f3f5cbbe3.jpg'
-
-  // Intenta usar la foto del usuario
-  let foto
-  try {
-    foto = await conn.profilePictureUrl(userJid, 'image')
-  } catch (e) {
-    foto = chat.sWelcomeImage || FOTO_DEFECTO
-  }
-
-  const mensaje = mensajeBase
-    .replace(/@user/g, `@${userName}`)
-    .replace(/@group/g, subject)
-    .replace(/@desc/g, descs)
-
-  if ([27, 28].includes(m.messageStubType)) {
-    const titulo = m.messageStubType === 27 ? '🎉 NUEVO MIEMBRO' : '👋 SE FUE UN MIEMBRO'
-
-    await conn.sendMessage(m.chat, {
-      text: mensaje,
-      contextInfo: {
-        mentionedJid: [userJid],
-        externalAdReply: {
-          title: titulo,
-          body: mensaje,
-          thumbnailUrl: foto,
-          mediaType: 1,
-          renderLargerThumbnail: true,
-          sourceUrl: 'https://whatsapp.com'
-        }
-      }
-    })
-  }
-}
+handler.admin = true
+handler.group = true
 
 export default handler
