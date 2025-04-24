@@ -1,7 +1,7 @@
 let handler = m => m;
 
-handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin }) {
-  if (!m.messageStubType || !m.isGroup) return;
+handler.before = async function (m, { conn, participants, groupMetadata }) {
+  if (!m.isGroup || !m.messageStubType) return;
 
   // Foto predeterminada (reemplaza con tu URL)
   const FOTO_PREDETERMINADA = 'https://qu.ax/Lmiiu.jpg';
@@ -14,15 +14,16 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
     pp = FOTO_PREDETERMINADA;
   }
 
-  let usuario = `@${m.sender.split`@`[0]}`;
+  let usuario = `@${m.sender.split('@')[0]}`;
   let chat = global.db.data.chats[m.chat];
   let subject = groupMetadata.subject;
-  let userName = `${m.messageStubParameters[0].split`@`[0]}`;
+  let userName = `${m.messageStubParameters[0].split('@')[0]}`;
 
-  // Mensaje de BIENVENIDA (messageStubType: 27)
+  // Verificar si el mensaje es de bienvenida (messageStubType: 27)
   if (m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
     let descs = groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟";
 
+    // Mensaje predeterminado de bienvenida
     let defaultWelcome = `*╔══════════════*
 *╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
 *╠══════════════*
@@ -35,15 +36,17 @@ ${descs}
 *╟* ¡🇼‌🇪‌🇱‌🇨‌🇴‌🇲‌🇪!
 *╚══════════════*`;
 
+    // Si hay configuración manual en el grupo, usa esa configuración
     let textWel = chat.sWelcome ? chat.sWelcome
       .replace(/@user/g, `@${userName}`)
       .replace(/@group/g, subject)
       .replace(/@desc/g, descs)
       : defaultWelcome;
 
-    // Obtener la imagen configurada o predeterminada
+    // Obtener la imagen configurada o usar la predeterminada
     let imageUrl = chat.sImage || FOTO_PREDETERMINADA;
 
+    // Enviar mensaje de bienvenida con imagen
     await this.sendMessage(m.chat, {
       text: textWel,
       contextInfo: {
@@ -63,7 +66,7 @@ ${descs}
     });
   }
 
-  // Mensaje de DESPEDIDA (messageStubType: 28)
+  // Verificar si el mensaje es de despedida (messageStubType: 28)
   else if (m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
     let defaultBye = `*╔══════════════*
 *╟* *SE FUE UNA BASURA*
@@ -75,8 +78,10 @@ ${descs}
       .replace(/@group/g, subject)
       : defaultBye;
 
+    // Usar la misma imagen de bienvenida para la despedida (puede ser diferente)
     let imageUrl = chat.sImage || FOTO_PREDETERMINADA;
 
+    // Enviar mensaje de despedida con imagen
     await this.sendMessage(m.chat, {
       text: textBye,
       contextInfo: {
@@ -87,7 +92,7 @@ ${descs}
           showAdAttribution: true,
           renderLargerThumbnail: true,
           thumbnailUrl: imageUrl,
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
+          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃 ',
           containsAutoReply: true,
           mediaType: 1,
           sourceUrl: 'https://whatsapp.com'
@@ -114,12 +119,6 @@ handler.handler = async (m, { conn, text, command }) => {
 
   if (!linkImagen) {
     return conn.reply(m.chat, '¡Debes proporcionar tanto el mensaje como el enlace de la imagen!', m);
-  }
-
-  // Validar que el enlace de la imagen sea una URL válida
-  const validUrlPattern = /^(https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*))$/;
-  if (!validUrlPattern.test(linkImagen)) {
-    return conn.reply(m.chat, '¡El enlace proporcionado no es válido! Asegúrate de usar un enlace correcto de imagen.', m);
   }
 
   // Guardar el mensaje de bienvenida y el enlace de la imagen en el grupo
