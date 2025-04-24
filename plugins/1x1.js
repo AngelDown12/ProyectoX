@@ -38,18 +38,16 @@ let handler = async (m, { conn }) => {
 
         const buttons = [
             {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "Acepto",
-                    id: "acepto"
-                })
+                buttonText: {
+                    displayText: 'YOMISMO'  // Botón "YOMISMO"
+                },
+                buttonId: 'yomismo'
             },
             {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "Negado",
-                    id: "negado"
-                })
+                buttonText: {
+                    displayText: 'NOTENGO'  // Botón "NOTENGO"
+                },
+                buttonId: 'notengo'
             }
         ];
 
@@ -111,18 +109,16 @@ ${listas.rechazar.join('\n')}
 
         const buttons = [
             {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "YOMISMO",  // Nuevo botón "YOMISMO"
-                    id: "yomismo"
-                })
+                buttonText: {
+                    displayText: 'YOMISMO'  // Botón "YOMISMO"
+                },
+                buttonId: 'yomismo'
             },
             {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "NOTENGO",  // Nuevo botón "NOTENGO"
-                    id: "notengo"
-                })
+                buttonText: {
+                    displayText: 'NOTENGO'  // Botón "NOTENGO"
+                },
+                buttonId: 'notengo'
             }
         ];
 
@@ -133,16 +129,7 @@ ${listas.rechazar.join('\n')}
                         mentionedJid: [tag]
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `🔥 Modo Insano Activado 🔥
-
-¿Quién se rifa un PVP conmigo? 
-───────────────
-✅ Aceptaron:
-${listas.aceptar.join('\n')}
-
-❌ Negados:
-${listas.rechazar.join('\n')}
-` },
+                        body: { text: textoListas },
                         footer: { text: "Selecciona una opción:" },
                         nativeFlowMessage: { buttons }
                     })
@@ -193,18 +180,16 @@ ${listas.rechazar.join('\n')}
 
         const buttons = [
             {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "YOMISMO",  // Nuevo botón "YOMISMO"
-                    id: "yomismo"
-                })
+                buttonText: {
+                    displayText: 'YOMISMO'  // Botón "YOMISMO"
+                },
+                buttonId: 'yomismo'
             },
             {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "NOTENGO",  // Nuevo botón "NOTENGO"
-                    id: "notengo"
-                })
+                buttonText: {
+                    displayText: 'NOTENGO'  // Botón "NOTENGO"
+                },
+                buttonId: 'notengo'
             }
         ];
 
@@ -215,16 +200,7 @@ ${listas.rechazar.join('\n')}
                         mentionedJid: [tag]
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `🔥 Modo Insano Activado 🔥
-
-¿Quién se rifa un PVP conmigo? 
-───────────────
-✅ Aceptaron:
-${listas.aceptar.join('\n')}
-
-❌ Negados:
-${listas.rechazar.join('\n')}
-` },
+                        body: { text: textoListas },
                         footer: { text: "Selecciona una opción:" },
                         nativeFlowMessage: { buttons }
                     })
