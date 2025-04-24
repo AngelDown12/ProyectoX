@@ -4,25 +4,29 @@ let handler = m => m
 handler.before = async function (m, { conn, isAdmin, isBotAdmin }) {
   let media, msg, type
   const { antiver, isBanned } = global.db.data.chats[m.chat]
-  if (!antiver || isBanned || !(m.mtype === 'viewOnceMessageV2' || m.mtype === 'viewOnceMessageV2Extension')) return
   
+  // Verifica si la protección anti vista única está habilitada
+  if (!antiver || isBanned) return
+  
+  // Si el mensaje es de tipo 'viewOnceMessageV2' o 'viewOnceMessageV2Extension'
   if (m.mtype === 'viewOnceMessageV2' || m.mtype === 'viewOnceMessageV2Extension') {
     msg = m.mtype === 'viewOnceMessageV2' ? m.message.viewOnceMessageV2.message : m.message.viewOnceMessageV2Extension.message
     type = Object.keys(msg)[0]
     
     try {
-      if (m.mtype === 'viewOnceMessageV2') {
-        media = await downloadContentFromMessage(msg[type], type === 'imageMessage' ? 'image' : type === 'videoMessage' ? 'video' : 'audio')
-      } else {
+      // Descarga el contenido según el tipo de mensaje
+      if (type === 'imageMessage' || type === 'videoMessage') {
+        media = await downloadContentFromMessage(msg[type], type === 'imageMessage' ? 'image' : 'video')
+      } else if (type === 'audioMessage') {
         media = await downloadContentFromMessage(msg[type], 'audio')
       }
-
+      
       let buffer = Buffer.from([])
       for await (const chunk of media) {
         buffer = Buffer.concat([buffer, chunk])
       }
 
-      const fileSize = formatFileSize(msg[type].fileLength)
+      // Formateamos la descripción
       const description = `
 ✅️ *ANTI VER UNA VEZ* ✅️
 
@@ -30,9 +34,10 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin }) {
 
 - ✨️ *Usuario:* *@${m.sender.split('@')[0]}*
 ${msg[type].caption ? `- *Texto:* ${msg[type].caption}` : ''}`.trim()
-
+      
+      // Reenvía el mensaje al grupo con la advertencia
       if (/image|video/.test(type)) {
-        return await conn.sendFile(m.chat, buffer, type === 'imageMessage' ? 'error.jpg' : 'error.mp4', description, m, false, { mentions: [m.sender] })
+        await conn.sendFile(m.chat, buffer, 'error.' + (type === 'imageMessage' ? 'jpg' : 'mp4'), description, m, false, { mentions: [m.sender] })
       }
       
       if (/audio/.test(type)) {
@@ -41,15 +46,9 @@ ${msg[type].caption ? `- *Texto:* ${msg[type].caption}` : ''}`.trim()
       }
       
     } catch (error) {
-      console.error("Error al procesar el mensaje de vista única:", error)
+      console.error('Error al procesar el mensaje de vista única:', error)
     }
   }
 }
 
 export default handler
-
-function formatFileSize(bytes) {
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'TY', 'EY']
-  const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)))
-  return Math.round(100 * (bytes / Math.pow(1024, i))) / 100 + ' ' + sizes[i]
-}
