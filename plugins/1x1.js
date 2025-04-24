@@ -10,6 +10,12 @@ let handler = async (m, { conn }) => {
         m.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
         msgText || '';
 
+    // Validación para asegurarse de que el sender tenga un ID válido
+    if (!m.sender) {
+        console.error("Error: El identificador del remitente es nulo o inválido.");
+        return;
+    }
+
     if (msgText?.startsWith('.1vs1')) {
         const buttons = [
             {
@@ -49,8 +55,21 @@ let handler = async (m, { conn }) => {
 
     if (response.startsWith('acepto')) {
         const [, retadorId] = response.split('|');
+        
+        // Validación de que el ID del retador sea válido
+        if (!retadorId) {
+            console.error("Error: ID de retador inválido.");
+            return;
+        }
+
         const nombre = await conn.getName(m.sender);
         const nombreRetador = await conn.getName(retadorId);
+
+        // Si no se puede obtener el nombre de alguno de los usuarios
+        if (!nombre || !nombreRetador) {
+            console.error("Error: No se pudieron obtener los nombres.");
+            return;
+        }
 
         const buttons = [
             {
@@ -101,8 +120,20 @@ let handler = async (m, { conn }) => {
 
     if (response.startsWith('yomismo')) {
         const [, r1, r2] = response.split('|');
+        
+        // Validación de que los identificadores sean válidos
+        if (!r1 || !r2) {
+            console.error("Error: Identificadores de jugadores inválidos.");
+            return;
+        }
+
         const nombre1 = await conn.getName(r1);
         const nombre2 = await conn.getName(r2);
+
+        if (!nombre1 || !nombre2) {
+            console.error("Error: No se pudieron obtener los nombres de los jugadores.");
+            return;
+        }
 
         await conn.sendMessage(m.chat, {
             text: `┏━━━━━━━━━━━━━━━━┓\nUy esto se pondrá bueno, estos dos panas ${nombre1} y ${nombre2} se van a dar en la madre.\n\n*Crea la sala y manda datos*`,
