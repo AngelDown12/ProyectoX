@@ -1,40 +1,55 @@
-let handler = async (m, { conn, usedPrefix, command, args }) => {
-  if (args.length < 1) return m.reply(`Por favor, ingresa el link de la imagen para la bienvenida.\nUso: ${usedPrefix + command} <link_de_imagen>`);
+let handler = async (m, { conn, text, args, isROwner, isOwner }) => {
+  let fkontak = {
+    "key": {
+      "participants": "0@s.whatsapp.net",
+      "remoteJid": "status@broadcast",
+      "fromMe": false,
+      "id": "Halo"
+    },
+    "message": {
+      "contactMessage": {
+        "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
+      }
+    },
+    "participant": "0@s.whatsapp.net"
+  };
 
-  // El primer argumento debe ser el link de la imagen
-  let imageUrl = args[0];
-  
-  // Validar si el link de imagen es correcto
+  // Verificamos que se haya proporcionado un enlace de imagen
+  if (args.length < 1) return m.reply(`Por favor, proporciona el enlace de la imagen para la bienvenida.\nEjemplo: .simularbienvenida <link_de_imagen>`);
+
+  let imageUrl = args[0];  // El primer argumento es el enlace de la imagen
+
+  // Validamos que el enlace sea una imagen válida
   if (!imageUrl.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/)) {
-    return m.reply('El link proporcionado no es una URL válida de imagen. Por favor, ingresa un link de imagen válido.');
+    return m.reply('El enlace proporcionado no es una URL válida de imagen. Por favor, ingresa un enlace válido.');
   }
 
-  // Mensaje que se enviará al grupo cuando un nuevo miembro entre
-  const welcomeMessage = `¡Bienvenid@ al grupo, @user! 🎉🎉\nDisfruta y participa activamente.`;
+  // Guardamos la URL de la imagen en la base de datos (si es necesario)
+  global.db.data.chats[m.chat].sWelcomeImage = imageUrl;
 
-  // Escuchamos el evento de participación en el grupo
+  // Respuesta confirmando que se ha guardado la configuración de bienvenida
+  conn.reply(m.chat, `¡La imagen de bienvenida ha sido configurada correctamente! 🎉\nAhora, cada vez que un nuevo miembro ingrese al grupo, se les dará la bienvenida con la imagen proporcionada.`, fkontak, m);
+
+  // Ahora, cuando un nuevo miembro ingrese, enviaremos el mensaje de bienvenida y la imagen.
   conn.ev.on('group-participants-update', async (update) => {
     if (update.action === 'add') {
-      // Comprobamos si la acción es 'add' (nuevo miembro ingresando)
       let newMember = update.participants[0];
-      
-      // Enviamos el mensaje de bienvenida con la imagen
+      let welcomeMessage = `¡Bienvenid@ al grupo, @${newMember}! 🎉🎉\nDisfruta y participa activamente.`;
+
+      // Enviamos el mensaje de bienvenida con la etiqueta del nuevo miembro
       await conn.sendMessage(update.id, {
-        text: welcomeMessage.replace('@user', `@${newMember}`), 
+        text: welcomeMessage,
         mentions: [newMember],
       });
 
-      // Enviar la imagen de bienvenida con el link proporcionado
-      await conn.sendMessage(update.id, { image: { url: imageUrl }, caption: welcomeMessage.replace('@user', `@${newMember}`) });
+      // Enviamos la imagen de bienvenida configurada previamente
+      await conn.sendMessage(update.id, { image: { url: global.db.data.chats[m.chat].sWelcomeImage }, caption: welcomeMessage });
     }
   });
-
-  m.reply('¡Comando para simular bienvenidas activado! Ahora, cada vez que un nuevo miembro entre al grupo, recibirán la bienvenida con la imagen proporcionada.');
 };
 
-handler.help = ['simularbienvenida <link>'];
-handler.tags = ['owner'];
-handler.command = /^simularbienvenida$/i;
+handler.command = ['simularbienvenida', 'setwelcome'];
+handler.botAdmin = true;
+handler.admin = true;
 handler.group = true;
-
 export default handler;
