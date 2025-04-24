@@ -110,8 +110,8 @@ let handler = async (m, { conn }) => {
                             mentionedJid: nuevaPareja
                         },
                         interactiveMessage: proto.Message.InteractiveMessage.create({
-                            body: { text: `┏━━━━━━━━━━━━━━━━┓\n🥊 *¡Uuy esto se pondrá bueno!*\n\n${nombre1} y ${nombre2} aceptaron el reto.\n\n¿Quién pone sala?\n\n${propuesto.replace(/@s\\.whatsapp\\.net$/, '')} 🆚 ${proponente.replace(/@s\\.whatsapp\\.net$/, '')}\n┗━━━━━━━━━━━━━━━━┛` },
-                            footer: { text: "💫 Prepárense para el duelo" },
+                            body: { text: `UY ESTO ESTARA BUENO ${nombre1} y ${nombre2} SE DARAN EN LA MADRE EN PVP QUIEN PONE SALA` },
+                            footer: { text: "CONFIRMEN" },
                             nativeFlowMessage: { buttons }
                         })
                     }
