@@ -131,14 +131,6 @@ let handler = async (m, { conn }) => {
     if (msgText?.startsWith('.1vs1')) {
         const nombreRemitente = await conn.getName(m.sender);
 
-        if (parejasConfirmadas.get(groupId)?.some(par => par.includes(m.sender))) {
-            await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nNo seas infiel, tú ya tienes pareja.\n┗━━━━━━━━━━━━━━━━┛`,
-                mentions: [m.sender]
-            });
-            return;
-        }
-
         mensajesGrupos.set(groupId, {
             proponente: m.sender
         });
@@ -180,21 +172,14 @@ let handler = async (m, { conn }) => {
     }
 
     if (response === 'notengo' || msgText === 'notengo') {
+        let lista = `┏━━━━━━━━━━━━━━━━┓\n❣️ *Parejas del grupo*\n\n💫 "El amor es la única respuesta"\n\n`;
         const parejas = parejasConfirmadas.get(groupId) || [];
-        if (parejas.length === 0) {
-            await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre . Ponte a lavar platos mejor .\n┗━━━━━━━━━━━━━━━━┛`
-            });
-            return;
-        }
-
-        let lista = `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre . Ponte a lavar platos mejor .\n┗━━━━━━━━━━━━━━━━┛`;
         for (const [p1, p2] of parejas) {
             const nombre1 = await conn.getName(p1);
             const nombre2 = await conn.getName(p2);
             lista += `✨ ${nombre1} 💕 ${nombre2}\n`;
         }
-        lista += ``;
+        lista += `\n┗━━━━━━━━━━━━━━━━┛`;
 
         await conn.sendMessage(m.chat, {
             text: lista.trim()
