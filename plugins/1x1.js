@@ -3,8 +3,6 @@ const { generateWAMessageFromContent, proto } = pkg;
 
 let handler = async (m, { conn }) => {
     const msgText = m.text?.toLowerCase();
-    const groupId = m.chat;
-
     const response =
         m.message?.buttonsResponseMessage?.selectedButtonId ||
         m.message?.interactiveResponseMessage?.nativeFlowResponseButtonResponse?.id ||
@@ -12,15 +10,13 @@ let handler = async (m, { conn }) => {
         m.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
         msgText || '';
 
-    const nombreRemitente = await conn.getName(m.sender);
-
     if (msgText?.startsWith('.1vs1')) {
         const buttons = [
             {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
                     display_text: "ACEPTO",
-                    id: "acepto"
+                    id: `acepto|${m.sender}`
                 })
             },
             {
@@ -51,15 +47,17 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    if (response === 'acepto') {
+    if (response.startsWith('acepto')) {
+        const [, retadorId] = response.split('|');
         const nombre = await conn.getName(m.sender);
+        const nombreRetador = await conn.getName(retadorId);
 
         const buttons = [
             {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
                     display_text: "Yomismo",
-                    id: "yomismo"
+                    id: `yomismo|${retadorId}|${m.sender}`
                 })
             },
             {
@@ -75,10 +73,12 @@ let handler = async (m, { conn }) => {
             viewOnceMessage: {
                 message: {
                     messageContextInfo: {
-                        mentionedJid: [m.sender]
+                        mentionedJid: [m.sender, retadorId]
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `UY ESTO ESTARÁ BUENO, ${nombre} aceptó el reto de PVP, ahora quien pondra la sala` },
+                        body: {
+                            text: `UY ESTO ESTARÁ BUENO, ${nombre} aceptó el reto de ${nombreRetador}, ahora quien pondrá la sala`
+                        },
                         footer: { text: "Confirmen" },
                         nativeFlowMessage: { buttons }
                     })
@@ -99,9 +99,14 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    if (response === 'yomismo') {
+    if (response.startsWith('yomismo')) {
+        const [, r1, r2] = response.split('|');
+        const nombre1 = await conn.getName(r1);
+        const nombre2 = await conn.getName(r2);
+
         await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\nUy esto se pondrá bueno, estos dos panas @user y user se van a dar en la madre.\n\n*Crea la sala y manda datos*`
+            text: `┏━━━━━━━━━━━━━━━━┓\nUy esto se pondrá bueno, estos dos panas ${nombre1} y ${nombre2} se van a dar en la madre.\n\n*Crea la sala y manda datos*`,
+            mentions: [r1, r2]
         });
         return;
     }
