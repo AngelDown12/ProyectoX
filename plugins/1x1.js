@@ -1,26 +1,8 @@
 import pkg from '@whiskeysockets/baileys';
 const { generateWAMessageFromContent, proto } = pkg;
 
-let listasGrupos = new Map();
-let mensajesGrupos = new Map();
+let mensajesGrupos = new Map(); // groupId -> { proponente, aceptado: boolean, rechazado: boolean }
 let parejasConfirmadas = new Map(); // groupId -> [[persona1, persona2]]
-
-const getListasGrupo = (groupId) => {
-    if (!listasGrupos.has(groupId)) {
-        listasGrupos.set(groupId, {
-            aceptar: ['➤'],
-            rechazar: ['➤']
-        });
-    }
-    return listasGrupos.get(groupId);
-};
-
-const reiniciarListas = (groupId) => {
-    listasGrupos.set(groupId, {
-        aceptar: ['➤'],
-        rechazar: ['➤']
-    });
-};
 
 let handler = async (m, { conn }) => {
     const msgText = m.text?.toLowerCase();
@@ -32,49 +14,35 @@ let handler = async (m, { conn }) => {
         m.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
         msgText || '';
 
-    console.log('Response received:', response);
-
-    if (response === 'yomismo' || msgText === 'yomismo') {
-        const parejas = parejasConfirmadas.get(groupId) || [];
-        const pareja = parejas.find(p => p[0] === m.sender || p[1] === m.sender);
-
-        if (pareja) {
-            const nuevasParejas = parejas.filter(p => p[0] !== m.sender && p[1] !== m.sender);
-            parejasConfirmadas.set(groupId, nuevasParejas);
-
-            await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nUy esto se pondrá bueno estos dos panas @user y @user se van a dar en la madre.\n\n*Crea la sala y manda datos*` 
-            });
-        } else {
-            await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre. Ponte a lavar platos mejor.\n┗━━━━━━━━━━━━━━━━┛`
-            });
-        }
-        return;
-    }
-
     if (['acepto', 'negado'].includes(response)) {
-        const tipo = response === 'acepto' ? 'aceptar' : 'rechazar';
+        const tipo = response === 'acepto' ? 'aceptado' : 'rechazado';
         const tag = m.sender;
         const mensajeGuardado = mensajesGrupos.get(groupId);
-        const proponente = mensajeGuardado?.proponente;
 
-        if (!proponente) return;
+        if (!mensajeGuardado || !mensajeGuardado.proponente) return;
+
+        const proponente = mensajeGuardado.proponente;
 
         if (proponente === tag) {
             await conn.sendMessage(m.chat, {
-                text: tipo === 'aceptar' ? 
-                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes aceptarte a ti mismo, eso sería muy triste.\n┗━━━━━━━━━━━━━━━━┛` : 
-                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes rechazarte a ti mismo, ¡date una oportunidad!\n┗━━━━━━━━━━━━━━━━┛`,
+                text: tipo === 'aceptado'
+                    ? `┏━━━━━━━━━━━━━━━━┓\nNo puedes aceptarte a ti mismo, eso sería muy triste.\n┗━━━━━━━━━━━━━━━━┛`
+                    : `┏━━━━━━━━━━━━━━━━┓\nNo puedes rechazarte a ti mismo, ¡date una oportunidad!\n┗━━━━━━━━━━━━━━━━┛`,
                 mentions: [tag]
             });
             return;
         }
 
-        if (tipo === 'aceptar') {
+        if (mensajeGuardado[tipo]) return; // Ya había respondido así
+
+        mensajeGuardado[tipo] = tag;
+        mensajesGrupos.set(groupId, mensajeGuardado);
+
+        if (tipo === 'aceptado') {
             if (!parejasConfirmadas.has(groupId)) {
                 parejasConfirmadas.set(groupId, []);
             }
+
             const nuevaPareja = [proponente, tag];
             const parejasActuales = parejasConfirmadas.get(groupId);
             parejasActuales.push(nuevaPareja);
@@ -104,11 +72,10 @@ let handler = async (m, { conn }) => {
                 viewOnceMessage: {
                     message: {
                         messageContextInfo: {
-                            deviceListMetadata: {},
                             mentionedJid: nuevaPareja
                         },
                         interactiveMessage: proto.Message.InteractiveMessage.create({
-                            body: { text: `UY ESTO ESTARA BUENO ${nombre1} y ${nombre2} SE DARAN EN LA MADRE EN PVP QUIEN PONE SALA` },
+                            body: { text: `UY ESTO ESTARÁ BUENO ${nombre1} y ${nombre2} SE DARÁN EN LA MADRE EN PVP QUIÉN PONE SALA` },
                             footer: { text: "CONFIRMEN" },
                             nativeFlowMessage: { buttons }
                         })
@@ -117,13 +84,18 @@ let handler = async (m, { conn }) => {
             }, {});
 
             await conn.relayMessage(m.chat, mensaje.message, {});
-            mensajesGrupos.delete(groupId); // Solo si fue aceptado
-        } else {
+        }
+
+        if (tipo === 'rechazado') {
             await conn.sendMessage(m.chat, {
                 text: `┏━━━━━━━━━━━━━━━━┓\nUy pana se nota el miedo de no jugarle a PVP a @user\n┗━━━━━━━━━━━━━━━━┛`,
                 mentions: [proponente]
             });
-            mensajesGrupos.delete(groupId); // Si fue rechazo también se limpia
+        }
+
+        // Elimina el registro solo si ya hubo respuesta
+        if (mensajeGuardado.aceptado || mensajeGuardado.rechazado) {
+            mensajesGrupos.delete(groupId);
         }
 
         return;
@@ -156,11 +128,10 @@ let handler = async (m, { conn }) => {
         const mensaje = generateWAMessageFromContent(m.chat, {
             viewOnceMessage: {
                 message: {
-                    messageContextInfo: {
-                        deviceListMetadata: {}
-                    },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `🔥 Modo Insano Activado 🔥\n\n¿Quién se rifa un PVP conmigo?\n───────────────\n¡Vamos a darnos en la madre sin miedo! 👿\n\n${nombreRemitente} lanzó un reto.\n\nSelecciona una opción:` },
+                        body: {
+                            text: `🔥 Modo Insano Activado 🔥\n\n¿Quién se rifa un PVP conmigo?\n───────────────\n¡Vamos a darnos en la madre sin miedo! 👿\n\n${nombreRemitente} lanzó un reto.\n\nSelecciona una opción:`
+                        },
                         footer: { text: "💥 Elige tu destino" },
                         nativeFlowMessage: { buttons }
                     })
@@ -172,11 +143,30 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    if (response === 'notengo' || msgText === 'notengo') {
+    if (response === 'yomismo') {
         const parejas = parejasConfirmadas.get(groupId) || [];
-        if (parejas.length === 0) {
+        const pareja = parejas.find(p => p[0] === m.sender || p[1] === m.sender);
+
+        if (pareja) {
+            const nuevas = parejas.filter(p => p[0] !== m.sender && p[1] !== m.sender);
+            parejasConfirmadas.set(groupId, nuevas);
+
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre. Ponte a lavar platos mejor.\n┗━━━━━━━━━━━━━━━━┛`
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy esto se pondrá bueno estos dos panas @user y @user se van a dar en la madre.\n\n*Crea la sala y manda datos*`,
+                mentions: pareja
+            });
+        } else {
+            await conn.sendMessage(m.chat, {
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para qué entras si están pobre. Ponte a lavar platos mejor.\n┗━━━━━━━━━━━━━━━━┛`
+            });
+        }
+    }
+
+    if (response === 'notengo') {
+        const parejas = parejasConfirmadas.get(groupId) || [];
+        if (!parejas.length) {
+            await conn.sendMessage(m.chat, {
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para qué entras si están pobre. Ponte a lavar platos mejor.\n┗━━━━━━━━━━━━━━━━┛`
             });
             return;
         }
@@ -192,7 +182,6 @@ let handler = async (m, { conn }) => {
         await conn.sendMessage(m.chat, {
             text: lista.trim()
         });
-        return;
     }
 };
 
