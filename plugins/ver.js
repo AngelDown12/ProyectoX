@@ -112,9 +112,14 @@ handler.handler = async (m, { conn, text, command }) => {
   if (!text) {
     return conn.reply(m.chat, '¡Por favor, ingresa el mensaje de bienvenida y el link de la imagen!', m)
   }
-  
+
   const [message, linkImagen] = text.split(' ')
 
+  if (!linkImagen) {
+    return conn.reply(m.chat, '¡Debes proporcionar tanto el mensaje como el enlace de la imagen!', m)
+  }
+
+  // Guardar el mensaje de bienvenida y el enlace de la imagen en el grupo
   global.db.data.chats[m.chat].sWelcome = message
   global.db.data.chats[m.chat].sImage = linkImagen
 
