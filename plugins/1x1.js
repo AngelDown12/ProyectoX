@@ -97,20 +97,11 @@ let handler = async (m, { conn, text, args }) => {
 }
 
 async function mostrarLista(conn, chat, listas, mentions = [], mensajeUsuario = '') {
-    const texto = `🕓 𝗛𝗢𝗥𝗔: ${mensajeUsuario ? `*${mensajeUsuario}*\n` : ''} 📑 𝗥𝗘𝗚𝗟𝗔𝗦: 𝗖𝗟𝗞
-    
-╭──────⚔──────╮
-          1 𝗩𝗘𝗥𝗦𝗨𝗦 1
-╰──────⚔──────╯
-╭─────────────╮
-│ 𝗘𝗦𝗖𝗨𝗔𝗗𝗥𝗔
-│👑 ${listas.squad1[0]}
-╰─────────────╯
-╭─────────────╮
-│ 𝗡𝗘𝗚𝗔𝗗𝗢𝗦
-│🥷🏻 ${listas.suplente[0]}
-╰─────────────╯
-©EliteBotGlobal 2023 `;
+    const texto = `🔥 Modo Insano Activado 🔥
+
+¿Quién se rifa un PVP conmigo? 
+───────────────
+¡Vamos a darnos en la madre sin miedo!`;
 
     const buttons = [
         {
