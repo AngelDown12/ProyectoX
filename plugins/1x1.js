@@ -276,4 +276,12 @@ handler.customPrefix = /^(acepto|negado|terminar|parejas|\.1vs1.*|\.sernovios.*)
 handler.command = new RegExp;
 handler.group = true;
 
+// Agregar estos permisos para evitar detección de spam
+handler.limit = false;
+handler.level = false;
+handler.premium = false;
+handler.register = false;
+handler.fail = null;
+handler.spam = false;
+
 export default handler;
