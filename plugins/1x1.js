@@ -75,20 +75,21 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    if (['acepto', 'negado'].includes(response)) {
+    // Comando YOMISMO o NOTENGO
+    if (['yomismo', 'notengo'].includes(response)) {
         const tipo = response;
         const tag = m.sender;
         const listas = getListasGrupo(groupId);
         const nombreUsuario = await conn.getName(tag);
         const nombreFormateado = `@${tag.split('@')[0]}`;
 
-        if (tipo === 'acepto') {
+        if (tipo === 'yomismo') {
             if (!listas.aceptar.includes(nombreFormateado)) listas.aceptar.push(nombreFormateado);
             await conn.sendMessage(m.chat, {
                 text: `UY ESTO SE PONDRÁ BUENO QUIEN PONE SALA`,
                 mentions: [tag]
             });
-        } else {
+        } else if (tipo === 'notengo') {
             if (!listas.rechazar.includes(nombreFormateado)) listas.rechazar.push(nombreFormateado);
             await conn.sendMessage(m.chat, {
                 text: `✅ @${nombreUsuario} agregado a Negado`,
@@ -112,15 +113,15 @@ ${listas.rechazar.join('\n')}
             {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
-                    display_text: "Acepto",
-                    id: "acepto"
+                    display_text: "YOMISMO",  // Nuevo botón "YOMISMO"
+                    id: "yomismo"
                 })
             },
             {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
-                    display_text: "Negado",
-                    id: "negado"
+                    display_text: "NOTENGO",  // Nuevo botón "NOTENGO"
+                    id: "notengo"
                 })
             }
         ];
@@ -132,7 +133,7 @@ ${listas.rechazar.join('\n')}
                         mentionedJid: [tag]
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: textoListas },
+                        body: { text: `UY ESTO SE PONDRÁ BUENO QUIEN PONE SALA` },
                         footer: { text: "Selecciona una opción:" },
                         nativeFlowMessage: { buttons }
                     })
@@ -148,7 +149,7 @@ ${listas.rechazar.join('\n')}
     }
 };
 
-handler.customPrefix = /^(acepto|negado|\.1vs1.*)$/i;
+handler.customPrefix = /^(acepto|negado|\.1vs1.*|yomismo|notengo)$/i;
 handler.command = new RegExp;
 handler.group = true;
 
