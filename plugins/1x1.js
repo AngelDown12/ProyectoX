@@ -38,9 +38,9 @@ let handler = async (m, { conn }) => {
                     messageContextInfo: {},
                     interactiveMessage: proto.Message.InteractiveMessage.create({
                         body: {
-                            text: `🔥 Modo Insano Activado 🔥\n\n¿Quién se rifa un PVP conmigo?\n───────────────\n¡Vamos a darnos en la madre sin miedo! 👿\n\n${nombreRemitente} lanzó un reto.\n\nSelecciona una opción:`
+                            text: `🔥 Modo Insano Activado 🔥\n\n¿Quién se rifa un PVP conmigo?\n───────────────\n¡Vamos a darnos en la madre sin miedo! 👿`
                         },
-                        footer: { text: "💥 Elige tu destino" },
+                        footer: { text: "Cual es el valiente" },
                         nativeFlowMessage: { buttons }
                     })
                 }
@@ -78,8 +78,8 @@ let handler = async (m, { conn }) => {
                         mentionedJid: [m.sender]
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `UY ESTO ESTARÁ BUENO, ${nombre} aceptó el reto de PVP.` },
-                        footer: { text: "CONFIRMEN" },
+                        body: { text: `UY ESTO ESTARÁ BUENO, ${nombre} aceptó el reto de PVP, ahora quien pondra la sala` },
+                        footer: { text: "Confirmen" },
                         nativeFlowMessage: { buttons }
                     })
                 }
@@ -93,7 +93,7 @@ let handler = async (m, { conn }) => {
     if (response === 'negado') {
         const nombre = await conn.getName(m.sender);
         await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\nUY PANA SE NOTA EL MIEDO DE NO JUGARLE A PVP A ${nombre.toUpperCase()}...\n┗━━━━━━━━━━━━━━━━┛`,
+            text: `┏━━━━━━━━━━━━━━━━┓\nUY PANA SE NOTA EL MIEDO DE NO JUGARLE A PVP A ${nombre.toUpperCase()}`,
             mentions: [m.sender]
         });
         return;
@@ -101,14 +101,14 @@ let handler = async (m, { conn }) => {
 
     if (response === 'yomismo') {
         await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\nUy esto se pondrá bueno, estos dos panas @user y @user se van a dar en la madre.\n\n*Crea la sala y manda datos*\n┗━━━━━━━━━━━━━━━━┛`
+            text: `┏━━━━━━━━━━━━━━━━┓\nUy esto se pondrá bueno, estos dos panas @user y user se van a dar en la madre.\n\n*Crea la sala y manda datos*`
         });
         return;
     }
 
     if (response === 'notengo') {
         await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobres. Ponte a lavar platos mejor.\n┗━━━━━━━━━━━━━━━━┛`
+            text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobres. Ponte a lavar platos mejor.`
         });
         return;
     }
