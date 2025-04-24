@@ -75,6 +75,88 @@ let handler = async (m, { conn }) => {
         return;
     }
 
+    // Comando acepto/negado
+    if (['acepto', 'negado'].includes(response)) {
+        const tipo = response;
+        const tag = m.sender;
+        const listas = getListasGrupo(groupId);
+        const nombreUsuario = await conn.getName(tag);
+        const nombreFormateado = `@${tag.split('@')[0]}`;
+
+        if (tipo === 'acepto') {
+            if (!listas.aceptar.includes(nombreFormateado)) listas.aceptar.push(nombreFormateado);
+            await conn.sendMessage(m.chat, {
+                text: `UY ESTO SE PONDRÁ BUENO QUIEN PONE SALA`,
+                mentions: [tag]
+            });
+        } else if (tipo === 'negado') {
+            if (!listas.rechazar.includes(nombreFormateado)) listas.rechazar.push(nombreFormateado);
+            await conn.sendMessage(m.chat, {
+                text: `✅ @${nombreUsuario} agregado a Negado`,
+                mentions: [tag]
+            });
+        }
+
+        // Enviar mensaje actualizado con listas de "aceptar" y "rechazar"
+        const textoListas = `🔥 Modo Insano Activado 🔥
+
+¿Quién se rifa un PVP conmigo? 
+───────────────
+✅ Aceptaron:
+${listas.aceptar.join('\n')}
+
+❌ Negados:
+${listas.rechazar.join('\n')}
+`;
+
+        const buttons = [
+            {
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "YOMISMO",  // Nuevo botón "YOMISMO"
+                    id: "yomismo"
+                })
+            },
+            {
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "NOTENGO",  // Nuevo botón "NOTENGO"
+                    id: "notengo"
+                })
+            }
+        ];
+
+        const mensaje = generateWAMessageFromContent(m.chat, {
+            viewOnceMessage: {
+                message: {
+                    messageContextInfo: {
+                        mentionedJid: [tag]
+                    },
+                    interactiveMessage: proto.Message.InteractiveMessage.create({
+                        body: { text: `🔥 Modo Insano Activado 🔥
+
+¿Quién se rifa un PVP conmigo? 
+───────────────
+✅ Aceptaron:
+${listas.aceptar.join('\n')}
+
+❌ Negados:
+${listas.rechazar.join('\n')}
+` },
+                        footer: { text: "Selecciona una opción:" },
+                        nativeFlowMessage: { buttons }
+                    })
+                }
+            }
+        }, {});
+
+        const oldMsg = mensajesGrupos.get(groupId);
+        if (oldMsg?.key) {
+            await conn.sendMessage(m.chat, mensaje.message, { messageId: oldMsg.key.id });
+        }
+        return;
+    }
+
     // Comando YOMISMO o NOTENGO
     if (['yomismo', 'notengo'].includes(response)) {
         const tipo = response;
@@ -133,7 +215,16 @@ ${listas.rechazar.join('\n')}
                         mentionedJid: [tag]
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `UY ESTO SE PONDRÁ BUENO QUIEN PONE SALA` },
+                        body: { text: `🔥 Modo Insano Activado 🔥
+
+¿Quién se rifa un PVP conmigo? 
+───────────────
+✅ Aceptaron:
+${listas.aceptar.join('\n')}
+
+❌ Negados:
+${listas.rechazar.join('\n')}
+` },
                         footer: { text: "Selecciona una opción:" },
                         nativeFlowMessage: { buttons }
                     })
