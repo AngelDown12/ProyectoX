@@ -1,25 +1,37 @@
-let handler = async (m, { conn }) => {
-  // Verificar si el mensaje contiene una imagen
-  if (m.message && m.message.imageMessage) {
-    // Revisar si ya se ha procesado una imagen antes en el grupo
-    let groupData = global.groupImageStatus || {};
+import translate from '@vitalets/google-translate-api';
+import axios from 'axios';
+import fetch from 'node-fetch';
 
-    // Si es la primera vez que se envía una imagen, reenviamos el mensaje
-    if (!groupData[m.chat]) {
-      // Marcar que se ha procesado una imagen en el grupo
-      groupData[m.chat] = true;
-      global.groupImageStatus = groupData;
+const handler = async (m, {conn, text, command, args, usedPrefix}) => {
 
-      // Reenviar la imagen
-      await conn.sendMessage(m.chat, { image: m.message.imageMessage, caption: '🚫 En este grupo no se permite enviar imágenes de 1 sola vez. 🚫' }, { quoted: m });
+if (!text) conn.reply(m.chat, `${emoji} Te faltó el texto para hablar con la *Bot*`, m);
+try {
+// await m.react(emojis)
+const resSimi = await simitalk(text);
+conn.sendMessage(m.chat, { text: resSimi.resultado.simsimi }, { quoted: m });
+} catch {
+throw `${msm} Ocurrió un error.`;
+}};
 
-      // Mandar el mensaje de advertencia
-      await m.reply('🚫 En este grupo no se permite enviar imágenes de 1 sola vez. 🚫');
-    }
-  }
-};
+handler.help = ['simi', 'bot'];
+handler.tags = ['fun'];
+handler.group = true;
+handler.register = true
+handler.command = ['yuki', 'Yuki']
 
-// Configuración universal
-handler.command = /^.*$/i; // Escuchar todos los mensajes
-handler.tags = ['anti']; // Etiqueta para organizar comandos
 export default handler;
+
+async function simitalk(ask, apikeyyy = "iJ6FxuA9vxlvz5cKQCt3", language = "es") {
+if (!ask) return { status: false, resultado: { msg: "Debes ingresar un texto para hablar con simsimi." }};
+try {
+const response1 = await axios.get(`https://delirius-apiofc.vercel.app/tools/simi?text=${encodeURIComponent(ask)}`);
+const trad1 = await translate(`${response1.data.data.message}`, {to: language, autoCorrect: true});
+if (trad1.text == 'indefinida' || response1 == '' || !response1.data) trad1 = XD // Se usa "XD" para causar error y usar otra opción.  
+return { status: true, resultado: { simsimi: trad1.text }};        
+} catch {
+try {
+const response2 = await axios.get(`https://anbusec.xyz/api/v1/simitalk?apikey=${apikeyyy}&ask=${ask}&lc=${language}`);
+return { status: true, resultado: { simsimi: response2.data.message }};       
+} catch (error2) {
+return { status: false, resultado: { msg: "Todas las API's fallarón. Inténtalo de nuevo más tarde.", error: error2.message }};
+}}}
