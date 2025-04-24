@@ -1,61 +1,62 @@
-import { generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
+import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
 
 const handler = async (m, { conn, text, participants }) => {
   try {
     const users = participants.map(u => conn.decodeJid(u.id));
     const watermark = 'ㅤㅤㅤㅤㅤㅤㅤㅤᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
-    const messageText = text ? `${text}\n${watermark}` : watermark;
+    const fullMessage = (text || 'Notificación') + '\n' + watermark;
 
-    // 1. Estructura EXACTA de botones del segundo código (pero corregida)
-    const buttons = [
-      {
-        quickReplyButton: {
-          displayText: "👤 MENCIÓN",
-          id: "btn_mencion"
-        }
-      },
-      {
-        quickReplyButton: {
-          displayText: "📝 RECORDATORIO",
-          id: "btn_recordatorio"
-        }
-      }
-    ];
-
-    // 2. Mensaje principal con la estructura que WhatsApp acepta
-    const msg = {
-      text: messageText,
-      mentions: users,
+    // 1. Estructura compatible con WhatsApp (2023)
+    const buttonMessage = {
+      text: fullMessage,
       footer: 'Selecciona una opción:',
-      buttons: buttons,
+      buttons: [
+        { buttonId: 'id1', buttonText: { displayText: '👤 Mención' }, type: 1 },
+        { buttonId: 'id2', buttonText: { displayText: '📝 Recordatorio' }, type: 1 }
+      ],
+      mentions: users,
       headerType: 1
     };
 
-    // 3. Envío con método garantizado
-    await conn.sendMessage(m.chat, msg, {
-      quoted: m,
-      ephemeralExpiration: 86400 // 24 horas
-    });
+    // 2. Enviar mensaje principal
+    const sentMsg = await conn.sendMessage(m.chat, buttonMessage, { quoted: m });
 
-    // 4. Confirmación opcional (elimina si no necesitas)
-    await conn.sendMessage(m.chat, { 
-      react: { 
-        text: "✅", 
-        key: m.key 
-      } 
+    // 3. Añadir reacción de confirmación (opcional)
+    await conn.sendMessage(m.chat, {
+      react: {
+        text: "✅",
+        key: sentMsg.key
+      }
     });
 
   } catch (error) {
-    console.error('Error al enviar:', error);
+    console.error('Error crítico:', error);
     
-    // Plan B: Enviar como mensaje simple + botones alternativos
-    await conn.sendMessage(m.chat, {
-      text: `${messageText}\n\n*Opciones:*\n• Escribe *1* para Mención\n• Escribe *2* para Recordatorio`,
+    // Plan B: Enviar mensaje simple si falla el interactivo
+    await conn.sendMessage(m.chat, { 
+      text: fullMessage,
       mentions: users
+    }, { quoted: m });
+    
+    // Plan C: Enviar botones como mensaje separado
+    await conn.sendMessage(m.chat, {
+      text: 'Opciones disponibles:',
+      footer: 'Elije una acción',
+      templateButtons: [
+        {
+          index: 1,
+          quickReplyButton: { displayText: 'Mención', id: 'mencion' }
+        },
+        {
+          index: 2,
+          quickReplyButton: { displayText: 'Recordatorio', id: 'recordatorio' }
+        }
+      ]
     }, { quoted: m });
   }
 };
 
+// Configuración del handler
 handler.help = ['notifica'];
 handler.tags = ['group'];
 handler.command = /^notifica$/i;
