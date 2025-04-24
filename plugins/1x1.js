@@ -205,7 +205,7 @@ let handler = async (m, { conn }) => {
     }
 };
 
-handler.customPrefix = /^(acepto|negado|yomismo|parejas|\.1vs1.*|notengo)$/i;
+handler.customPrefix = /^(acepto|negado|yomismo|parejas|\.1vs1.*)$/i;
 handler.command = new RegExp;
 handler.group = true;
 
