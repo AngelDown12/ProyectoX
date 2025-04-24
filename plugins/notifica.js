@@ -2,14 +2,9 @@ import { generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
 
 const handler = async (m, { conn, text, participants }) => {
   const users = participants.map(u => u.id);
-  const invisible = String.fromCharCode(8206).repeat(850); // Invisibles
-  const mensajeVisible = `${text || 'MENSAJE IMPORTANTE PARA TODOS'}\nᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ`;
-
-  // Notificación con menciones ocultas sin parecer vacío
-  await conn.sendMessage(m.chat, {
-    text: invisible + '\n' + mensajeVisible,
-    mentions: users
-  });
+  const invisible = String.fromCharCode(8206).repeat(850); // invisibles para mención oculta
+  const watermark = 'ᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
+  const cuerpo = `${text || 'MENSAJE IMPORTANTE PARA TODOS'}\n${watermark}`;
 
   const buttons = [
     {
@@ -31,8 +26,11 @@ const handler = async (m, { conn, text, participants }) => {
   const msg = generateWAMessageFromContent(m.chat, {
     viewOnceMessage: {
       message: {
+        messageContextInfo: {
+          mentionedJid: users
+        },
         interactiveMessage: proto.Message.InteractiveMessage.create({
-          body: { text: mensajeVisible },
+          body: { text: `${invisible}\n${cuerpo}` },
           nativeFlowMessage: { buttons }
         })
       }
