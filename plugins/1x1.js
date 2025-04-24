@@ -151,13 +151,7 @@ let handler = async (m, { conn }) => {
 
     // Comando .1vs1 (antes .sernovios)
     if (msgText?.startsWith('.1vs1')) {
-        const mentionedJid = m.mentionedJid?.[0];
-        if (!mentionedJid) {
-            await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nDebes mencionar a alguien para desafiarlo.\n\n💡 Ejemplo: .1vs1 @usuario\n┛`
-            });
-            return;
-        }
+        const mentionedJid = m.mentionedJid?.[0]; // Eliminar la validación de mención
 
         // Verificar que no se esté mencionando a sí mismo
         if (mentionedJid === m.sender) {
