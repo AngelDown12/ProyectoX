@@ -42,6 +42,9 @@ ${descs}
       .replace(/@desc/g, descs)
       : defaultWelcome
 
+    // Obtener la imagen configurada o predeterminada
+    let imageUrl = chat.sImage || FOTO_PREDETERMINADA
+
     await this.sendMessage(m.chat, { 
       text: textWel, 
       contextInfo: {
@@ -51,7 +54,7 @@ ${descs}
         externalAdReply: {
           showAdAttribution: true,
           renderLargerThumbnail: true,
-          thumbnailUrl: pp, 
+          thumbnailUrl: imageUrl, 
           title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
           containsAutoReply: true,
           mediaType: 1, 
@@ -75,6 +78,8 @@ ${descs}
       .replace(/@group/g, subject)
       : defaultBye
 
+    let imageUrl = chat.sImage || FOTO_PREDETERMINADA
+
     await this.sendMessage(m.chat, { 
       text: textBye, 
       contextInfo: {
@@ -84,7 +89,7 @@ ${descs}
         externalAdReply: {
           showAdAttribution: true,
           renderLargerThumbnail: true,
-          thumbnailUrl: pp, 
+          thumbnailUrl: imageUrl, 
           title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃 ',
           containsAutoReply: true,
           mediaType: 1, 
