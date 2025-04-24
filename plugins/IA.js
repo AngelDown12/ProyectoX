@@ -10,10 +10,10 @@ let handler = async (m, { text, conn }) => {
   // Extraer la consulta (elimina menciones/comandos)
   let query = m.text
     .replace(new RegExp(`@${conn.user.jid.split('@')[0]}`, 'i'), '') // Elimina @EliteBot
-    .replace(/^[\.]?(bard|gemini)\s*/i, '') // Elimina comandos
+    .replace(/^[\.]?(bot|gemini)\s*/i, '') // Elimina comandos
     .trim();
 
-  if (!query) throw `📌 *Ejemplos:*\n\n• @${conn.user.jid.split('@')[0]} dime un chiste\n• .bard explica IA`;
+  if (!query) throw `¡Hola! ¿En qué te puedo ayudar? ♥️`;
 
   try {
     await conn.sendPresenceUpdate('composing', m.chat);
@@ -29,7 +29,7 @@ let handler = async (m, { text, conn }) => {
 };
 
 // Configuración universal
-handler.customPrefix = /^(\.?bard|\.?gemini|@\d+)/i;
+handler.customPrefix = /^(\.?bot|\.?gemini|@\d+)/i;
 handler.command = new RegExp;
 handler.tags = ['ai'];
 export default handler;
