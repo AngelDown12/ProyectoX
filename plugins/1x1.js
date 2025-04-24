@@ -43,12 +43,12 @@ let handler = async (m, { conn }) => {
             parejasConfirmadas.set(groupId, nuevasParejas);
 
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\n💔 *¡Ups!* La relación se terminó...\n\n✨ "El amor es como el viento, no puedes verlo pero puedes sentirlo"\n\n┗━━━━━━━━━━━━━━━━┛`,
+                text: `┏━━━━━━━━━━━━━━━━┓\nPerfecto, envía datos de la sala, contraseña y ID. Esto se pondrá picante\n┗━━━━━━━━━━━━━━━━┛`,
                 mentions: pareja
             });
         } else {
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\n❌ *No tienes pareja*\nNo puedes terminar una relación si no tienes pareja.\n┗━━━━━━━━━━━━━━━━┛`,
+                text: `┏━━━━━━━━━━━━━━━━┓\nQue pobre eres pana, a chingar a su madre.\n┗━━━━━━━━━━━━━━━━┛`,
                 mentions: [m.sender]
             });
         }
@@ -89,15 +89,15 @@ let handler = async (m, { conn }) => {
                 {
                     name: "quick_reply",
                     buttonParamsJson: JSON.stringify({
-                        display_text: "Yomismo",
-                        id: "yomismo"
+                        display_text: "Terminar",
+                        id: "terminar"
                     })
                 },
                 {
                     name: "quick_reply",
                     buttonParamsJson: JSON.stringify({
-                        display_text: "Notengo",
-                        id: "notengo"
+                        display_text: "Parejas",
+                        id: "parejas"
                     })
                 }
             ];
@@ -181,7 +181,7 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    if (response === 'notengo' || msgText === 'notengo') {
+    if (response === 'parejas' || msgText === 'parejas') {
         const parejas = parejasConfirmadas.get(groupId) || [];
         if (parejas.length === 0) {
             await conn.sendMessage(m.chat, {
@@ -205,7 +205,7 @@ let handler = async (m, { conn }) => {
     }
 };
 
-handler.customPrefix = /^(acepto|negado|yomismo|notengo|\.1vs1.*)$/i;
+handler.customPrefix = /^(acepto|negado|yomismo|parejas|\.1vs1.*|notengo)$/i;
 handler.command = new RegExp;
 handler.group = true;
 
