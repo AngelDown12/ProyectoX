@@ -1,52 +1,67 @@
-const handler = async (m, { conn, usedPrefix, command, args }) => {
-    // Obtener información del remitente
-    const user = m.sender;
-    const contact = await conn.getContact(user);
-    const pushname = contact.pushname || 'Sin nombre';
-    const status = (await conn.fetchStatus(user)).status || 'Sin estado';
+const handler = async (m, { conn, usedPrefix, command }) => {
+    // Obtener información del usuario
+    const user = m.sender
+    const pushname = m.pushName || 'Sin nombre'
     
-    // Obtener país basado en el código de teléfono
+    // Obtener el estado (bio) del usuario
+    let status = 'Sin estado'
+    try {
+        const statusData = await conn.fetchStatus(user)
+        status = statusData.status || status
+    } catch (e) {
+        console.error('Error al obtener estado:', e)
+    }
+    
+    // Mapeo de códigos de país
     const countryCodes = {
         '1': '🇺🇸 EE.UU.', '52': '🇲🇽 México', '54': '🇦🇷 Argentina',
         '55': '🇧🇷 Brasil', '56': '🇨🇱 Chile', '57': '🇨🇴 Colombia',
         '58': '🇻🇪 Venezuela', '51': '🇵🇪 Perú', '593': '🇪🇨 Ecuador',
-        '34': '🇪🇸 España', '33': '🇫🇷 Francia', '44': '🇬🇧 Reino Unido'
-    };
+        '34': '🇪🇸 España', '33': '🇫🇷 Francia', '44': '🇬🇧 Reino Unido',
+        '7': '🇷🇺 Rusia', '49': '🇩🇪 Alemania', '39': '🇮🇹 Italia'
+    }
     
-    const phoneNumber = user.split('@')[0];
-    let country = '🌍 Desconocido';
+    // Determinar país
+    const phoneNumber = user.split('@')[0]
+    let country = '🌍 Desconocido'
     for (const [code, name] of Object.entries(countryCodes)) {
         if (phoneNumber.startsWith(code)) {
-            country = name;
-            break;
+            country = name
+            break
         }
     }
     
     // Obtener imagen de perfil
-    const pfp = await conn.profilePictureUrl(user, 'image').catch(() => 'https://i.imgur.com/8l1jO7W.jpg');
+    let pfpUrl
+    try {
+        pfpUrl = await conn.profilePictureUrl(user, 'image')
+    } catch (e) {
+        console.error('Error al obtener foto de perfil:', e)
+        pfpUrl = 'https://i.imgur.com/8l1jO7W.jpg' // Imagen por defecto
+    }
     
     // Construir mensaje
     const message = `
 *╭━━━━━━━〘 PERFIL 〙━━━━━━━╮*
-    
+
 📌 *Nombre:* ${pushname}
 📍 *País:* ${country}
 📱 *Número:* ${phoneNumber}
 📝 *Estado:* ${status}
+
+*╰━━━━━━━〘 ${conn.user.name} 〙━━━━━━━╯*
+    `.trim()
     
-*╰━━━━━━━〘 ${conn.getName(conn.user.jid)} 〙━━━━━━━╯*
-    `;
-    
-    // Enviar mensaje con imagen de perfil
+    // Enviar mensaje
     await conn.sendMessage(m.chat, {
-        image: { url: pfp },
+        image: { url: pfpUrl },
         caption: message,
         mentions: [user]
-    }, { quoted: m });
-};
+    }, { quoted: m })
+}
 
-handler.help = ['perfil'];
-handler.tags = ['info'];
-handler.command = /^(perfil|profile|miperfil)$/i;
+handler.help = ['perfil']
+handler.tags = ['info']
+handler.command = /^(perfil|profile|miperfil)$/i
 
-export default handler;
+export default handler
