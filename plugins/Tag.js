@@ -27,10 +27,15 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) 
     return countryFlags[prefix] || '🏳️‍🌈';
   };
 
-  let texto = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂\n\n*${groupName}*\n👤 INTEGRANTES: *${participants.length}*\n${mensajePersonalizado}\n`;
+  let texto = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂\n\n`;
+  texto += `*${groupName}*\n👤 INTEGRANTES: *${participants.length}*\n${mensajePersonalizado}\n\n`;
 
-  // Construir menciones en horizontal
-  texto += participants.map(p => `${emoji} ${getCountryFlag(p.id)} @${p.id.split('@')[0]}`).join('  ');
+  // Insertamos líneas para que WhatsApp oculte el mensaje
+  texto += '╭─「 MENSAJE OCULTO 」\n';
+  texto += '\n'.repeat(20); // Esto simula el "ver más"
+  texto += '╰─「 MENCIONES 」\n\n';
+
+  texto += participants.map(p => `${emoji} ${getCountryFlag(p.id)} @${p.id.split('@')[0]}`).join('\n');
 
   texto += `\n\n*╰━* 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝙊𝘽𝘼𝙇\n▌│█║▌║▌║║▌║▌║▌║█`;
 
@@ -39,11 +44,3 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) 
     mentions: participants.map(p => p.id)
   });
 };
-
-handler.help = ['todos'];
-handler.tags = ['group'];
-handler.command = /^(tagal|invocar|marcar|todos|invocación)$/i;
-handler.admin = true;
-handler.group = true;
-
-export default handler;
