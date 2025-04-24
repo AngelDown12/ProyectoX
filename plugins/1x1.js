@@ -119,7 +119,7 @@ let handler = async (m, { conn }) => {
             await conn.relayMessage(m.chat, mensaje.message, {});
         } else {
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\n💔 *Rechazo*\n\n💫 "El amor es como una mariposa, si lo persigues, te eludirá"\n\n${await conn.getName(tag)} rechazó tu propuesta de amor.\n\n✨ No te rindas, el amor verdadero te espera.\n┗━━━━━━━━━━━━━━━━┛`,
+                text: `UY PANA SE TE NOTA EL MIEDO DE JUGARLE PVP A ${await conn.getName(tag)}.   VAYA A LAVAR PLATOS MANCOTE`,
                 mentions: [proponente]
             });
         }
