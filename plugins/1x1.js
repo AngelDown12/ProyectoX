@@ -79,8 +79,8 @@ let handler = async (m, { conn }) => {
                         mentionedJid: [m.sender]
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `*¡JA! ${nombre} CAYÓ COMO IDIOTA!* 😈\n\n*A ver, ¿quién pone la sala o solo saben chupar experiencia?* 🍼` },
-                        footer: { text: "*Confirmen o se esconden* 🐭" },
+                        body: { text: `*¡JA! ${nombre} TE ENTERRASTE TU MISMO!* 😈\n\n*A ver, ¿quién pone la sala o solo sabes chupar experiencia?* 🍼` },
+                        footer: { text: "*¿Pones sala o que?* 🐭" },
                         nativeFlowMessage: { buttons }
                     })
                 }
@@ -104,7 +104,7 @@ let handler = async (m, { conn }) => {
     // Respuesta al botón "Yomismo" (MENTIRA, NADIE TIENE SALA)
     if (response === 'yomismo') {
         await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\n*FINALMENTE ALGUIEN CON HUEVOS* 🥚🔥\n\n@${m.sender.split('@')[0]} *VS* @user\n\n*Pero seguro se desconectan a medio juego* 📵💀`
+            text: `┏━━━━━━━━━━━━━━━━┓\n*FINALMENTE ALGUIEN CON HUEVOS* 🥚🔥\n\n@${m.sender.split('@')[0]}\n\n*Pero seguro se desconectan a medio juego* 📵💀`
         });
         return;
     }
