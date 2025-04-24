@@ -2,16 +2,18 @@ import pkg from '@whiskeysockets/baileys';
 const { generateWAMessageFromContent, proto } = pkg;
 
 const handler = async (m, { conn, text, participants }) => {
-  const users = participants.map((u) => conn.decodeJid(u.id));
-  const watermark = 'ᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
-  const more = String.fromCharCode(8206); // invisible char
-  const invisibleMention = more.repeat(850); // oculta la mención
+  const users = participants.map((u) => conn.decodeJid(u.id)); // Obtener los JIDs de los participantes
+  const watermark = 'ᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ'; // Watermark que aparece al final
+
+  // El carácter invisible para ocultar las menciones pero sigue funcionando para notificar
+  const more = String.fromCharCode(8206); 
+  const invisibleMention = more.repeat(850); // Esto ayuda a que las menciones no sean visibles pero se notifiquen
 
   const mensajeBotones = generateWAMessageFromContent(m.chat, {
     viewOnceMessage: {
       message: {
         messageContextInfo: {
-          mentionedJid: users
+          mentionedJid: users // Aquí es donde se activan las menciones, sin mostrar los @id
         },
         interactiveMessage: proto.Message.InteractiveMessage.create({
           body: {
@@ -41,6 +43,7 @@ const handler = async (m, { conn, text, participants }) => {
     }
   }, {});
 
+  // Relatamos el mensaje a todos los participantes
   await conn.relayMessage(m.chat, mensajeBotones.message, {});
 };
 
