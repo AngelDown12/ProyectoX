@@ -1,50 +1,36 @@
-import { generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
+import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
 
 const handler = async (m, { conn, text, participants }) => {
   try {
     const users = participants.map(u => conn.decodeJid(u.id));
-    const invisible = String.fromCharCode(8206).repeat(850); // Mencion oculta
+    const invisible = String.fromCharCode(8206).repeat(850);
     const watermark = 'ᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
-
     const messageText = (text || '').trim();
-    if (!messageText) return;
+    
+    if (!messageText) {
+      return m.reply('Por favor, proporciona un mensaje para notificar.');
+    }
 
     const fullMessage = `${invisible}${messageText}\n${watermark}`;
 
-    // 1. Definir los botones (Quick Replies)
-    const buttons = [
-      {
-        buttonId: "boton_mencion",
-        buttonText: { displayText: "👤 MENCIÓN" },
-        type: 1 // Quick Reply
-      },
-      {
-        buttonId: "boton_recordatorio",
-        buttonText: { displayText: "📝 RECORDATORIO" },
-        type: 1 // Quick Reply
-      }
-    ];
+    // Estructura compatible con WhatsApp
+    const msg = {
+      text: fullMessage,
+      mentions: users,
+      footer: 'ㅤ',
+      buttons: [
+        { buttonId: 'id1', buttonText: { displayText: '👤 MENCIÓN' }, type: 1 },
+        { buttonId: 'id2', buttonText: { displayText: '📝 RECORDATORIO' }, type: 1 }
+      ],
+      headerType: 1
+    };
 
-    // 2. Crear el mensaje interactivo CON menciones
-    const msg = generateWAMessageFromContent(m.chat, {
-      interactiveMessage: {
-        body: {
-          text: fullMessage,
-          contextInfo: {
-            mentionedJid: users // ✅ Menciones aquí (funcionarán)
-          }
-        },
-        footer: { text: '' },
-        buttons: buttons,
-        headerType: 1 // Texto normal
-      }
-    }, {});
-
-    // 3. Enviar el mensaje
-    await conn.relayMessage(m.chat, msg.message, {});
+    // Envío alternativo que funciona mejor
+    await conn.sendMessage(m.chat, msg);
+    
   } catch (e) {
-    console.error(e);
-    m.reply('Error al enviar el mensaje.');
+    console.error('Error al notificar:', e);
+    m.reply('Ocurrió un error al enviar la notificación. Intenta nuevamente.');
   }
 };
 
