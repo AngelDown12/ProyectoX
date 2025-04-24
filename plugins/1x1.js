@@ -43,11 +43,11 @@ let handler = async (m, { conn }) => {
             parejasConfirmadas.set(groupId, nuevasParejas);
 
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nUy esto se pondrá bueno  estos dos panas @user y @user se van a dar en la madre .\n\n*Crea la sala y manda datos*` 
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy esto se pondrá bueno estos dos panas @user y @user se van a dar en la madre.\n\n*Crea la sala y manda datos*` 
             });
         } else {
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre . Ponte a lavar platos mejor .\n┛`
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre. Ponte a lavar platos mejor.\n┗━━━━━━━━━━━━━━━━┛`
             });
         }
         return;
@@ -64,8 +64,8 @@ let handler = async (m, { conn }) => {
         if (proponente === tag) {
             await conn.sendMessage(m.chat, {
                 text: tipo === 'aceptar' ? 
-                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes aceptarte a ti mismo, eso sería muy triste.\n┛` : 
-                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes rechazarte a ti mismo, ¡date una oportunidad!\n┛`,
+                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes aceptarte a ti mismo, eso sería muy triste.\n┗━━━━━━━━━━━━━━━━┛` : 
+                    `┏━━━━━━━━━━━━━━━━┓\nNo puedes rechazarte a ti mismo, ¡date una oportunidad!\n┗━━━━━━━━━━━━━━━━┛`,
                 mentions: [tag]
             });
             return;
@@ -117,15 +117,15 @@ let handler = async (m, { conn }) => {
             }, {});
 
             await conn.relayMessage(m.chat, mensaje.message, {});
+            mensajesGrupos.delete(groupId); // Solo si fue aceptado
         } else {
-            // Este es el mensaje cuando se presiona "negado"
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana, se nota el miedo de no jugarle a PVP a @user\n┛`,
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana se nota el miedo de no jugarle a PVP a @user\n┗━━━━━━━━━━━━━━━━┛`,
                 mentions: [proponente]
             });
+            mensajesGrupos.delete(groupId); // Si fue rechazo también se limpia
         }
 
-        mensajesGrupos.delete(groupId); // Limpiar el mensaje para que no se repita en futuros botones.
         return;
     }
 
@@ -176,18 +176,18 @@ let handler = async (m, { conn }) => {
         const parejas = parejasConfirmadas.get(groupId) || [];
         if (parejas.length === 0) {
             await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre . Ponte a lavar platos mejor .\n┛`
+                text: `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre. Ponte a lavar platos mejor.\n┗━━━━━━━━━━━━━━━━┛`
             });
             return;
         }
 
-        let lista = `┏━━━━━━━━━━━━━━━━┓\nUy pana para que entras a este grupo si están pobre . Ponte a lavar platos mejor .\n┛`;
+        let lista = `┏━━━━━━━━━━━━━━━━┓\n📜 Lista de Parejas Confirmadas:\n`;
         for (const [p1, p2] of parejas) {
             const nombre1 = await conn.getName(p1);
             const nombre2 = await conn.getName(p2);
             lista += `✨ ${nombre1} 💕 ${nombre2}\n`;
         }
-        lista += ``;
+        lista += `┗━━━━━━━━━━━━━━━━┛`;
 
         await conn.sendMessage(m.chat, {
             text: lista.trim()
