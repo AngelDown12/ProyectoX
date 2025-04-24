@@ -58,7 +58,7 @@ ${descs}
           sourceUrl: 'https://whatsapp.com'
         }
       }
-    }, { quoted: fkontak })
+    })
   }
 
   // Mensaje de DESPEDIDA (messageStubType: 28)
@@ -91,7 +91,7 @@ ${descs}
           sourceUrl: 'https://whatsapp.com'
         }
       }
-    }, { quoted: fkontak })
+    })
   }
 }
 
