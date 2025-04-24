@@ -95,7 +95,7 @@ let handler = async (m, { conn }) => {
     if (response === 'negado') {
         const nombre = await conn.getName(m.sender);
         await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\nUY PANA SE NOTA EL MIEDO DE NO JUGARLE A PVP A ${nombre.toUpperCase()}`,
+            text: `┏━━━━━━━━━━━━━━━━┓\nUY PANA SE NOTA EL MIEDO DE NO JUGARLE A PVP XD`,
             mentions: [m.sender]
         });
         return;
