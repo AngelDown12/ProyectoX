@@ -17,8 +17,8 @@ let handler = async (m, { conn }) => {
         return;
     }
 
+    // Flujo inicial para el comando .1vs1
     if (msgText?.startsWith('.1vs1')) {
-        // El mensaje que contiene los botones de aceptación y rechazo
         const buttons = [
             {
                 name: "quick_reply",
@@ -55,7 +55,7 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    // Reacción al botón "ACEPTO" que incluye el ID del retador
+    // Depuración para verificar si el flujo pasa por "ACEPTO"
     if (response.startsWith('acepto|')) {
         const [, retadorId] = response.split('|'); // Extraemos el ID del retador
 
@@ -64,6 +64,8 @@ let handler = async (m, { conn }) => {
             console.error("Error: ID de retador inválido.");
             return;
         }
+
+        console.log(`Retador aceptado: ${retadorId}`);
 
         const nombreRetador = await conn.getName(retadorId);
         const nombre = await conn.getName(m.sender);
@@ -111,7 +113,7 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    // Respuesta al botón "NEGADO"
+    // Depuración para verificar si el flujo pasa por "NEGADO"
     if (response === 'negado') {
         const nombre = await conn.getName(m.sender);
         await conn.sendMessage(m.chat, {
