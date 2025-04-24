@@ -12,8 +12,8 @@ let handler = async (m, { conn, usedPrefix, command, args }) => {
   // Mensaje que se enviará al grupo cuando un nuevo miembro entre
   const welcomeMessage = `¡Bienvenid@ al grupo, @user! 🎉🎉\nDisfruta y participa activamente.`;
 
-  // Función que maneja el evento de entrada de nuevos miembros (welcome)
-  conn.on('group-participants-update', async (update) => {
+  // Escuchamos el evento de participación en el grupo
+  conn.ev.on('group-participants-update', async (update) => {
     if (update.action === 'add') {
       // Comprobamos si la acción es 'add' (nuevo miembro ingresando)
       let newMember = update.participants[0];
