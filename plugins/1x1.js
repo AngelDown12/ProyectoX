@@ -25,6 +25,7 @@ let handler = async (m, { conn }) => {
     const msgText = m.text?.toLowerCase();
     const groupId = m.chat;
 
+    // Detectar respuesta de botones
     const response = m.message?.buttonsResponseMessage?.selectedButtonId ||
         m.message?.interactiveResponseMessage?.nativeFlowResponseButtonResponse?.id ||
         m.message?.interactiveResponseMessage?.buttonReplyMessage?.selectedId ||
@@ -38,23 +39,28 @@ let handler = async (m, { conn }) => {
 
         const buttons = [
             {
-                buttonText: {
-                    displayText: 'YOMISMO'  // Botón "YOMISMO"
-                },
-                buttonId: 'yomismo'
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "Acepto",
+                    id: "acepto"
+                })
             },
             {
-                buttonText: {
-                    displayText: 'NOTENGO'  // Botón "NOTENGO"
-                },
-                buttonId: 'notengo'
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "Negado",
+                    id: "negado"
+                })
             }
         ];
 
         const mensaje = generateWAMessageFromContent(m.chat, {
             viewOnceMessage: {
                 message: {
-                    messageContextInfo: {},
+                    messageContextInfo: {
+                        deviceListMetadata: {},
+                        mentionedJid: []
+                    },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
                         body: { text: `🔥 Modo Insano Activado 🔥
 
@@ -68,8 +74,7 @@ let handler = async (m, { conn }) => {
             }
         }, {});
 
-        const sentMsg = await conn.relayMessage(m.chat, mensaje.message, {});
-        mensajesGrupos.set(groupId, sentMsg); // Guardar mensaje para editar luego
+        await conn.relayMessage(m.chat, mensaje.message, {});
         return;
     }
 
@@ -79,46 +84,34 @@ let handler = async (m, { conn }) => {
         const tag = m.sender;
         const listas = getListasGrupo(groupId);
         const nombreUsuario = await conn.getName(tag);
-        const nombreFormateado = `@${tag.split('@')[0]}`;
 
         if (tipo === 'acepto') {
-            if (!listas.aceptar.includes(nombreFormateado)) listas.aceptar.push(nombreFormateado);
             await conn.sendMessage(m.chat, {
-                text: `UY ESTO SE PONDRÁ BUENO QUIEN PONE SALA`,
+                text: `UY ESTO SE PONDRA BUENO QUIEN PONE SALA`,
                 mentions: [tag]
             });
-        } else if (tipo === 'negado') {
-            if (!listas.rechazar.includes(nombreFormateado)) listas.rechazar.push(nombreFormateado);
+        } else {
             await conn.sendMessage(m.chat, {
                 text: `✅ @${nombreUsuario} agregado a Negado`,
                 mentions: [tag]
             });
         }
 
-        // Enviar mensaje actualizado con listas de "aceptar" y "rechazar"
-        const textoListas = `🔥 Modo Insano Activado 🔥
-
-¿Quién se rifa un PVP conmigo? 
-───────────────
-✅ Aceptaron:
-${listas.aceptar.join('\n')}
-
-❌ Negados:
-${listas.rechazar.join('\n')}
-`;
-
+        // Actualizar el mensaje con la nueva lista
         const buttons = [
             {
-                buttonText: {
-                    displayText: 'YOMISMO'  // Botón "YOMISMO"
-                },
-                buttonId: 'yomismo'
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "Acepto",
+                    id: "acepto"
+                })
             },
             {
-                buttonText: {
-                    displayText: 'NOTENGO'  // Botón "NOTENGO"
-                },
-                buttonId: 'notengo'
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "Negado",
+                    id: "negado"
+                })
             }
         ];
 
@@ -126,81 +119,15 @@ ${listas.rechazar.join('\n')}
             viewOnceMessage: {
                 message: {
                     messageContextInfo: {
+                        deviceListMetadata: {},
                         mentionedJid: [tag]
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: textoListas },
-                        footer: { text: "Selecciona una opción:" },
-                        nativeFlowMessage: { buttons }
-                    })
-                }
-            }
-        }, {});
-
-        const oldMsg = mensajesGrupos.get(groupId);
-        if (oldMsg?.key) {
-            await conn.sendMessage(m.chat, mensaje.message, { messageId: oldMsg.key.id });
-        }
-        return;
-    }
-
-    // Comando YOMISMO o NOTENGO
-    if (['yomismo', 'notengo'].includes(response)) {
-        const tipo = response;
-        const tag = m.sender;
-        const listas = getListasGrupo(groupId);
-        const nombreUsuario = await conn.getName(tag);
-        const nombreFormateado = `@${tag.split('@')[0]}`;
-
-        if (tipo === 'yomismo') {
-            if (!listas.aceptar.includes(nombreFormateado)) listas.aceptar.push(nombreFormateado);
-            await conn.sendMessage(m.chat, {
-                text: `UY ESTO SE PONDRÁ BUENO QUIEN PONE SALA`,
-                mentions: [tag]
-            });
-        } else if (tipo === 'notengo') {
-            if (!listas.rechazar.includes(nombreFormateado)) listas.rechazar.push(nombreFormateado);
-            await conn.sendMessage(m.chat, {
-                text: `✅ @${nombreUsuario} agregado a Negado`,
-                mentions: [tag]
-            });
-        }
-
-        // Enviar mensaje actualizado con listas de "aceptar" y "rechazar"
-        const textoListas = `🔥 Modo Insano Activado 🔥
+                        body: { text: `🔥 Modo Insano Activado 🔥
 
 ¿Quién se rifa un PVP conmigo? 
 ───────────────
-✅ Aceptaron:
-${listas.aceptar.join('\n')}
-
-❌ Negados:
-${listas.rechazar.join('\n')}
-`;
-
-        const buttons = [
-            {
-                buttonText: {
-                    displayText: 'YOMISMO'  // Botón "YOMISMO"
-                },
-                buttonId: 'yomismo'
-            },
-            {
-                buttonText: {
-                    displayText: 'NOTENGO'  // Botón "NOTENGO"
-                },
-                buttonId: 'notengo'
-            }
-        ];
-
-        const mensaje = generateWAMessageFromContent(m.chat, {
-            viewOnceMessage: {
-                message: {
-                    messageContextInfo: {
-                        mentionedJid: [tag]
-                    },
-                    interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: textoListas },
+¡Vamos a darnos en la madre sin miedo! 👿` },
                         footer: { text: "Selecciona una opción:" },
                         nativeFlowMessage: { buttons }
                     })
@@ -208,15 +135,12 @@ ${listas.rechazar.join('\n')}
             }
         }, {});
 
-        const oldMsg = mensajesGrupos.get(groupId);
-        if (oldMsg?.key) {
-            await conn.sendMessage(m.chat, mensaje.message, { messageId: oldMsg.key.id });
-        }
+        await conn.relayMessage(m.chat, mensaje.message, {});
         return;
     }
 };
 
-handler.customPrefix = /^(acepto|negado|\.1vs1.*|yomismo|notengo)$/i;
+handler.customPrefix = /^(acepto|negado|\.1vs1.*)$/i;
 handler.command = new RegExp;
 handler.group = true;
 
