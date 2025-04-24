@@ -21,49 +21,35 @@ handler.before = async function (m, { conn, participants, groupMetadata }) {
 
   // Verificar si el mensaje es de bienvenida (messageStubType: 27)
   if (m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
-    let descs = groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟";
+    // Si hay configuración manual, usa esa bienvenida
+    if (chat.sWelcome) {
+      let textWel = chat.sWelcome
+        .replace(/@user/g, `@${userName}`)
+        .replace(/@group/g, subject)
+        .replace(/@desc/g, groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟");
 
-    // Mensaje predeterminado de bienvenida
-    let defaultWelcome = `*╔══════════════*
-*╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
-*╠══════════════*
-*╟*🛡️ *${subject}*
-*╟*👤 *@${userName}*
-*╟* 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗖𝗜Ó𝗡 
+      // Usar la imagen configurada o la predeterminada
+      let imageUrl = chat.sImage || FOTO_PREDETERMINADA;
 
-${descs}
-
-*╟* ¡🇼‌🇪‌🇱‌🇨‌🇴‌🇲‌🇪!
-*╚══════════════*`;
-
-    // Si hay configuración manual en el grupo, usa esa configuración
-    let textWel = chat.sWelcome ? chat.sWelcome
-      .replace(/@user/g, `@${userName}`)
-      .replace(/@group/g, subject)
-      .replace(/@desc/g, descs)
-      : defaultWelcome;
-
-    // Obtener la imagen configurada o usar la predeterminada
-    let imageUrl = chat.sImage || FOTO_PREDETERMINADA;
-
-    // Enviar mensaje de bienvenida con imagen
-    await this.sendMessage(m.chat, {
-      text: textWel,
-      contextInfo: {
-        forwardingScore: 9999999,
-        isForwarded: true,
-        mentionedJid: [m.sender, m.messageStubParameters[0]],
-        externalAdReply: {
-          showAdAttribution: true,
-          renderLargerThumbnail: true,
-          thumbnailUrl: imageUrl,
-          title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
-          containsAutoReply: true,
-          mediaType: 1,
-          sourceUrl: 'https://whatsapp.com'
+      // Enviar mensaje de bienvenida con imagen
+      await this.sendMessage(m.chat, {
+        text: textWel,
+        contextInfo: {
+          forwardingScore: 9999999,
+          isForwarded: true,
+          mentionedJid: [m.sender, m.messageStubParameters[0]],
+          externalAdReply: {
+            showAdAttribution: true,
+            renderLargerThumbnail: true,
+            thumbnailUrl: imageUrl,
+            title: '𝔼𝕃𝕀𝕋𝔼 𝔹𝕆𝕋 𝔾𝕃𝕆𝔹𝔸𝕃',
+            containsAutoReply: true,
+            mediaType: 1,
+            sourceUrl: 'https://whatsapp.com'
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   // Verificar si el mensaje es de despedida (messageStubType: 28)
@@ -125,7 +111,27 @@ handler.handler = async (m, { conn, text, command }) => {
   global.db.data.chats[m.chat].sWelcome = message;
   global.db.data.chats[m.chat].sImage = linkImagen;
 
-  conn.reply(m.chat, `La bienvenida para este grupo se ha configurado correctamente con el mensaje: "${message}" y la imagen: ${linkImagen}`, m);
+  // Desactivar la bienvenida automática en este grupo
+  global.db.data.chats[m.chat].welcomeEnabled = false;
+
+  conn.reply(m.chat, `La bienvenida para este grupo se ha configurado correctamente con el mensaje: "${message}" y la imagen: ${linkImagen}. La bienvenida automática ha sido desactivada.`, m);
+};
+
+// Comando .resetwel para restaurar la bienvenida automática
+handler.command = ['resetwel'];
+handler.help = ['resetwel'];
+handler.tags = ['owner'];
+handler.owner = true;
+handler.group = true;
+handler.botAdmin = true;
+
+handler.resetHandler = async (m, { conn }) => {
+  // Restaurar la bienvenida automática y eliminar la configuración manual
+  global.db.data.chats[m.chat].sWelcome = null;
+  global.db.data.chats[m.chat].sImage = null;
+  global.db.data.chats[m.chat].welcomeEnabled = true;
+
+  conn.reply(m.chat, 'La bienvenida automática ha sido restaurada y la configuración manual ha sido eliminada.', m);
 };
 
 export default handler;
