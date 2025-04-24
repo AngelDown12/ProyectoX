@@ -2,13 +2,12 @@ import pkg from '@whiskeysockets/baileys';
 const { generateWAMessageFromContent, proto } = pkg;
 
 let listasGrupos = new Map();
-let mensajesGrupos = new Map();
 
 const getListasGrupo = (groupId) => {
     if (!listasGrupos.has(groupId)) {
         listasGrupos.set(groupId, {
-            aceptar: ['➤'],
-            rechazar: ['➤']
+            aceptar: [],
+            rechazar: []
         });
     }
     return listasGrupos.get(groupId);
@@ -16,8 +15,8 @@ const getListasGrupo = (groupId) => {
 
 const reiniciarListas = (groupId) => {
     listasGrupos.set(groupId, {
-        aceptar: ['➤'],
-        rechazar: ['➤']
+        aceptar: [],
+        rechazar: []
     });
 };
 
@@ -41,15 +40,15 @@ let handler = async (m, { conn }) => {
             {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
-                    display_text: "Acepto",
-                    id: "acepto"
+                    display_text: "YOMISMO",
+                    id: "yomismo"
                 })
             },
             {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
-                    display_text: "Negado",
-                    id: "negado"
+                    display_text: "NOTENGO",
+                    id: "notengo"
                 })
             }
         ];
@@ -86,35 +85,20 @@ let handler = async (m, { conn }) => {
         const nombreUsuario = await conn.getName(tag);
 
         if (tipo === 'acepto') {
+            listas.aceptar.push(nombreUsuario);
             await conn.sendMessage(m.chat, {
-                text: `UY ESTO SE PONDRA BUENO QUIEN PONE SALA`,
+                text: `🔥 @${nombreUsuario} se ha unido al PVP! 🔥`,
                 mentions: [tag]
             });
         } else {
+            listas.rechazar.push(nombreUsuario);
             await conn.sendMessage(m.chat, {
                 text: `✅ @${nombreUsuario} agregado a Negado`,
                 mentions: [tag]
             });
         }
 
-        // Actualizar el mensaje con la nueva lista
-        const buttons = [
-            {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "Acepto",
-                    id: "acepto"
-                })
-            },
-            {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "Negado",
-                    id: "negado"
-                })
-            }
-        ];
-
+        // Crear el mensaje actualizado con las listas
         const mensaje = generateWAMessageFromContent(m.chat, {
             viewOnceMessage: {
                 message: {
@@ -123,11 +107,16 @@ let handler = async (m, { conn }) => {
                         mentionedJid: [tag]
                     },
                     interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `🔥 Modo Insano Activado 🔥
+                        body: { 
+                            text: `🔥 Modo Insano Activado 🔥
 
 ¿Quién se rifa un PVP conmigo? 
 ───────────────
-¡Vamos a darnos en la madre sin miedo! 👿` },
+¡Vamos a darnos en la madre sin miedo! 👿
+
+**Aceptados:** ${listas.aceptar.join(', ')}
+**Negados:** ${listas.rechazar.join(', ')}` 
+                        },
                         footer: { text: "Selecciona una opción:" },
                         nativeFlowMessage: { buttons }
                     })
@@ -138,9 +127,30 @@ let handler = async (m, { conn }) => {
         await conn.relayMessage(m.chat, mensaje.message, {});
         return;
     }
+
+    // Respuesta de botones "YOMISMO" y "NOTENGO"
+    if (['yomismo', 'notengo'].includes(response)) {
+        const tag = m.sender;
+        const nombreUsuario = await conn.getName(tag);
+        
+        if (response === 'yomismo') {
+            await conn.sendMessage(m.chat, {
+                text: `🔥 @${nombreUsuario} se ha elegido a sí mismo! 🔥`,
+                mentions: [tag]
+            });
+        } else if (response === 'notengo') {
+            await conn.sendMessage(m.chat, {
+                text: `😓 @${nombreUsuario} no tiene la actitud para el PVP! 😓`,
+                mentions: [tag]
+            });
+        }
+
+        // Aquí puedes incluir más lógica si deseas que el mensaje se actualice de alguna manera
+        return;
+    }
 };
 
-handler.customPrefix = /^(acepto|negado|\.1vs1.*)$/i;
+handler.customPrefix = /^(acepto|negado|\.1vs1.*|yomismo|notengo)$/i;
 handler.command = new RegExp;
 handler.group = true;
 
