@@ -31,18 +31,9 @@ let handler = async (m, { conn, text, args }) => {
     
     // Manejar el comando .1vs1
     if (msgText.toLowerCase().startsWith('.1vs1')) {
-        const mensaje = msgText.substring(6).trim(); // Remover '.1vs1' del mensaje
-        if (!mensaje) {
-            await conn.sendMessage(m.chat, { 
-                text: `🕓 𝗜𝗡𝗚𝗥𝗘𝗦𝗔 𝗨𝗡 𝗛𝗢𝗥𝗔𝗥𝗜𝗢.\n𝗘𝗷𝗲𝗺𝗽𝗹𝗼:\n.1vs1 4pm🇪🇨/3pm🇲🇽` 
-            });
-            return;
-        }
         reiniciarListas(groupId);
         listas = getListasGrupo(groupId);
-        mensajesGrupos.set(groupId, mensaje);
-
-        await mostrarLista(conn, m.chat, listas, [], mensaje);
+        await mostrarLista(conn, m.chat, listas, []);
         return;
     }
 
@@ -101,7 +92,7 @@ async function mostrarLista(conn, chat, listas, mentions = [], mensajeUsuario = 
 
 ¿Quién se rifa un PVP conmigo? 
 ───────────────
-¡Vamos a darnos en la madre sin miedo!`;
+¡Vamos a darnos en la madre sin miedo! 👿`;
 
     const buttons = [
         {
