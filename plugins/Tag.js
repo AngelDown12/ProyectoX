@@ -27,7 +27,7 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) 
     return countryFlags[prefix] || '🏳️‍🌈';
   };
 
-  let texto = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂\n\n*${groupName}*\n👤 INTEGRANTES: *${participants.length}*\n${mensajePersonalizado}\n\n`;
+  let texto = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂\n\n*${groupName}*\n👤 INTEGRANTES: *${participants.length}*\n${mensajePersonalizado}\n`;
 
   // Construir menciones en horizontal
   texto += participants.map(p => `${emoji} ${getCountryFlag(p.id)} @${p.id.split('@')[0]}`).join('  ');
