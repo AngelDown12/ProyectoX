@@ -35,28 +35,6 @@ let handler = async (m, { conn }) => {
 
     console.log('Response received:', response); // Debug log
 
-    // Comando terminar
-    if (response === 'terminar' || msgText === 'terminar') {
-        console.log('Executing terminar command...'); // Debug log
-        const parejas = parejasConfirmadas.get(groupId) || [];
-        const pareja = parejas.find(p => p[0] === m.sender || p[1] === m.sender);
-        
-        if (pareja) {
-            const nuevasParejas = parejas.filter(p => p[0] !== m.sender && p[1] !== m.sender);
-            parejasConfirmadas.set(groupId, nuevasParejas);
-            await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\n💔 *¡Ups!* La relación se terminó...\n\n✨ "El amor es como el viento, no puedes verlo pero puedes sentirlo"\n\n┛`,
-                mentions: pareja
-            });
-        } else {
-            await conn.sendMessage(m.chat, {
-                text: `┏━━━━━━━━━━━━━━━━┓\n❌ *No tienes pareja*\nNo puedes terminar una relación si no tienes pareja.\n┛`,
-                mentions: [m.sender]
-            });
-        }
-        return;
-    }
-
     // Comando aceptar/rechazar
     if (['acepto', 'negado'].includes(response)) {
         const tipo = response;
@@ -104,7 +82,7 @@ let handler = async (m, { conn }) => {
                             mentionedJid: nuevaPareja
                         },
                         interactiveMessage: proto.Message.InteractiveMessage.create({
-                            body: { text: `┏━━━━━━━━━━━━━━━━┓\n🎉 *¡Felicidades!*\n\n💕 "El amor no tiene edad, siempre está naciendo"\n\nAhora ${nombre1} y ${nombre2} son novios.\n\n✨ Que el amor los acompañe siempre.\n┛` },
+                            body: { text: `┏━━━━━━━━━━━━━━━━┓\n🎉 *¡Felicidades! El amor ha triunfado...*\n\n💖 *"El amor es el motor del mundo, no hay nada que se compare a él"* \n\nAhora ${nombre1} y ${nombre2} son novios. ¡Que viva el amor!\n\n┛` },
                             footer: { text: "💫 Elige con el corazón" },
                             nativeFlowMessage: { buttons }
                         })
