@@ -1,5 +1,5 @@
 let handler = async function (m, { conn, text, participants, groupMetadata }) {
-  // Comando para configurar bienvenida con imagen
+  // Comando para configurar bienvenida con mensaje e imagen
   if (m.body.startsWith('.setwel')) {
     let fkontak = {
       key: { participants: "0@s.whatsapp.net", remoteJid: "status@broadcast", fromMe: false, id: "Halo" },
@@ -12,6 +12,7 @@ let handler = async function (m, { conn, text, participants, groupMetadata }) {
     let image = parts.pop()
     let msg = parts.join(' ')
 
+    // Guardamos el mensaje y la imagen personalizada
     global.db.data.chats[m.chat].sWelcome = msg
     global.db.data.chats[m.chat].sWelcomeImg = image
     global.db.data.chats[m.chat].welcome = true
@@ -19,10 +20,11 @@ let handler = async function (m, { conn, text, participants, groupMetadata }) {
     conn.reply(m.chat, '✅ Bienvenida y foto personalizada configuradas.', fkontak)
   }
 
-  // Bienvenida y despedida automáticas
+  // Manejando el mensaje de bienvenida y despedida
   if (!m.messageStubType || !m.isGroup) return
   let chat = global.db.data.chats[m.chat]
   if (!chat || !chat.welcome) return
+
   if (this.user.jid == global.conn.user.jid) return
 
   let isWelcome = m.messageStubType === 27
@@ -33,7 +35,7 @@ let handler = async function (m, { conn, text, participants, groupMetadata }) {
   let username = userJid.split('@')[0]
   let groupName = groupMetadata.subject
   let groupDesc = groupMetadata.desc || ''
-  let image = chat.sWelcomeImg || 'https://qu.ax/Lmiiu.jpg'
+  let image = chat.sWelcomeImg || 'https://qu.ax/Lmiiu.jpg'  // Imagen predeterminada
 
   let msg = isWelcome
     ? (chat.sWelcome || '👋 Bienvenido @user a @subject\n\n@desc')
@@ -44,6 +46,7 @@ let handler = async function (m, { conn, text, participants, groupMetadata }) {
         .replace(/@user/g, `@${username}`)
         .replace(/@subject/g, groupName)
 
+  // Enviar el mensaje con la imagen personalizada
   await conn.sendMessage(m.chat, {
     text: msg,
     contextInfo: {
