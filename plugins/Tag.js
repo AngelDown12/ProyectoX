@@ -27,20 +27,32 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) 
     return countryFlags[prefix] || '🏳️‍🌈';
   };
 
-  let texto = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂\n\n`;
-  texto += `*${groupName}*\n👤 INTEGRANTES: *${participants.length}*\n${mensajePersonalizado}\n\n`;
+  let texto = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂\n\n*${groupName}*\n👤 INTEGRANTES: *${participants.length}*\n${mensajePersonalizado}\n`;
 
-  // Insertamos líneas para que WhatsApp oculte el mensaje
-  texto += '╭─「 MENSAJE OCULTO 」\n';
-  texto += '\n'.repeat(20); // Esto simula el "ver más"
-  texto += '╰─「 MENCIONES 」\n\n';
+  // Solo mostramos los primeros 5 miembros
+  const maxMentions = 5;
+  let mentionsList = participants.slice(0, maxMentions).map(p => `${emoji} ${getCountryFlag(p.id)} @${p.id.split('@')[0]}`).join('  ');
 
-  texto += participants.map(p => `${emoji} ${getCountryFlag(p.id)} @${p.id.split('@')[0]}`).join('\n');
+  // Agregar "ver más" al final si hay más de 5 participantes
+  if (participants.length > maxMentions) {
+    mentionsList += `\n\n*Ver más...*`;
+  }
+
+  texto += mentionsList;
 
   texto += `\n\n*╰━* 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝙊𝘽𝘼𝙇\n▌│█║▌║▌║║▌║▌║▌║█`;
 
+  // Enviar el mensaje
   await conn.sendMessage(m.chat, {
     text: texto,
-    mentions: participants.map(p => p.id)
+    mentions: participants.map(p => p.id) // Etiquetar a todos
   });
 };
+
+handler.help = ['todos'];
+handler.tags = ['group'];
+handler.command = /^(tagal|invocar|marcar|todos|invocación)$/i;
+handler.admin = true;
+handler.group = true;
+
+export default handler;
