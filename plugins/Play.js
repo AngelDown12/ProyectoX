@@ -13,7 +13,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     const video = searchResults.videos[0];
     if (!video) throw new Error("No se encontraron resultados.");
 
-    // 1. Enviar primero el mensaje con info del video (diseño original)
+    // Enviar info del video (mismo diseño)
     await conn.sendMessage(m.chat, {
       text: `01:27 ━━━━━⬤────── 05:48\n*⇄ㅤ      ◁        ❚❚        ▷        ↻*\n╴𝗘𝗹𝗶𝘁𝗲 𝗕𝗼𝘁 𝗚𝗹𝗼𝗯𝗮𝗹`,
       contextInfo: {
@@ -29,44 +29,42 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
       }
     }, { quoted: m });
 
-    // 2. Usar la API funcional de vreden.my.id
-    const apiUrl = `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(video.url)}`;
-    const response = await fetch(apiUrl);
-    
-    if (!response.ok) throw new Error(`API respondió con estado ${response.status}`);
-    
-    const apiData = await response.json();
-    
-    if (!apiData?.result?.download?.url) {
-      throw new Error("No se pudo obtener el enlace de descarga");
-    }
+    // API rápida con calidad baja (128kbps para mayor velocidad)
+    const apiUrl = `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(video.url)}&quality=128`;
+    const apiResponse = await fetch(apiUrl);
+    const apiData = await apiResponse.json();
 
-    // 3. Enviar audio (manteniendo formato original)
-    await conn.sendMessage(m.chat, {
-      audio: { url: apiData.result.download.url },
-      mimetype: "audio/mpeg",
-      fileName: `${video.title}.mp3`
-    }, { quoted: m });
+    if (!apiData?.result?.download?.url) {
+      // Si falla, intentamos con calidad aún más baja (64kbps)
+      const fallbackUrl = `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(video.url)}&quality=64`;
+      const fallbackResponse = await fetch(fallbackUrl);
+      const fallbackData = await fallbackResponse.json();
+      if (!fallbackData?.result?.download?.url) throw new Error("No se pudo obtener el audio");
+      
+      // Enviar audio de baja calidad (más rápido)
+      await conn.sendMessage(m.chat, {
+        audio: { url: fallbackData.result.download.url },
+        mimetype: "audio/mpeg",
+        fileName: `${video.title}_rapido.mp3`,
+        ptt: true // Opción que a veces acelera el envío
+      }, { quoted: m });
+    } else {
+      // Enviar audio con calidad media
+      await conn.sendMessage(m.chat, {
+        audio: { url: apiData.result.download.url },
+        mimetype: "audio/mpeg",
+        fileName: `${video.title}.mp3`
+      }, { quoted: m });
+    }
 
     await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key } });
 
   } catch (error) {
     console.error("Error:", error);
     await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } });
-    
-    // Mensaje de error mejorado
-    let errorMessage = `❌ *Error al procesar tu solicitud:*\n`;
-    if (error.message.includes("API respondió")) {
-      errorMessage += "El servidor de música no respondió correctamente";
-    } else if (error.message.includes("enlace de descarga")) {
-      errorMessage += "No se pudo generar el enlace de descarga";
-    } else {
-      errorMessage += error.message || "Error desconocido";
-    }
-    
-    errorMessage += "\n\n🔸 *Solución:*\n• Intenta con otro nombre de canción\n• Verifica tu conexión a internet\n• Prueba más tarde";
-    
-    await conn.sendMessage(m.chat, { text: errorMessage }, { quoted: m });
+    await conn.sendMessage(m.chat, { 
+      text: `❌ *Error al procesar tu solicitud:*\n${error.message || "Error desconocido"}\n\n⚠️ Intenta con un nombre más específico.` 
+    }, { quoted: m });
   }
 };
 
