@@ -6,36 +6,24 @@ const APIS = [
   {
     name: "vreden",
     url: (videoUrl) => `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(videoUrl)}&quality=64`, // Cambié la calidad a 64 kbps
-    extract: (data) => {
-      if (data?.result?.download?.url) {
-        return data.result.download.url; // Aseguramos que existe la URL
-      }
-      return null;
-    }
+    extract: (data) => data?.result?.download?.url
   },
   {
     name: "zenkey",
     url: (videoUrl) => `https://api.zenkey.my.id/api/download/ytmp3?apikey=zenkey&url=${encodeURIComponent(videoUrl)}&quality=64`, // Añadí calidad baja
-    extract: (data) => {
-      if (data?.result?.download?.url) {
-        return data.result.download.url; // Aseguramos que existe la URL
-      }
-      return null;
-    }
+    extract: (data) => data?.result?.download?.url
   },
   {
     name: "yt1s",
     url: (videoUrl) => `https://yt1s.io/api/ajaxSearch?q=${encodeURIComponent(videoUrl)}`,
     extract: async (data) => {
-      if (data?.links?.mp3?.auto?.k) {
-        return `https://yt1s.io/api/ajaxConvert?vid=${data.vid}&k=${data.links.mp3.auto.k}&quality=64`; // Ajusté la calidad en la URL
-      }
-      return null;
+      const k = data?.links?.mp3?.auto?.k;
+      return k ? `https://yt1s.io/api/ajaxConvert?vid=${data.vid}&k=${k}&quality=64` : null; // Ajusté la calidad en la URL
     }
   }
 ];
 
-// Función mejorada para obtener audio con streams
+// Función mejorada para obtener audio
 const getAudioUrl = async (videoUrl) => {
   let lastError = null;
   
@@ -53,8 +41,6 @@ const getAudioUrl = async (videoUrl) => {
       if (audioUrl) {
         console.log(`Éxito con API: ${api.name}`);
         return audioUrl;
-      } else {
-        console.log(`No se encontró el enlace de audio en la API: ${api.name}`);
       }
     } catch (error) {
       console.error(`Error con API ${api.name}:`, error.message);
@@ -104,18 +90,14 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     let audioUrl;
     try {
       audioUrl = await getAudioUrl(video.url);
-      if (!audioUrl) throw new Error("No se pudo obtener el enlace de audio");
     } catch (e) {
       console.error("Error al obtener audio:", e);
       throw "⚠️ Error al procesar el audio. Intenta con otra canción";
     }
 
-    // Descargar el audio usando streams y enviarlo
-    const audioStream = await fetch(audioUrl);
-    if (!audioStream.ok) throw new Error("Error al obtener el audio");
-
+    // Enviar audio optimizado
     await conn.sendMessage(m.chat, {
-      audio: audioStream.body,
+      audio: { url: audioUrl },
       mimetype: "audio/mpeg",
       fileName: `${video.title.slice(0, 30)}.mp3`.replace(/[^\w\s.-]/gi, ''),
       ptt: false
