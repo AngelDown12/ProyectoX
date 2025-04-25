@@ -1,45 +1,85 @@
 import fetch from "node-fetch";
 import yts from "yt-search";
 
-// APIs funcionales del segundo código
-const APIs = {
-  dorratz: "https://api.dorratz.com/v3/ytdl",
-  neoxr: {
-    url: "https://api.neoxr.eu.org/api",
-    key: "tu-api-key-neoxr" // Reemplaza con tu API key si es necesario
+// Lista de APIs de respaldo (actualizadas)
+const BACKUP_APIS = [
+  {
+    name: "zenkey",
+    url: (videoUrl) => `https://api.zenkey.my.id/api/download/ytmp3?apikey=zenkey&url=${encodeURIComponent(videoUrl)}`,
+    extract: (data) => data?.result?.download?.url
   },
-  fgmods: "https://api.fgmods.xyz/api/downloader/ytmp4",
-  siputzx: "https://api.siputzx.my.id/api/d/ytmp4",
-  zenkey: "https://api.zenkey.my.id/api/download/ytmp3",
-  exonity: "https://exonity.tech/api/dl/playmp3"
-};
+  {
+    name: "savetube",
+    url: (videoUrl) => `https://api.savetube.me/download?url=${encodeURIComponent(videoUrl)}`,
+    extract: (data) => data?.url
+  },
+  {
+    name: "yt1s",
+    url: (videoUrl) => `https://yt1s.io/api/ajaxSearch?q=${encodeURIComponent(videoUrl)}`,
+    extract: (data) => data?.links?.mp3?.auto?.k ? `https://yt1s.io/api/ajaxConvert?vid=${data.vid}&k=${data.links.mp3.auto.k}` : null
+  },
+  {
+    name: "y2mate",
+    url: (videoUrl) => `https://www.y2mate.com/mates/analyzeV2/ajax`,
+    extract: async (data, videoUrl) => {
+      const k = data?.links?.mp3?.mp3128?.k;
+      if (!k) return null;
+      const convertUrl = `https://www.y2mate.com/mates/convertV2/index`;
+      const convertRes = await fetch(convertUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `vid=${encodeURIComponent(videoUrl)}&k=${k}`
+      });
+      const convertData = await convertRes.json();
+      return convertData?.dlink;
+    }
+  },
+  {
+    name: "onlinevideoconverter",
+    url: (videoUrl) => `https://onlinevideoconverter.pro/api/convert`,
+    extract: (data) => data?.url
+  }
+];
 
-const fetchWithRetries = async (url, maxRetries = 2) => {
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+const fetchWithRetries = async (url, options = {}, maxRetries = 3) => {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      // Manejo para diferentes formatos de respuesta de APIs
-      if (data?.status === 200 && data.result?.download?.url) {
-        return data.result;
-      } else if (data?.medias?.find(media => media.extension === "mp3")) {
-        return { download: { url: data.medias.find(media => media.extension === "mp3").url } };
-      } else if (data?.result?.download?.url) {
-        return data.result;
-      } else if (data?.data?.url) {
-        return { download: { url: data.data.url } };
-      }
+      const response = await fetch(url, options);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
     } catch (error) {
-      console.error(`Intento ${attempt + 1} fallido:`, error.message);
+      if (attempt === maxRetries - 1) throw error;
+      await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
     }
   }
-  throw new Error("No se pudo obtener la música después de varios intentos.");
+};
+
+const getAudioUrl = async (videoUrl, videoTitle) => {
+  for (const api of BACKUP_APIS) {
+    try {
+      console.log(`Probando API: ${api.name}`);
+      const apiUrl = api.url(videoUrl);
+      const data = await fetchWithRetries(apiUrl, {
+        method: api.method || "GET",
+        headers: api.headers || {},
+        body: api.body
+      });
+      
+      const audioUrl = await api.extract(data, videoUrl);
+      if (audioUrl) {
+        console.log(`Éxito con API: ${api.name}`);
+        return audioUrl;
+      }
+    } catch (error) {
+      console.error(`Error con API ${api.name}:`, error.message);
+    }
+  }
+  throw new Error("Todas las APIs fallaron");
 };
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text || !text.trim()) {
-    throw `⭐ 𝘐𝘯𝘨𝘳𝘦𝘴𝘢 𝘦𝘭 𝘵𝘪́𝘵𝘶𝘭𝘰 �𝘥𝘦 𝘭𝘢 𝘤𝘢𝘯𝘤𝘪𝘰́𝘯.\n\n» �𝘫𝘦𝘮𝘱𝘭𝘰:\n${usedPrefix + command} Cypher - Rich Vagos`;
+    throw `⭐ 𝘐𝘯𝘨𝘳𝘦𝘴𝘢 𝘦𝘭 𝘵𝘪́𝘵𝘶𝘭𝘰 𝘥𝘦 𝘭𝘢 𝘤𝘢𝘯𝘤𝘪𝘰́𝘯.\n\n» 𝘌𝘫𝘦𝘮𝘱𝘭𝘰:\n${usedPrefix + command} Cypher - Rich Vagos`;
   }
 
   try {
@@ -49,7 +89,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     const video = searchResults.videos[0];
     if (!video) throw new Error("No se encontraron resultados.");
 
-    // 1. Enviar primero el mensaje con info del video (manteniendo diseño original)
+    // Enviar información del video (manteniendo diseño original)
     await conn.sendMessage(m.chat, {
       text: `01:27 ━━━━━⬤────── 05:48\n*⇄ㅤ      ◁        ❚❚        ▷        ↻*\n╴𝗘𝗹𝗶𝘁𝗲 𝗕𝗼𝘁 𝗚𝗹𝗼𝗯𝗮𝗹`,
       contextInfo: {
@@ -65,33 +105,14 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
       }
     }, { quoted: m });
 
-    // 2. Intentar descargar audio con múltiples APIs (del segundo código)
-    let apiData;
-    const apisToTry = [
-      `${APIs.dorratz}?url=${encodeURIComponent(video.url)}`,
-      `${APIs.neoxr.url}/youtube?url=${encodeURIComponent(video.url)}&type=audio&quality=128kbps&apikey=${APIs.neoxr.key}`,
-      `${APIs.fgmods}?url=${encodeURIComponent(video.url)}&apikey=${APIs.fgmods.key}`,
-      `${APIs.siputzx}?url=${encodeURIComponent(video.url)}`,
-      `${APIs.zenkey}?apikey=zenkey&url=${encodeURIComponent(video.url)}`,
-      `${APIs.exonity}?query=${encodeURIComponent(video.title)}`
-    ];
+    // Obtener URL del audio
+    const audioUrl = await getAudioUrl(video.url, video.title);
 
-    for (const apiUrl of apisToTry) {
-      try {
-        apiData = await fetchWithRetries(apiUrl);
-        if (apiData?.download?.url) break;
-      } catch (e) {
-        console.log(`Error con API ${apiUrl}:`, e.message);
-      }
-    }
-
-    if (!apiData?.download?.url) throw new Error("Todas las APIs fallaron");
-
-    // 3. Enviar audio (manteniendo formato original)
+    // Enviar audio
     await conn.sendMessage(m.chat, {
-      audio: { url: apiData.download.url },
+      audio: { url: audioUrl },
       mimetype: "audio/mpeg",
-      fileName: `${video.title}.mp3`
+      fileName: `${video.title}.mp3`.replace(/[<>:"/\\|?*]+/g, '')
     }, { quoted: m });
 
     await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key } });
@@ -100,7 +121,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     console.error("Error:", error);
     await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } });
     await conn.sendMessage(m.chat, { 
-      text: `❌ *Error al procesar tu solicitud:*\n${error.message || "Error desconocido"}` 
+      text: `❌ *Error al procesar tu solicitud:*\n${error.message || "Error desconocido"}\n\n⚠️ Intenta con otro nombre de canción o prueba más tarde.` 
     }, { quoted: m });
   }
 };
