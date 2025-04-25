@@ -23,7 +23,7 @@ const APIS = [
   }
 ];
 
-// Función mejorada para obtener audio
+// Función mejorada para obtener audio con streams
 const getAudioUrl = async (videoUrl) => {
   let lastError = null;
   
@@ -95,9 +95,12 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
       throw "⚠️ Error al procesar el audio. Intenta con otra canción";
     }
 
-    // Enviar audio optimizado
+    // Descargar el audio usando streams y enviarlo
+    const audioStream = await fetch(audioUrl);
+    if (!audioStream.ok) throw new Error("Error al obtener el audio");
+
     await conn.sendMessage(m.chat, {
-      audio: { url: audioUrl },
+      audio: audioStream.body,
       mimetype: "audio/mpeg",
       fileName: `${video.title.slice(0, 30)}.mp3`.replace(/[^\w\s.-]/gi, ''),
       ptt: false
