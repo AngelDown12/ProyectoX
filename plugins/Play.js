@@ -6,12 +6,12 @@ const APIS = [
   {
     name: "vreden",
     url: (videoUrl) => `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(videoUrl)}&quality=64`, // Cambié la calidad a 64 kbps
-    extract: (data) => data?.result?.download?.url
+    extract: (data) => data?.result?.download?.url || null // Aseguramos que no sea undefined
   },
   {
     name: "zenkey",
     url: (videoUrl) => `https://api.zenkey.my.id/api/download/ytmp3?apikey=zenkey&url=${encodeURIComponent(videoUrl)}&quality=64`, // Añadí calidad baja
-    extract: (data) => data?.result?.download?.url
+    extract: (data) => data?.result?.download?.url || null // Aseguramos que no sea undefined
   },
   {
     name: "yt1s",
@@ -41,6 +41,8 @@ const getAudioUrl = async (videoUrl) => {
       if (audioUrl) {
         console.log(`Éxito con API: ${api.name}`);
         return audioUrl;
+      } else {
+        console.log(`No se encontró el enlace de audio en la API: ${api.name}`);
       }
     } catch (error) {
       console.error(`Error con API ${api.name}:`, error.message);
@@ -90,6 +92,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     let audioUrl;
     try {
       audioUrl = await getAudioUrl(video.url);
+      if (!audioUrl) throw new Error("No se pudo obtener el enlace de audio");
     } catch (e) {
       console.error("Error al obtener audio:", e);
       throw "⚠️ Error al procesar el audio. Intenta con otra canción";
