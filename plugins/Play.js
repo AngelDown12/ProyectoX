@@ -5,12 +5,12 @@ import yts from "yt-search";
 const APIS = [
   {
     name: "vreden",
-    url: (videoUrl) => `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(videoUrl)}&quality=128`,
+    url: (videoUrl) => `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(videoUrl)}&quality=64`, // Cambié la calidad a 64 kbps
     extract: (data) => data?.result?.download?.url
   },
   {
     name: "zenkey",
-    url: (videoUrl) => `https://api.zenkey.my.id/api/download/ytmp3?apikey=zenkey&url=${encodeURIComponent(videoUrl)}`,
+    url: (videoUrl) => `https://api.zenkey.my.id/api/download/ytmp3?apikey=zenkey&url=${encodeURIComponent(videoUrl)}&quality=64`, // Añadí calidad baja
     extract: (data) => data?.result?.download?.url
   },
   {
@@ -18,7 +18,7 @@ const APIS = [
     url: (videoUrl) => `https://yt1s.io/api/ajaxSearch?q=${encodeURIComponent(videoUrl)}`,
     extract: async (data) => {
       const k = data?.links?.mp3?.auto?.k;
-      return k ? `https://yt1s.io/api/ajaxConvert?vid=${data.vid}&k=${k}` : null;
+      return k ? `https://yt1s.io/api/ajaxConvert?vid=${data.vid}&k=${k}&quality=64` : null; // Ajusté la calidad en la URL
     }
   }
 ];
