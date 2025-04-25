@@ -1,24 +1,81 @@
 import fetch from "node-fetch";
 import yts from "yt-search";
 
+// Lista de APIs prioritarias (la de vreden primero)
+const APIS = [
+  {
+    name: "vreden",
+    url: (videoUrl) => `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(videoUrl)}&quality=128`,
+    extract: (data) => data?.result?.download?.url
+  },
+  {
+    name: "zenkey",
+    url: (videoUrl) => `https://api.zenkey.my.id/api/download/ytmp3?apikey=zenkey&url=${encodeURIComponent(videoUrl)}`,
+    extract: (data) => data?.result?.download?.url
+  },
+  {
+    name: "yt1s",
+    url: (videoUrl) => `https://yt1s.io/api/ajaxSearch?q=${encodeURIComponent(videoUrl)}`,
+    extract: async (data) => {
+      const k = data?.links?.mp3?.auto?.k;
+      return k ? `https://yt1s.io/api/ajaxConvert?vid=${data.vid}&k=${k}` : null;
+    }
+  }
+];
+
+// Función mejorada para obtener audio
+const getAudioUrl = async (videoUrl) => {
+  let lastError = null;
+  
+  for (const api of APIS) {
+    try {
+      console.log(`Probando API: ${api.name}`);
+      const apiUrl = api.url(videoUrl);
+      const response = await fetch(apiUrl, { timeout: 5000 }); // Timeout de 5 segundos
+      
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      const data = await response.json();
+      const audioUrl = await api.extract(data);
+      
+      if (audioUrl) {
+        console.log(`Éxito con API: ${api.name}`);
+        return audioUrl;
+      }
+    } catch (error) {
+      console.error(`Error con API ${api.name}:`, error.message);
+      lastError = error;
+      continue; // Intentar con la siguiente API
+    }
+  }
+  
+  throw lastError || new Error("Todas las APIs fallaron");
+};
+
 const handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text || !text.trim()) {
-    throw `⭐ 𝘐𝘯𝘨𝘳𝘦𝘴𝘢 𝘦𝘭 𝘵𝘪́𝘵𝘶𝘭𝘰 𝘥𝘦 𝘭𝘢 𝘤𝘢𝘯𝘤𝘪𝘰́𝘯.\n\n» 𝘌𝘫𝘦𝘮𝘱𝘭𝘰:\n${usedPrefix + command} Cypher - Rich Vagos`;
+    throw `⭐ 𝘌𝘯𝘷𝘪𝘢 𝘦𝘭 𝘯𝘰𝘮𝘣𝘳𝘦 𝘥𝘦 𝘭𝘢 𝘤𝘢𝘯𝘤𝘪ó𝘯\n\n» 𝘌𝘫𝘦𝘮𝘱𝘭𝘰: ${usedPrefix + command} Bad Bunny - Monaco`;
   }
 
   try {
     await conn.sendMessage(m.chat, { react: { text: "🕒", key: m.key } });
 
-    const searchResults = await yts(text.trim());
+    // Búsqueda más rápida con límite de resultados
+    const searchResults = await yts({ query: text.trim(), hl: 'es', gl: 'ES' });
     const video = searchResults.videos[0];
-    if (!video) throw new Error("No se encontraron resultados.");
+    if (!video) throw new Error("No se encontró el video");
 
-    // Enviar info del video (mismo diseño)
+    // Verificar duración (max 10 minutos para evitar audios largos)
+    if (video.seconds > 600) {
+      throw "❌ El audio es muy largo (máximo 10 minutos)";
+    }
+
+    // Enviar información del video (mismo diseño)
     await conn.sendMessage(m.chat, {
       text: `01:27 ━━━━━⬤────── 05:48\n*⇄ㅤ      ◁        ❚❚        ▷        ↻*\n╴𝗘𝗹𝗶𝘁𝗲 𝗕𝗼𝘁 𝗚𝗹𝗼𝗯𝗮𝗹`,
       contextInfo: {
         externalAdReply: {
-          title: video.title,
+          title: video.title.slice(0, 60),
           body: "",
           thumbnailUrl: video.thumbnail,
           mediaType: 1,
@@ -29,45 +86,40 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
       }
     }, { quoted: m });
 
-    // API rápida con calidad baja (128kbps para mayor velocidad)
-    const apiUrl = `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(video.url)}&quality=128`;
-    const apiResponse = await fetch(apiUrl);
-    const apiData = await apiResponse.json();
-
-    if (!apiData?.result?.download?.url) {
-      // Si falla, intentamos con calidad aún más baja (64kbps)
-      const fallbackUrl = `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(video.url)}&quality=64`;
-      const fallbackResponse = await fetch(fallbackUrl);
-      const fallbackData = await fallbackResponse.json();
-      if (!fallbackData?.result?.download?.url) throw new Error("No se pudo obtener el audio");
-      
-      // Enviar audio de baja calidad (más rápido)
-      await conn.sendMessage(m.chat, {
-        audio: { url: fallbackData.result.download.url },
-        mimetype: "audio/mpeg",
-        fileName: `${video.title}_rapido.mp3`,
-        ptt: true // Opción que a veces acelera el envío
-      }, { quoted: m });
-    } else {
-      // Enviar audio con calidad media
-      await conn.sendMessage(m.chat, {
-        audio: { url: apiData.result.download.url },
-        mimetype: "audio/mpeg",
-        fileName: `${video.title}.mp3`
-      }, { quoted: m });
+    // Obtener audio (con reintentos)
+    let audioUrl;
+    try {
+      audioUrl = await getAudioUrl(video.url);
+    } catch (e) {
+      console.error("Error al obtener audio:", e);
+      throw "⚠️ Error al procesar el audio. Intenta con otra canción";
     }
+
+    // Enviar audio optimizado
+    await conn.sendMessage(m.chat, {
+      audio: { url: audioUrl },
+      mimetype: "audio/mpeg",
+      fileName: `${video.title.slice(0, 30)}.mp3`.replace(/[^\w\s.-]/gi, ''),
+      ptt: false
+    }, { quoted: m });
 
     await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key } });
 
   } catch (error) {
     console.error("Error:", error);
     await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } });
-    await conn.sendMessage(m.chat, { 
-      text: `❌ *Error al procesar tu solicitud:*\n${error.message || "Error desconocido"}\n\n⚠️ Intenta con un nombre más específico.` 
-    }, { quoted: m });
+    
+    const errorMsg = typeof error === 'string' ? error : 
+      `❌ *Error:* ${error.message || 'Ocurrió un problema'}\n\n` +
+      `🔸 *Posibles soluciones:*\n` +
+      `• Verifica el nombre de la canción\n` +
+      `• Intenta con otro tema\n` +
+      `• Prueba más tarde`;
+      
+    await conn.sendMessage(m.chat, { text: errorMsg }, { quoted: m });
   }
 };
 
-handler.command = ['playy'];
+handler.command = ['playy', 'playaudio', 'ytmusic'];
 handler.exp = 0;
 export default handler;
