@@ -1,4 +1,4 @@
-import pkg from '@whiskeysockets/baileys';
+/*import pkg from '@whiskeysockets/baileys';
 const { generateWAMessageFromContent, proto } = pkg;
 
 // Estado global de las listas por grupo
@@ -203,3 +203,4 @@ handler.group = true
 
 export default handler
 
+*/
