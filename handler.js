@@ -1239,7 +1239,7 @@ return
 
 //Antispam 2 (sin limitaciones)
 global.db.data.users[m.sender].spam = new Date * 1
-
+}
 		
 let hl = _prefix 
 let adminMode = global.db.data.chats[m.chat].modoadmin
