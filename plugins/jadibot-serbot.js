@@ -79,16 +79,28 @@ let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
 handler.command = /^(jadibot|serbot|rentbot|code)/i
 export default handler 
 
-// Función mejorada para esperar autenticación
-const waitForAuth = async (sock, timeout = 30000) => {
+// Función mejorada para esperar autenticación con reintentos
+const waitForAuth = async (sock, timeout = 60000) => {
   const start = Date.now();
-  while (Date.now() - start < timeout) {
-    if (sock.authState?.creds?.me?.id) {
-      return true;
+  let attempts = 0;
+  const maxAttempts = 3;
+  
+  while (attempts < maxAttempts) {
+    try {
+      while (Date.now() - start < timeout) {
+        if (sock.authState?.creds?.me?.id) {
+          return true;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    } catch (e) {
+      attempts++;
+      if (attempts >= maxAttempts) {
+        throw new Error(`Timeout esperando autenticación después de ${maxAttempts} intentos`);
+      }
+      await new Promise(resolve => setTimeout(resolve, 5000 * attempts));
     }
-    await new Promise(resolve => setTimeout(resolve, 500));
   }
-  throw new Error('Timeout esperando autenticación');
 };
 
 export async function gataJadiBot(options) {
@@ -143,24 +155,45 @@ export async function gataJadiBot(options) {
       msgRetryCache,
       browser: mcode ? ['Windows', 'Chrome', '110.0.5585.95'] : ['EliteBotGlobal', 'Chrome','2.0.0'],
       version: version,
-      generateHighQualityLinkPreview: true
+      generateHighQualityLinkPreview: true,
+      connectTimeoutMs: 60000, // Aumentado a 60 segundos
+      keepAliveIntervalMs: 30000 // Intervalo de keep-alive
     };
 
     let sock
+    let authAttempts = 0
+    const maxAuthAttempts = 3
+    
+    async function createSocket() {
+      while (authAttempts < maxAuthAttempts) {
+        try {
+          sock = makeWASocket(connectionOptions)
+          
+          // Esperar autenticación con manejo mejorado
+          await waitForAuth(sock).catch(e => {
+            console.error(chalk.red(`Intento de autenticación ${authAttempts + 1}/${maxAuthAttempts} fallido:`), e)
+            throw e
+          });
+          
+          console.log(chalk.green('✅ Socket autenticado correctamente'))
+          return sock
+        } catch (e) {
+          authAttempts++
+          if (authAttempts >= maxAuthAttempts) {
+            console.error(chalk.redBright('❌ Máximos intentos de autenticación alcanzados'))
+            throw e
+          }
+          await sleep(5000 * authAttempts) // Espera progresiva
+        }
+      }
+    }
+
     try {
-      sock = makeWASocket(connectionOptions)
-      
-      // Esperar a que el socket esté completamente autenticado
-      await waitForAuth(sock).catch(e => {
-        console.error(chalk.red('Error en autenticación:'), e)
-        throw e
-      });
-      
-      console.log(chalk.green('✅ Socket autenticado correctamente'))
+      sock = await createSocket()
     } catch (e) {
       console.error(chalk.redBright('Error al crear el socket:'), e)
       if (m?.chat) {
-        await conn.sendMessage(m.chat, {text: '❌ Error al iniciar la conexión. Intenta nuevamente.'}, {quoted: m})
+        await conn.sendMessage(m.chat, {text: '❌ Error al iniciar la conexión después de varios intentos. Verifica tu conexión o intenta más tarde.'}, {quoted: m})
       }
       return
     }
@@ -172,7 +205,6 @@ export async function gataJadiBot(options) {
     async function connectionUpdate(update) {
       const { connection, lastDisconnect, isNewLogin, qr } = update
       
-      // Verificación mejorada del estado del socket
       if (!sock || !sock.authState?.creds?.me?.id) {
         console.log(chalk.yellow('🔶 Socket no autenticado, estado:'), {
           connectionState: sock?.connection,
