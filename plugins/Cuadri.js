@@ -1,69 +1,34 @@
-const handler = async (m, { conn, args }) => {
-    // Verificar si se proporcionaron los argumentos necesarios
-    if (args.length < 2) {
-        conn.reply(m.chat, '_Debes proporcionar la hora (HH:MM) y el color de ropa._', m);
-        return;
-    }
 
-    // Validar el formato de la hora
-    const horaRegex = /^([01]\d|2[0-3]):?([0-5]\d)$/;
-    if (!horaRegex.test(args[0])) {
-        conn.reply(m.chat, '_Formato de hora incorrecto. Debe ser HH:MM en formato de 24 horas._', m);
-        return;
-    }
-
-    const horaUsuario = args[0]; // Hora proporcionada por el usuario
-    const colorRopa = args.slice(1).join(' '); // Color de ropa proporcionado por el usuario
-
-    // Calcular la hora adelantada
-    const horaUsuarioSplit = horaUsuario.split(':');
-    let horaAdelantada = '';
-    if (horaUsuarioSplit.length === 2) {
-        const horaNumerica = parseInt(horaUsuarioSplit[0], 10);
-        const minutoNumerico = parseInt(horaUsuarioSplit[1], 10);
-        const horaAdelantadaNumerica = horaNumerica + 1; // Adelantar 1 hora
-        horaAdelantada = `${horaAdelantadaNumerica.toString().padStart(2, '0')}:${minutoNumerico.toString().padStart(2, '0')}`;
-    }
-
-    const message = `
-    _*CUADRILATERO*_
-    
-    𝐇𝐎𝐑𝐀𝐑𝐈𝐎
-    🇲🇽 𝐌𝐄𝐗 : ${horaUsuario}
-    🇨🇴 𝐂𝐎𝐋 : ${horaAdelantada}
-    𝐂𝐎𝐋𝐎𝐑 𝐃𝐄 𝐑𝐎𝐏𝐀: ${colorRopa}
-
-    ¬ 𝐉𝐔𝐆𝐀𝐃𝐎𝐑𝐄𝐒 𝐏𝐑𝐄𝐒𝐄𝐍𝐓𝐄𝐒
-    
-          𝗘𝗦𝗖𝗨𝗔𝗗𝗥𝗔 1
-    
-    👑 ┇ 
-    🥷🏻 ┇  
-    🥷🏻 ┇ 
-    🥷🏻 ┇ 
-          
-         𝗘𝗦𝗖𝗨𝗔𝗗𝗥𝗔 2
-    
-    👑 ┇ 
-    🥷🏻 ┇ 
-    🥷🏻 ┇ 
-    🥷🏻 ┇ 
-
-         𝗘𝗦𝗖𝗨𝗔𝗗𝗥𝗔 3
-    
-    👑 ┇ 
-    🥷🏻 ┇ 
-    🥷🏻 ┇ 
-    🥷🏻 ┇ 
-    
-    ㅤʚ 𝐒𝐔𝐏𝐋𝐄𝐍𝐓𝐄:
-    🥷🏻 ┇ 
-    🥷🏻 ┇
-    `.trim();
-
-    conn.sendMessage(m.chat, {text: message}, {quoted: m});
+const handler = async (m, {conn, args, groupMetadata, participants, usedPrefix, command, isBotAdmin, isSuperAdmin}) => {
+  if (!args[0]) return m.reply(`* 🎩 Ingrese EL Mensaje + El Prefijo\n> Ejemplo: ${usedPrefix + command} 52*`);
+  if (isNaN(args[0])) return m.reply(`*🍭 Ingrese Algun Prefijo De Un Pais: ${usedPrefix + command} 52*`);
+  const lol = args[0].replace(/[+]/g, '');
+  const pesan = args.join` `;
+  const colombia = `🎩 *Mensaje:* ${pesan}`;
+  const ps = participants.map((u) => u.id).filter((v) => v !== conn.user.jid && v.startsWith(lol || lol));
+  const bot = global.db.data.settings[conn.user.jid] || {};
+  if (ps == '') return m.reply(`*🍭 Aqui No Hay Ningun Numero Con El Prefijo +${lol}*`);
+  const numeros = ps.map((v)=> '┋💙 @' + v.replace(/@.+/, ''));
+  const delay = (time) => new Promise((res)=>setTimeout(res, time));
+  switch (command) {
+    case 'hidnum': case 'tagnum':
+      conn.reply(m.chat, `*☄️ MENSAJE ESPECIAL PARA +${lol} QUE ESTAN EN ESTE GRUPO:*\n` + `${colombia}\n\n` + numeros.join`\n`, m, {mentions: ps});
+      break;
+      const ownerGroup = m.chat.split`-`[0] + '@s.whatsapp.net';
+      const users = participants.map((u) => u.id).filter((v) => v !== conn.user.jid && v.startsWith(lol || lol));
+      for (const user of users) {
+        const error = `@${user.split('@')[0]} ʏᴀ ʜᴀ sɪᴅᴏ ᴇʟɪᴍɪɴᴀᴅᴏ ᴏ ʜᴀ ᴀʙᴀɴᴅᴏɴᴀᴅᴏ ᴇʟ ɢʀᴜᴘᴏ*`;
+        if (user !== ownerGroup + '@s.whatsapp.net' && user !== global.conn.user.jid && user !== global.owner + '@s.whatsapp.net' && user.startsWith(lol || lol) && user !== isSuperAdmin && isBotAdmin && bot.restrict) {
+          await delay(2000);
+          const responseb = await conn.groupParticipantsUpdate(m.chat, [user], 'remove');
+          if (responseb[0].status === '404') m.reply(error, m.chat, {mentions: conn.parseMention(error)});
+          await delay(10000);
+        } else return m.reply('*✨️ 𝙴𝚁𝚁𝙾𝚁*');
+      }
+      break;
+  }
 };
-handler.help = ['cuadrilatero']
-handler.tags = ['freefire']
-handler.command = /^(cuadrii|cuadrilatero)$/i;
+handler.command = /^(hidnum|hidetagnum)$/i;
+handler.group = handler.botAdmin = handler.admin = true;
+handler.fail = null;
 export default handler;
