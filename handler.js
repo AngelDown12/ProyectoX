@@ -1237,16 +1237,16 @@ user.antispam++
 return
 }
 
-// Eliminamos completamente el bloque anti-spam
-// El código original era:
-/*
-if (user.antispam2 && isROwner) return
-let time = global.db.data.users[m.sender].spam + 1000
-if (new Date - global.db.data.users[m.sender].spam < 1000) return console.log(`[ SPAM ]`) 
-global.db.data.users[m.sender].spam = new Date * 1
-*/
+// Versión completamente eliminada (sin anti-spam):
+// Simplemente NO incluyas NADA de este código en tu handler
 
-// Versión modificada (sin nada, se elimina todo el bloque)
+// Versión alternativa si quieres mantener el registro pero sin limitación:
+if (global.db.data.users[m.sender]) {  // Verifica que exista el usuario en la DB
+    if (new Date - global.db.data.users[m.sender].spam < 1000) {
+        console.log(`[ POSIBLE SPAM DETECTADO DE ${m.sender.split('@')[0]} ]`);
+    }
+    global.db.data.users[m.sender].spam = new Date * 1;
+}
 		
 let hl = _prefix 
 let adminMode = global.db.data.chats[m.chat].modoadmin
