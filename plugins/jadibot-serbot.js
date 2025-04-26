@@ -156,7 +156,7 @@ export async function gataJadiBot(options) {
     async function connectionUpdate(update) {
       const { connection, lastDisconnect, isNewLogin, qr } = update
       
-      if (!sock?.user) {
+   /*   if (!sock?.user) {
   console.log(chalk.yellow('Advertencia: Socket no listo, estado:'), {
     isSocket: !!sock,
     connectionState: sock?.connection,
@@ -164,7 +164,7 @@ export async function gataJadiBot(options) {
   });
   return;
       }
-
+*/
       if (isNewLogin) sock.isInit = false
       
       if (qr && !mcode) {
