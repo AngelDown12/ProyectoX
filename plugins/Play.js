@@ -1,54 +1,72 @@
-import fs from 'fs'
-import path from 'path'
+import fetch from 'node-fetch';
 
-let handler = async (m, { conn }) => {
+const handler = async (m, { conn, usedPrefix, command }) => {
   try {
-    let q = m.quoted ? m.quoted : m
-    let mime = (q.msg || q).mimetype || ''
+    const res = await fetch('https://api.vreden.my.id/api/tebakff');
+    const json = await res.json();
+    const { jawaban, img } = json.result;
 
-    if (!/image\/(png|jpe?g)/i.test(mime)) {
-      return m.reply('Responde a una *imagen* para establecer el icono de bienvenida.', m)
-    }
+    conn.tebakff = conn.tebakff || {};
+    conn.tebakff[m.sender] = {
+      jawaban: jawaban.toLowerCase(),
+      timeout: setTimeout(() => {
+        m.reply(`⏰ ᴛɪᴇᴍᴘᴏ ᴀɢᴏᴛᴀᴅᴏ...\n❗ ʟᴀ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ ᴇʀᴀ: *${jawaban}*`);
+        delete conn.tebakff[m.sender];
+      }, 30000)
+    };
 
-    let media
-    try {
-      media = await q.download()
-    } catch (e) {
-      console.error('Error descargando la imagen:', e)
-      return m.reply('No se pudo descargar la imagen. Intenta de nuevo.', m)
-    }
+    await conn.sendMessage(m.chat, { react: { text: '🕵️', key: m.key } });
 
-    if (!media) {
-      return m.reply('No se recibió ninguna imagen válida.', m)
-    }
+    const buttons = [
+      {
+        buttonId: `${usedPrefix + command}`,
+        buttonText: { displayText: "🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ" },
+        type: 1,
+      },
+      {
+        buttonId: `${usedPrefix}menu`,
+        buttonText: { displayText: "🏡 ᴍᴇɴᴜ ᴘʀɪɴᴄɪᴘᴀʟ" },
+        type: 1,
+      }
+    ];
 
-    const dirPath = path.resolve('./groupIcons')
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true })
-    }
+    await conn.sendMessage(m.chat, {
+      image: { url: img },
+      caption: `✨ *ᴀᴅɪᴠɪɴᴀ ᴇʟ ᴘᴇʀꜱᴏɴᴀᴊᴇ ᴅᴇ ꜰʀᴇᴇ ꜰɪʀᴇ* ✨
 
-    const filePath = path.join(dirPath, `${m.chat}.jpg`)
-    fs.writeFileSync(filePath, media)
+ᴇꜱᴛᴀꜱ ᴠɪᴇɴᴅᴏ ᴀ ᴜɴ ᴘᴇʀꜱᴏɴᴀᴊᴇ ꜱᴜᴘᴇʀ ᴄᴏɴᴏᴄɪᴅᴏ...
+ᴘᴇʀᴏ, ¿ᴄᴜᴀ́ʟ ᴇꜱ ꜱᴜ ɴᴏᴍʙʀᴇ?
 
-    // Confirmamos que el ID sea válido
-    let chatId = typeof m.chat === 'string' ? m.chat : (m.key?.remoteJid || '')
+⏳ ᴛɪᴇɴᴇꜱ *30 ꜱᴇɢᴜɴᴅᴏꜱ* ᴘᴀʀᴀ ʀᴇꜱᴘᴏɴᴅᴇʀ.
+ᴇꜱᴄʀɪʙᴇ ᴛᴜ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴇɴ ᴇʟ ᴄʜᴀᴛ.`,
+      buttons,
+      footer: "*The Teddies 🐻🔥*",
+      viewOnce: true,
+    }, { quoted: m });
 
-    if (!chatId || !chatId.includes('@')) {
-      console.error('Chat ID inválido:', chatId)
-      return m.reply('Error interno: no se pudo enviar confirmación.')
-    }
-
-    await conn.sendMessage(chatId, { text: '_*La imagen de bienvenida ha sido configurada exitosamente.*_' }, { quoted: m })
-
-  } catch (error) {
-    console.error('Error en setwelcomeimg:', error)
-    await m.reply('Ocurrió un error al procesar tu solicitud.')
+  } catch (e) {
+    console.error(e);
+    await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } });
+    m.reply("❌ ᴏᴄᴜʀʀɪᴏ́ ᴜɴ ᴇʀʀᴏʀ ᴀʟ ᴄᴀʀɢᴀʀ ᴇʟ ᴘᴇʀꜱᴏɴᴀᴊᴇ. ɪɴᴛᴇɴᴛᴀ ᴍᴀ́s ᴛᴀʀᴅᴇ.");
   }
-}
+};
 
-handler.command = ['setwelcomeimg']
-handler.botAdmin = true
-handler.admin = true
-handler.group = true
+handler.before = async (m, { conn }) => {
+  if (conn.tebakff && conn.tebakff[m.sender]) {
+    const respuesta = conn.tebakff[m.sender].jawaban;
+    if (m.text.toLowerCase() === respuesta) {
+      clearTimeout(conn.tebakff[m.sender].timeout);
+      delete conn.tebakff[m.sender];
+      return m.reply("✅ *ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ!* ᴇʀᴇꜱ ᴜɴ ᴇxᴘᴇʀᴛᴏ ꜰꜰ 🔥");
+    } else {
+      return m.reply("❌ *ɴᴏ ᴇꜱ ᴇꜱᴀ*, ɪɴᴛᴇɴᴛᴀ ᴏᴛʀᴀ ᴠᴇᴢ...");
+    }
+  }
+};
 
-export default handler
+handler.help = ["tebakff"];
+handler.tags = ["juegos"];
+handler.command = /^tebakff|adivinaff$/i;
+handler.exp = 20;
+
+export default handler;
