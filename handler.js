@@ -1237,12 +1237,16 @@ user.antispam++
 return
 }
 
-//Antispam 2		
+// Eliminamos completamente el bloque anti-spam
+// El código original era:
+/*
 if (user.antispam2 && isROwner) return
 let time = global.db.data.users[m.sender].spam + 1000
 if (new Date - global.db.data.users[m.sender].spam < 1000) return console.log(`[ SPAM ]`) 
 global.db.data.users[m.sender].spam = new Date * 1
-}
+*/
+
+// Versión modificada (sin nada, se elimina todo el bloque)
 		
 let hl = _prefix 
 let adminMode = global.db.data.chats[m.chat].modoadmin
