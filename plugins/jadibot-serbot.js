@@ -156,10 +156,13 @@ export async function gataJadiBot(options) {
     async function connectionUpdate(update) {
       const { connection, lastDisconnect, isNewLogin, qr } = update
       
-      // Verificación adicional para evitar el error
-      if (!sock || !sock.user) {
-        console.log(chalk.yellow('Socket no está inicializado en connectionUpdate'))
-        return
+      if (!sock?.user) {
+  console.log(chalk.yellow('Advertencia: Socket no listo, estado:'), {
+    isSocket: !!sock,
+    connectionState: sock?.connection,
+    userExists: !!sock?.user
+  });
+  return;
       }
 
       if (isNewLogin) sock.isInit = false
