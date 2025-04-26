@@ -36,15 +36,12 @@ if (!global.conns || !(global.conns instanceof Array)) {
 }
 
 let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
-  // Verificar si jadibotmd está habilitado
   if (!global.db.data?.settings?.[conn.user?.jid]?.jadibotmd) {
     return m.reply(`${lenguajeGB['smsSoloOwnerJB']()}`)
   }
   
-  // Verificar si el mensaje es del propio bot
   if (m.fromMe || (conn.user?.jid === m.sender)) return
 
-  // Verificar cooldown
   const now = Date.now();
   const lastUse = cooldownMap.get(m.sender) || 0;
   const remainingTime = COOLDOWN_TIME - (now - lastUse);
@@ -53,7 +50,6 @@ let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
     return m.reply(`*⏳ Por favor espera ${Math.ceil(remainingTime / 1000)} segundos antes de usar el comando nuevamente.*`);
   }
 
-  // Actualizar el tiempo del último uso
   cooldownMap.set(m.sender, now);
 
   let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
@@ -82,6 +78,18 @@ let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
 
 handler.command = /^(jadibot|serbot|rentbot|code)/i
 export default handler 
+
+// Función mejorada para esperar autenticación
+const waitForAuth = async (sock, timeout = 30000) => {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    if (sock.authState?.creds?.me?.id) {
+      return true;
+    }
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  throw new Error('Timeout esperando autenticación');
+};
 
 export async function gataJadiBot(options) {
   let { pathGataJadiBot, m, conn, args, usedPrefix, command } = options
@@ -141,6 +149,14 @@ export async function gataJadiBot(options) {
     let sock
     try {
       sock = makeWASocket(connectionOptions)
+      
+      // Esperar a que el socket esté completamente autenticado
+      await waitForAuth(sock).catch(e => {
+        console.error(chalk.red('Error en autenticación:'), e)
+        throw e
+      });
+      
+      console.log(chalk.green('✅ Socket autenticado correctamente'))
     } catch (e) {
       console.error(chalk.redBright('Error al crear el socket:'), e)
       if (m?.chat) {
@@ -156,13 +172,14 @@ export async function gataJadiBot(options) {
     async function connectionUpdate(update) {
       const { connection, lastDisconnect, isNewLogin, qr } = update
       
-     if (!sock?.user) {
-  console.log(chalk.yellow('Advertencia: Socket no listo, estado:'), {
-    isSocket: !!sock,
-    connectionState: sock?.connection,
-    userExists: !!sock?.user
-  });
-  return;
+      // Verificación mejorada del estado del socket
+      if (!sock || !sock.authState?.creds?.me?.id) {
+        console.log(chalk.yellow('🔶 Socket no autenticado, estado:'), {
+          connectionState: sock?.connection,
+          authState: sock?.authState?.creds?.me ? 'ready' : 'not-ready',
+          isSocket: !!sock
+        });
+        return;
       }
 
       if (isNewLogin) sock.isInit = false
@@ -193,10 +210,8 @@ export async function gataJadiBot(options) {
           secret = secret.match(/.{1,4}/g)?.join("-") || '';
           console.log(chalk.bold.green(`Código generado: ${secret}`));
 
-          // Primero enviamos solo el código
           await m.reply(`${secret}`);
 
-          // Luego enviamos el mensaje con botón
           txtCode = await conn.sendMessage(m.chat, {
             text: `${rtx2.trim()}\n\n${drmer.toString("utf-8")}`,
             buttons: [{ buttonId: secret, buttonText: { displayText: 'Copiar código' }, type: 1 }],
@@ -252,8 +267,7 @@ export async function gataJadiBot(options) {
           }            
         }
         
-        // Manejo de otros códigos de desconexión...
-        // [Resto del manejo de códigos de desconexión permanece igual]
+        // Resto del manejo de códigos de desconexión...
       }
 
       if (connection == `open`) {
@@ -263,7 +277,6 @@ export async function gataJadiBot(options) {
           loadDatabase()
         }
 
-        // Verificar y heredar configuración de jadibotmd en reconexión
         if (global.db.data.settings[conn.user?.jid]?.jadibotmd) {
           global.db.data.settings[sock.user.jid] = {
             ...(global.db.data.settings[sock.user.jid] || {}),
@@ -350,7 +363,7 @@ Hoy es tu primer día en esta aventura digital...
     }
 
     setInterval(async () => {
-      if (!sock?.user) {
+      if (!sock?.authState?.creds?.me?.id) {
         try { 
           if (sock.ws) sock.ws.close() 
         } catch (e) {      
@@ -391,6 +404,7 @@ Hoy es tu primer día en esta aventura digital...
         
         try {
           sock = makeWASocket(connectionOptions, { chats: oldChats })
+          await waitForAuth(sock) // Esperar autenticación
           isInit = true
         } catch (e) {
           console.error(chalk.red('Error al recrear socket:'), e)
@@ -487,7 +501,6 @@ async function checkSubBots() {
 
   console.log(chalk.bold.cyanBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Iniciando reinicio forzado de sub-bots...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
 
-  // Primero desconectamos todos los sub-bots existentes
   for (const conn of global.conns) {
     if (conn && conn.ws) {
       try {
@@ -503,7 +516,6 @@ async function checkSubBots() {
   }
   global.conns = []
 
-  // Luego reconectamos todos los sub-bots
   for (const folder of subBotFolders) {
     const pathGataJadiBot = path.join(subBotDir, folder)
     const credsPath = path.join(pathGataJadiBot, "creds.json")
