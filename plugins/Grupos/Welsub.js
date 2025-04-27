@@ -62,10 +62,10 @@ ${descs}
       .replace(/@desc/g, descs)
       : defaultWelcome
 
-    // Enviar texto + imagen (si existe) en un solo mensaje
+    // Enviar texto con la imagen como un solo mensaje
     await this.sendMessage(m.chat, { 
       text: textWel, 
-      image: img || undefined, 
+      image: img || undefined,  // Enviamos la imagen junto con el texto
       caption: '¡Bienvenido!', 
       contextInfo: {
         forwardingScore: 9999999,
@@ -88,10 +88,10 @@ ${descs}
       .replace(/@group/g, subject)
       : defaultBye
 
-    // Enviar texto + imagen (si existe) en un solo mensaje
+    // Enviar texto con la imagen como un solo mensaje
     await this.sendMessage(m.chat, { 
-      text: textBye,
-      image: img || undefined, 
+      text: textBye, 
+      image: img || undefined,  // Enviamos la imagen junto con el texto
       caption: '¡Adiós!', 
       contextInfo: {
         forwardingScore: 9999999,
