@@ -1,38 +1,34 @@
 import fetch from 'node-fetch';
 
 const handler = async (m, { conn, usedPrefix, command }) => {
+  conn.tebakff = conn.tebakff || {};
+  
+  if (conn.tebakff[m.sender]) {
+    clearTimeout(conn.tebakff[m.sender].timeout);
+    delete conn.tebakff[m.sender];
+  }
+  
   try {
-    // Limpiar juego anterior si existe
-    if (conn.tebakff?.[m.sender]) {
-      clearTimeout(conn.tebakff[m.sender].timeout);
-      delete conn.tebakff[m.sender];
-    }
-
     const res = await fetch('https://api.vreden.my.id/api/tebakff');
     if (!res.ok) throw new Error('API no responde');
     const json = await res.json();
     const { jawaban, img } = json.result;
 
-    conn.tebakff = conn.tebakff || {};
     conn.tebakff[m.sender] = {
       jawaban: jawaban.toLowerCase(),
-      timeout: setTimeout(() => {
-        conn.sendMessage(m.chat, { 
-          text: `⏰ ¡Tiempo agotado!\nLa respuesta era: *${jawaban}*`,
+      timeout: setTimeout(async () => {
+        await conn.sendMessage(m.chat, {
+          text: `⏰ ¡Se acabó el tiempo!\nLa respuesta era: *${jawaban}*`,
+          footer: '*The Teddies 🐻🔥*',
           buttons: [
             { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
-          ],
-          footer: "*The Teddies 🐻🔥*"
+          ]
         });
         delete conn.tebakff[m.sender];
       }, 30000)
     };
 
-    await conn.sendMessage(m.chat, { 
-      react: { text: '🕵️', key: m.key }
-    });
-
-    const buttonMessage = {
+    await conn.sendMessage(m.chat, {
       image: { url: img },
       caption: `✨ *Adivina el personaje de Free Fire* ✨
 
@@ -47,36 +43,37 @@ Escribe tu respuesta en el chat.`,
       ],
       headerType: 4,
       viewOnce: true
-    };
-
-    await conn.sendMessage(m.chat, buttonMessage); // <- sin quoted: m
-
+    });
+    
   } catch (e) {
     console.error('Error en tebakff:', e);
-    await conn.sendMessage(m.chat, { 
+    await conn.sendMessage(m.chat, {
       text: "❌ Error al cargar el personaje. Intenta nuevamente más tarde."
     });
   }
 };
 
+// Este before solo responde si realmente hay un juego activo
 handler.before = async (m, { conn, usedPrefix, command }) => {
+  conn.tebakff = conn.tebakff || {};
+  
   if (m.text.startsWith(usedPrefix)) return; // Ignorar comandos
 
-  if (conn.tebakff?.[m.sender]) {
+  if (conn.tebakff[m.sender]) {
     const { jawaban, timeout } = conn.tebakff[m.sender];
-    
+
     if (m.text.toLowerCase().trim() === jawaban) {
       clearTimeout(timeout);
       delete conn.tebakff[m.sender];
-      await conn.sendMessage(m.chat, { 
-        text: "✅ *¡Correcto!* Eres un experto en Free Fire 🔥",
+      await conn.sendMessage(m.chat, {
+        text: "✅ *¡Correcto!* ¡Muy bien crack!",
+        footer: "*The Teddies 🐻🔥*",
         buttons: [
           { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
-        ],
-        footer: "*The Teddies 🐻🔥*"
+        ]
       });
     } else {
-      await conn.sendMessage(m.chat, { 
+      await conn.sendMessage(m.chat, {
         text: "❌ Incorrecto, sigue intentando..."
       });
     }
@@ -84,8 +81,8 @@ handler.before = async (m, { conn, usedPrefix, command }) => {
 };
 
 handler.help = ["tebakff"];
-handler.tags = ["juego"];
-handler.command = /^(tebakff|adivinaff)$/i;
+handler.tags = ["juegos"];
+handler.command = /^tebakff$/i;
 handler.exp = 20;
 
 export default handler;
