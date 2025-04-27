@@ -5,19 +5,15 @@ const { generateWAMessageFromContent, proto } = pkg;
 const games = new Map();
 
 const handler = async (m, { conn, usedPrefix }) => {
+    // Depuración: Ver si el mensaje contiene .adivinaff
+    console.log("Mensaje recibido:", m.text);
+
     const msgText = m.text?.toLowerCase();
     const groupId = m.chat;
 
-    const response =
-        m.message?.buttonsResponseMessage?.selectedButtonId ||
-        m.message?.interactiveResponseMessage?.nativeFlowResponseButtonResponse?.id ||
-        m.message?.interactiveResponseMessage?.buttonReplyMessage?.selectedId ||
-        m.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
-        msgText || '';
-
-    // Cuando escribe manualmente el comando .adivinaff
+    // Si el texto es .adivinaff, proceder a iniciar el juego
     if (msgText?.startsWith(`${usedPrefix}adivinaff`)) {
-        console.log("Comando .adivinaff activado");  // Para depuración
+        console.log("Comando .adivinaff activado");
 
         // Limpiar juego anterior si existe
         if (games.has(m.sender)) {
@@ -73,9 +69,15 @@ const handler = async (m, { conn, usedPrefix }) => {
         return;
     }
 
-    // Si se presiona el botón "Intentar otro"
+    // Ver si se presiona el botón "Intentar otro"
+    const response =
+        m.message?.buttonsResponseMessage?.selectedButtonId ||
+        m.message?.interactiveResponseMessage?.nativeFlowResponseButtonResponse?.id ||
+        m.message?.interactiveResponseMessage?.buttonReplyMessage?.selectedId ||
+        m.message?.listResponseMessage?.singleSelectReply?.selectedRowId || '';
+
     if (response === 'repetir_adivinaff') {
-        console.log("Botón Intentar Otro presionado");  // Para depuración
+        console.log("Botón 'Intentar otro' presionado");
 
         // Manda texto como si el usuario escribiera .adivinaff
         await conn.sendMessage(m.chat, { text: `${usedPrefix}adivinaff` });
@@ -93,7 +95,7 @@ const handler = async (m, { conn, usedPrefix }) => {
     }
 };
 
-handler.customPrefix = /^(\.adivinaff|repetir_adivinaff)$/i;
+handler.customPrefix = /^\.adivinaff$/i;
 handler.command = new RegExp;
 handler.group = true;
 
