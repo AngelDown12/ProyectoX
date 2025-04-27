@@ -28,28 +28,22 @@ const handler = async (m, { conn, usedPrefix, command }) => {
             }, 30000) // 30 segundos
         });
 
-        // 4. Enviar mensaje CON BOTÓN
+        // 4. Crear botón que ejecutará el mismo comando
         const buttons = [
             {
-                buttonId: `${usedPrefix}${command}`, // Mismo comando al presionar el botón
+                buttonId: `${usedPrefix}${command}`, // Botón para ejecutar el mismo comando
                 buttonText: { displayText: "🔄 Intentar otro" },
                 type: 1
             }
         ];
 
         const mensaje = generateWAMessageFromContent(m.chat, {
-            viewOnceMessage: {
-                message: {
-                    messageContextInfo: {},
-                    interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: {
-                            text: `🎮 *ADIVINA EL PERSONAJE FREE FIRE* 🎮\n\nTienes *30 segundos* para adivinar.`
-                        },
-                        footer: { text: "Escribe el nombre del personaje" },
-                        nativeFlowMessage: { buttons }
-                    })
-                }
-            }
+            interactiveMessage: proto.Message.InteractiveMessage.create({
+                body: { text: `🎮 *ADIVINA EL PERSONAJE DE FREE FIRE* 🎮\n\nTienes *30 segundos* para adivinar.` },
+                footer: { text: "Escribe el nombre del personaje" },
+                imageMessage: { url: img }, // Imagen del personaje
+                buttons
+            })
         }, {});
 
         await conn.relayMessage(m.chat, mensaje.message, {});
@@ -64,26 +58,28 @@ const handler = async (m, { conn, usedPrefix, command }) => {
 handler.before = async (m, { conn, usedPrefix }) => {
     const msgText = m.text?.toLowerCase();
 
-    // Si se presiona un botón con el mismo comando, volver a ejecutar .adivinaff
+    // Si el texto es .adivinaff y hay un juego en curso
+    if (games.has(m.sender)) {
+        const game = games.get(m.sender);
+
+        // Verificar si el texto es la respuesta correcta
+        if (msgText?.trim() === game.answer) {
+            clearTimeout(game.timeout);
+            games.delete(m.sender);
+            await m.reply("✅ ¡CORRECTO! +20 XP");
+        }
+    }
+
+    // Si el botón 'Intentar otro' fue presionado, volver a ejecutar el comando
     const response =
         m.message?.buttonsResponseMessage?.selectedButtonId ||
         m.message?.interactiveResponseMessage?.nativeFlowResponseButtonResponse?.id ||
         m.message?.interactiveResponseMessage?.buttonReplyMessage?.selectedId ||
         m.message?.listResponseMessage?.singleSelectReply?.selectedRowId || '';
 
-    if (response === `${usedPrefix}adivinaff`) {
-        await handler(m, { conn, usedPrefix, command: 'adivinaff' });  // Llamamos al mismo comando al presionar el botón
-        return;
-    }
-
-    // Verificar respuesta del juego
-    if (games.has(m.sender)) {
-        const game = games.get(m.sender);
-        if (msgText?.trim() === game.answer) {
-            clearTimeout(game.timeout);
-            games.delete(m.sender);
-            await m.reply("✅ ¡CORRECTO! +20 XP");
-        }
+    if (response === `${usedPrefix}${command}`) {
+        // Llamar de nuevo al mismo comando para reiniciar el juego
+        await handler(m, { conn, usedPrefix, command });
     }
 };
 
