@@ -61,7 +61,7 @@ ________________________`,
 
 handler.help = ['ffban'];
 handler.tags = ['games'];
-handler.command = /^(ffban|eliminartoxico|freefiretoxic)$/i;
+handler.command = /^(ffban|inactivoff|freefiretoxic)$/i;
 handler.group = true;
 handler.admin = true;
 handler.botAdmin = true;
