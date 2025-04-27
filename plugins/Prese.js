@@ -4,50 +4,38 @@ handler.before = async function (m, { conn, groupMetadata, usedPrefix }) {
   if (!m.messageStubType || !m.isGroup) return
   if (m.messageStubType !== 20) return // 20 = Creación de grupo
 
-  let subject = groupMetadata.subject || "el grupo"
   let botName = conn.user.name
   let imageUrl = 'https://qu.ax/nxskN.jpg'
 
-  let welcomeBot = `🥇 ¡𝗛𝗢𝗟𝗔 𝗚𝗥𝗨𝗣𝗢! 🥇  
+  let welcomeMsg = `🥇 ¡𝗛𝗢𝗟𝗔 𝗚𝗥𝗨𝗣𝗢! 🥇\n\n` +
+                  `¡Soy ${botName}, su nuevo asistente digital!\n\n` +
+                  `━━━━━━━━━━━━━━━━━━━\n` +
+                  `⚡ *Mis funciones:*\n` +
+                  `▸ Descargar música/videos\n` +
+                  `▸ Búsquedas en Google\n` +
+                  `▸ Juegos y diversión\n` +
+                  `▸ Generar imágenes con IA\n` +
+                  `▸ Herramientas para Free Fire\n\n` +
+                  `━━━━━━━━━━━━━━━━━━━\n` +
+                  `📂 *Mis menus:*\n` +
+                  `▸ ${usedPrefix}menu → *Menú general*\n` +
+                  `▸ ${usedPrefix}menuimg → *Imágenes AI*\n` +
+                  `▸ ${usedPrefix}menuhot → *Contenido hot*\n` +
+                  `▸ ${usedPrefix}menuaudios → *Efectos*\n` +
+                  `▸ ${usedPrefix}menujuegos → *Juegos grupal*\n` +
+                  `▸ ${usedPrefix}menufreefire → *Free Fire tools*\n\n` +
+                  `━━━━━━━━━━━━━━━━━━━\n` +
+                  `©EliteBotGlobal 2023`
 
-¡Soy ${botName}, su nuevo asistente digital!  
-
-━━━━━━━━━━━━━━━━━━━  
-⚡ *Mis funciones:*  
-▸ Descargar música/videos  
-▸ Búsquedas en Google  
-▸ Juegos y diversión  
-▸ Generar imágenes con IA  
-▸ Herramientas para Free Fire  
-━━━━━━━━━━━━━━━━━━━  
-📂 *Mis menus:*  
-▸ ${usedPrefix}menu → *Menú general*  
-▸ ${usedPrefix}menuimg → *Imágenes AI*  
-▸ ${usedPrefix}menuhot → *Contenido hot*  
-▸ ${usedPrefix}menuaudios → *Efectos*  
-▸ ${usedPrefix}menujuegos → *Juegos grupal*  
-▸ ${usedPrefix}menufreefire → *Free Fire tools*  
-━━━━━━━━━━━━━━━━━━━  
-©EliteBotGlobal 2023`
-
-  // Estructura de botón IDÉNTICA a adivinaff
-  const buttons = [  
-    {  
-      buttonId: `${usedPrefix}menufreefire`,  
-      buttonText: { displayText: '🎮 Menufreefire' },  
-      type: 1  
-    }  
-  ]  
-
-  // Enviar el mensaje con el mismo diseño + botón
-  await conn.sendMessage(m.chat, {  
-    image: { url: imageUrl },  
-    caption: welcomeBot,  
-    footer: "FREE FIRE BATTLEGROUNDS | © GARENA",  
-    buttons: buttons,  
-    headerType: 4,  
-    viewOnce: true  
-  }, { quoted: m })  
+  await conn.sendMessage(m.chat, {
+    image: { url: imageUrl },
+    caption: welcomeMsg,
+    footer: "FREE FIRE BATTLEGROUNDS | © GARENA",
+    buttons: [
+      { buttonId: `${usedPrefix}menufreefire`, buttonText: { displayText: '🎮 Menufreefire' }, type: 1 }
+    ],
+    headerType: 1
+  }, { quoted: m })
 }
 
 export default handler
