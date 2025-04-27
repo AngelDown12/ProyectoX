@@ -6,7 +6,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     // Obtener el estado (bio) del usuario
     let status = 'Sin estado'
     try {
-        const statusData = await conn.fetchStatus(user)
+        const statusData = await conn.getStatus(user)
         status = statusData.status || status
     } catch (e) {
         console.error('Error al obtener estado:', e)
