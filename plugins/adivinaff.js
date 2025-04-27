@@ -1,101 +1,77 @@
 import fetch from 'node-fetch';
 
+// Objeto para almacenar los juegos activos
+const activeGames = new Map();
+
 const handler = async (m, { conn, usedPrefix, command }) => {
-  try {
-    // Limpiar juego anterior si existe
-    if (conn.tebakff?.[m.sender]) {
-      clearTimeout(conn.tebakff[m.sender].timeout);
-      delete conn.tebakff[m.sender];
-    }
-
-    const res = await fetch('https://api.vreden.my.id/api/tebakff');
-    if (!res.ok) throw new Error('API no responde');
-    const json = await res.json();
-    const { jawaban, img } = json.result;
-
-    conn.tebakff = conn.tebakff || {};
-    conn.tebakff[m.sender] = {
-      jawaban: jawaban.toLowerCase(),
-      timeout: setTimeout(() => {
-        conn.sendMessage(m.chat, { 
-          text: `⏰ Tiempo agotado!\nLa respuesta era: *${jawaban}*` 
-        }, { quoted: m });
-        delete conn.tebakff[m.sender];
-      }, 30000)
-    };
-
-    await conn.sendMessage(m.chat, { 
-      react: { text: '🕵️', key: m.key } 
-    });
-
-    const buttonMessage = {
-      image: { url: img },
-      caption: `✨ *Adivina el personaje de Free Fire* ✨
-
-Estás viendo a un personaje super conocido...
-¿Pero, cuál es su nombre?
-
-⏳ Tienes *30 segundos* para responder.
-Escribe tu respuesta en el chat.`,
-      footer: "*The Teddies 🐻🔥*",
-      buttons: [
-        { 
-          buttonId: `/${command}`, // Cambiado para usar solo el comando
-          buttonText: { displayText: "🔁 Intentar otro" }, 
-          type: 1 
+    try {
+        // Limpiar juego anterior si existe
+        if (activeGames.has(m.sender)) {
+            const { timeout } = activeGames.get(m.sender);
+            clearTimeout(timeout);
+            activeGames.delete(m.sender);
         }
-      ],
-      headerType: 4,
-      viewOnce: true
-    };
 
-    await conn.sendMessage(m.chat, buttonMessage, { quoted: m });
+        // Obtener nuevo personaje
+        const res = await fetch('https://api.vreden.my.id/api/tebakff');
+        if (!res.ok) throw new Error('Error en la API');
+        const { result } = await res.json();
+        const { jawaban, img } = result;
 
-  } catch (e) {
-    console.error('Error en tebakff:', e);
-    await conn.sendMessage(m.chat, { 
-      text: "❌ Error al cargar el personaje. Intenta nuevamente más tarde." 
-    }, { quoted: m });
-  }
+        // Configurar nuevo juego
+        const gameData = {
+            jawaban: jawaban.toLowerCase(),
+            timeout: setTimeout(() => {
+                conn.sendMessage(m.chat, {
+                    text: `⌛ Tiempo terminado!\nLa respuesta era: *${jawaban}*`
+                }, { quoted: m });
+                activeGames.delete(m.sender);
+            }, 30000)
+        };
+        activeGames.set(m.sender, gameData);
+
+        // Enviar mensaje con el personaje
+        await conn.sendMessage(m.chat, {
+            image: { url: img },
+            caption: `🎮 *ADIVINA EL PERSONAJE DE FREE FIRE* 🎮\n\nTienes 30 segundos para adivinar...`,
+            footer: "Responde con el nombre del personaje",
+            buttons: [
+                { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔄 Intentar otro" }, type: 1 }
+            ],
+            headerType: 4
+        }, { quoted: m });
+
+    } catch (error) {
+        console.error(error);
+        await conn.sendMessage(m.chat, {
+            text: "❌ Ocurrió un error, por favor intenta más tarde"
+        }, { quoted: m });
+    }
 };
 
-// Manejador para interacciones de botones
-export async function button(m, { conn }) {
-  if (m.text === '🔁 Intentar otro') {
-    await handler(m, { 
-      conn, 
-      usedPrefix: '/', 
-      command: m.body.replace('🔁 Intentar otro', '').trim() 
-    });
-  }
-}
-
+// Manejador para respuestas
 handler.before = async (m, { conn, usedPrefix }) => {
-  // Ignorar mensajes que son comandos
-  if (m.text.startsWith(usedPrefix)) return;
+    if (!activeGames.has(m.sender) || m.text.startsWith(usedPrefix)) return;
 
-  if (conn.tebakff?.[m.sender]) {
-    const { jawaban, timeout } = conn.tebakff[m.sender];
+    const { jawaban, timeout } = activeGames.get(m.sender);
     
     if (m.text.toLowerCase().trim() === jawaban) {
-      clearTimeout(timeout);
-      delete conn.tebakff[m.sender];
-      await conn.sendMessage(m.chat, { 
-        text: "✅ *¡Correcto!* Eres un experto en Free Fire 🔥",
-        quoted: m
-      });
-    } else if (m.text && m.text !== '🔁 Intentar otro') {
-      await conn.sendMessage(m.chat, { 
-        text: "❌ Incorrecto, sigue intentando...",
-        quoted: m
-      });
+        clearTimeout(timeout);
+        activeGames.delete(m.sender);
+        await conn.sendMessage(m.chat, {
+            text: "🎉 ¡Correcto! Has adivinado el personaje",
+            quoted: m
+        });
+    } else {
+        await conn.sendMessage(m.chat, {
+            text: "❌ Incorrecto, sigue intentando...",
+            quoted: m
+        });
     }
-  }
 };
 
-handler.help = ["tebakff"];
-handler.tags = ["juego"];
+handler.help = ['tebakff'];
+handler.tags = ['games'];
 handler.command = /^(tebakff|adivinaff)$/i;
-handler.exp = 20;
 
 export default handler;
