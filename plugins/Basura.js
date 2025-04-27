@@ -4,6 +4,16 @@ let handler = async (a, { conn: n, participants: r, usedPrefix, command }) => {
   // Foto de perfil del bot o imagen por defecto
   let s = await n.profilePictureUrl(a.sender, "image").catch((e) => "./Menu2.jpg");
 
+  // Aseguramos que la ruta local de la imagen sea válida
+  let imageBuffer;
+  try {
+    imageBuffer = e.readFileSync(s); // Intentamos leer la imagen
+  } catch (error) {
+    console.error("Error al leer la imagen:", error);
+    // Si hay error al leer, asignamos una URL externa
+    imageBuffer = await (await fetch("https://example.com/your-image.jpg")).buffer();
+  }
+
   // Seleccionar aleatoriamente un participante para ejecutar el comando
   var p = [];
   r.map(async (e) => {
@@ -40,7 +50,7 @@ let handler = async (a, { conn: n, participants: r, usedPrefix, command }) => {
             inviteCode: "m",
             groupName: "P",
             caption: `⚰️@${m.split("@")[0]} 💀`,
-            jpegThumbnail: s,
+            jpegThumbnail: imageBuffer,
           },
         },
       },
@@ -70,7 +80,7 @@ let handler = async (a, { conn: n, participants: r, usedPrefix, command }) => {
               inviteCode: "m",
               groupName: "P",
               caption: `C come una manzana* :v🍎`,
-              jpegThumbnail: e.readFileSync("./Menu2.jpg"),
+              jpegThumbnail: imageBuffer, // Enviar imagen con el mensaje
             },
           },
         },
