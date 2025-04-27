@@ -2,85 +2,79 @@ import fetch from 'node-fetch';
 
 const handler = async (m, { conn, usedPrefix, command }) => {
   try {
-    // Limpiar timeout anterior si existe
+    // Limpiar juego anterior
     if (conn.tebakff?.[m.sender]) {
       clearTimeout(conn.tebakff[m.sender].timeout);
       delete conn.tebakff[m.sender];
     }
 
+    // Obtener nuevo personaje
     const res = await fetch('https://api.vreden.my.id/api/tebakff');
-    if (!res.ok) throw new Error('API no responde');
-    const json = await res.json();
-    const { jawaban, img } = json.result;
+    if (!res.ok) throw new Error('Error en la API');
+    const { result } = await res.json();
+    const { jawaban, img } = result;
 
+    // Configurar nuevo juego
     conn.tebakff = conn.tebakff || {};
     conn.tebakff[m.sender] = {
       jawaban: jawaban.toLowerCase(),
       timeout: setTimeout(() => {
-        m.reply(`⏰ ᴛɪᴇᴍᴘᴏ ᴀɢᴏᴛᴀᴅᴏ...\n❗ ʟᴀ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ ᴇʀᴀ: *${jawaban}*`);
+        m.reply(`⏰ Tiempo agotado!\nLa respuesta era: *${jawaban}*`);
         delete conn.tebakff[m.sender];
       }, 30000)
     };
 
-    await conn.sendMessage(m.chat, { react: { text: '🕵️', key: m.key } });
+    // Enviar reacción
+    await conn.sendMessage(m.chat, { 
+      react: { text: '🕵️', key: m.key } 
+    });
 
-    const buttons = [
-      {
-        buttonId: `${usedPrefix + command}`,
-        buttonText: { displayText: "🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ" },
-        type: 1,
-      }
-    ];
-
+    // Mensaje con botón (DISEÑO ORIGINAL)
     await conn.sendMessage(m.chat, {
       image: { url: img },
-      caption: `✨ *ᴀᴅɪᴠɪɴᴀ ᴇʟ ᴘᴇʀꜱᴏɴᴀᴊᴇ ᴅᴇ ꜰʀᴇᴇ ꜰɪʀᴇ* ✨
+      caption: `✨ *Adivina el personaje de Free Fire* ✨
 
-ᴇꜱᴛᴀꜱ ᴠɪᴇɴᴅᴏ ᴀ ᴜɴ ᴘᴇʀꜱᴏɴᴀᴊᴇ ꜱᴜᴘᴇʀ ᴄᴏɴᴏᴄɪᴅᴏ...
-ᴘᴇʀᴏ, ¿ᴄᴜᴀ́ʟ ᴇꜱ ꜱᴜ ɴᴏᴍʙʀᴇ?
+Estás viendo a un personaje super conocido...
+¿Pero, cuál es su nombre?
 
-⏳ ᴛɪᴇɴᴇꜱ *30 ꜱᴇɢᴜɴᴅᴏꜱ* ᴘᴀʀᴀ ʀᴇꜱᴘᴏɴᴅᴇʀ.
-ᴇꜱᴄʀɪʙᴇ ᴛᴜ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴇɴ ᴇʟ ᴄʜᴀᴛ.`,
-      buttons,
+⏳ Tienes *30 segundos* para responder.
+Escribe tu respuesta en el chat.`,
+      buttons: [
+        {
+          buttonId: `${usedPrefix}${command}_nuevo`,
+          buttonText: { displayText: "🔁 Intentar otro" },
+          type: 1
+        }
+      ],
       footer: "*The Teddies 🐻🔥*",
-      viewOnce: true,
+      viewOnce: true
     }, { quoted: m });
 
   } catch (e) {
     console.error(e);
-    await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } });
-    m.reply("❌ ᴏᴄᴜʀʀɪᴏ́ ᴜɴ ᴇʀʀᴏʀ ᴀʟ ᴄᴀʀɢᴀʀ ᴇʟ ᴘᴇʀꜱᴏɴᴀᴊᴇ. ɪɴᴛᴇɴᴛᴀ ᴍᴀ́ꜱ ᴛᴀʀᴅᴇ.");
+    m.reply("❌ Error al cargar el personaje");
   }
 };
 
-// Manejador específico para el botón
-handler.button = async (m, { conn, usedPrefix, command }) => {
-  if (m.text === '🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ') {
-    await handler(m, { conn, usedPrefix, command });
-  }
-};
-
+// Manejador para el botón "Intentar otro"
+handler.button = /^tebakff_nuevo|adivinaff_nuevo$/i;
 handler.before = async (m, { conn, usedPrefix }) => {
-  // Ignorar mensajes que son comandos o clics en botones
-  if (m.text.startsWith(usedPrefix) || m.text === '🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ') return;
+  // Manejar clic en botón
+  if (m.quoted?.text?.includes('Adivina el personaje') && m.text === '🔁 Intentar otro') {
+    await handler(m, { conn, usedPrefix, command: m.body.replace('_nuevo', '') });
+    return;
+  }
 
-  if (conn.tebakff?.[m.sender]) {
-    const { jawaban, timeout } = conn.tebakff[m.sender];
-    const userAnswer = m.text.toLowerCase().trim();
-    
-    if (userAnswer === jawaban) {
-      clearTimeout(timeout);
-      delete conn.tebakff[m.sender];
-      await conn.sendMessage(m.chat, { 
-        text: "✅ *ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ!* ᴇʀᴇꜱ ᴜɴ ᴇxᴘᴇʀᴛᴏ ꜰꜰ 🔥",
-        quoted: m
-      });
-    } else if (userAnswer) {
-      await conn.sendMessage(m.chat, { 
-        text: "❌ *ɴᴏ ᴇꜱ ᴇꜱᴀ*, ɪɴᴛᴇɴᴛᴀ ᴏᴛʀᴀ ᴠᴇᴢ...",
-        quoted: m
-      });
-    }
+  // Manejar respuestas normales
+  if (!conn.tebakff?.[m.sender] || m.text.startsWith(usedPrefix)) return;
+
+  const { jawaban, timeout } = conn.tebakff[m.sender];
+  if (m.text.toLowerCase().trim() === jawaban) {
+    clearTimeout(timeout);
+    delete conn.tebakff[m.sender];
+    m.reply("✅ ¡Correcto! Eres un experto FF 🔥");
+  } else if (m.text) {
+    m.reply("❌ No es esa, intenta otra vez...");
   }
 };
 
