@@ -17,53 +17,55 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     conn.tebakff[m.sender] = {
       jawaban: jawaban.toLowerCase(),
       timeout: setTimeout(() => {
-        m.reply(`⏰ ᴛɪᴇɴᴇ ꜱᴇɢᴜɴᴅᴏꜱ ᴀɢᴏᴛᴀᴅᴏ... ❗ ʟᴀ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ ᴇʀᴀ: *${jawaban}*`);
+        m.reply(`🕒 ¡Tiempo agotado, noob! La respuesta era: *${jawaban.toUpperCase()}* 🔥`);
         delete conn.tebakff[m.sender];
       }, 30000)
     };
 
-    await conn.sendMessage(m.chat, { react: { text: '🕵️', key: m.key } });
+    await conn.sendMessage(m.chat, { react: { text: '🔥', key: m.key } });
 
     const buttons = [
       {
-        buttonId: `.${command}`, // Asegúrate de que el buttonId ejecute el mismo comando
-        buttonText: { displayText: '🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ' },
+        buttonId: `.${command}`,
+        buttonText: { displayText: '🔄 VOLVER A INTENTAR' },
         type: 1,
       }
     ];
 
     await conn.sendMessage(m.chat, {
       image: { url: img },
-      caption: `✨ *ᴀᴅɪᴠɪɴᴀ ᴇʟ ᴘᴇʀꜱᴏɴᴀᴊᴇ ᴅᴇ ꜰʀᴇᴇ ꜰɪʀᴇ* ✨
-      
-      ᴇꜱᴛᴀꜱ ᴠɪᴇɴᴅᴏ ᴀ ᴜɴ ᴘᴇʀꜱᴏɴᴀᴊᴇ ꜱᴜᴘᴇʀ ᴄᴏɴᴏᴄɪᴅᴏ...
-      ᴘᴇʀᴏ, ¿ᴄᴜᴀ́ʟ ᴇꜱ ꜱᴜ ɴᴏᴍʙʀᴇ?
-      
-      ⏳ ᴛɪᴇɴᴇꜱ *30 ꜱᴇɢᴜɴᴅᴏꜱ* ᴘᴀʀᴀ ʀᴇꜱᴘᴏɴᴅᴇʀ.
-      ᴇꜱᴄʀɪʙᴇ ᴛᴜ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴇɴ ᴇʟ ᴄʜᴀᴛ.`,
+      caption: `🔥 *DESAFÍO FREE FIRE* 🔥
+
+🎮 ¡ADIVINA EL PERSONAJE! 🎮
+
+Estás frente a un legendario de Free Fire...
+¿Serás capaz de reconocerlo?
+
+⏱️ *Tienes 30 segundos* para responder
+💀 Dificultad: *PRO*
+
+📌 Escribe el nombre del personaje en el chat`,
       buttons,
-      footer: "*The Teddies 🐻🔥*",
+      footer: "FREE FIRE BATTLEGROUNDS | © GARENA",
       viewOnce: true,
     }, { quoted: m });
 
   } catch (e) {
     console.error(e);
-    await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } });
-    m.reply("❌ ᴏᴄᴜʀʀɪᴏ́ ᴜɴ ᴇʀʀᴏʀ ᴀʟ ᴄᴀʀɢᴀʀ ᴇʟ ᴘᴇʀꜱᴏɴᴀᴊᴇ. ɪɴᴛᴇɴᴛᴀ ᴍᴀ́ꜱ ᴛᴀʀᴅᴇ.");
+    await conn.sendMessage(m.chat, { react: { text: '💥', key: m.key } });
+    m.reply("💢 ¡ERROR EN EL SISTEMA! Vuelve a intentarlo más tarde...");
   }
 };
 
 // Manejador específico para el botón
 handler.button = async (m, { conn, usedPrefix, command }) => {
-  if (m.text === '🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ') {
-    // Reenvío manual del comando usando el `command` correcto
+  if (m.text === '🔄 VOLVER A INTENTAR') {
     await handler(m, { conn, usedPrefix, command });
   }
 };
 
 handler.before = async (m, { conn, usedPrefix }) => {
-  // Ignorar mensajes que son comandos o clics en botones
-  if (m.text.startsWith(usedPrefix) || m.text === '🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ') return;
+  if (m.text.startsWith(usedPrefix) || m.text === '🔄 VOLVER A INTENTAR') return;
 
   if (conn.tebakff?.[m.sender]) {
     const { jawaban, timeout } = conn.tebakff[m.sender];
@@ -73,12 +75,12 @@ handler.before = async (m, { conn, usedPrefix }) => {
       clearTimeout(timeout);
       delete conn.tebakff[m.sender];
       await conn.sendMessage(m.chat, { 
-        text: "✅ *ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ!* ᴇʀᴇꜱ ᴜɴ ᴇxᴘᴇʀᴛᴏ ꜰꜰ 🔥",
+        text: `🎉 *¡BOOYAH!* Respuesta correcta\n\nEres un verdadero PRO de Free Fire! 🏆\n\nPersonaje: *${jawaban.toUpperCase()}*`,
         quoted: m
       });
     } else if (userAnswer) {
       await conn.sendMessage(m.chat, { 
-        text: "❌ *ɴᴏ ᴇꜱ ᴇꜱᴀ*, ɪɴᴛᴇɴᴛᴀ ᴏᴛʀᴀ ᴠᴇᴢ...",
+        text: "❌ *¡FALLISTE!* Sigue intentándolo, rookie...",
         quoted: m
       });
     }
