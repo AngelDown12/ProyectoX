@@ -7,21 +7,23 @@ let handler = async (a, { conn: n, participants: r, usedPrefix, command }) => {
     p.push(e.id.replace("c.us", "s.whatsapp.net"));
   });
 
-  let o = 1e4;
+  let o = 3e4; // 30 segundos (30,000 milisegundos)
   let m = p[Math.floor(Math.random() * p.length)];
 
   if (m.startsWith(n.user.id.split(":")[0])) return a.reply("Hoy no muere nadie :D");
 
+  // Enviar mensaje avisando de la despedida
   n.sendMessage(
     a.chat,
     {
       text: `*[ Basura Inactiva ]* 📓
 
 ┏━⊱ *Seleccionado:* @${m.split("@")[0]}
-┗⊱ *Razón de su ejecución: Desconocida*
+┗⊱ *Razón de su ejecución:* *Inactividad*
 
-_Tiene ${(o % 6e4) / 1e3} segundos para decir sus últimas palabras_
-`,
+@${m.split("@")[0]} tienes *30 segundos* para despedirte de este grupo.
+
+¡Buena suerte! 😎`,
       mentions: [m],
     },
     {
@@ -41,16 +43,18 @@ _Tiene ${(o % 6e4) / 1e3} segundos para decir sus últimas palabras_
     }
   );
 
+  // Espera 30 segundos antes de eliminar al usuario
   setTimeout(() => {
     setTimeout(() => {
       n.groupParticipantsUpdate(a.chat, [m], "remove").catch((e) => {
         a.reply("ERROR");
       });
-    }, 1e3);
+    }, 1e3); // Elimina al usuario después de 1 segundo de retraso.
 
+    // Enviar un mensaje de despedida
     n.sendMessage(
       a.chat,
-      { text: "Press [F]", mentions: [m] },
+      { text: "Adiós [F]", mentions: [m] },
       {
         ephemeralExpiration: 86400,
         quoted: {
@@ -67,7 +71,7 @@ _Tiene ${(o % 6e4) / 1e3} segundos para decir sus últimas palabras_
         },
       }
     );
-  }, o);
+  }, o); // Se ejecuta luego de 30 segundos
 };
 
 (handler.help = ["basurainactiva"]),
