@@ -4,18 +4,26 @@ const games = new Map(); // { sender: { answer, timeout } }
 
 const handler = async (m, { conn, usedPrefix, command }) => {
     try {
-        // 1. Limpiar juego anterior SI existe
+        // SI ES BOTÓN, CONVERTIRLO EN TEXTO
+        if (m.message?.buttonsResponseMessage) {
+            m.text = m.message.buttonsResponseMessage.selectedButtonId || '';
+        }
+        if (m.message?.templateButtonReplyMessage) {
+            m.text = m.message.templateButtonReplyMessage.selectedId || '';
+        }
+
+        // 1. Limpiar juego anterior
         if (games.has(m.sender)) {
             clearTimeout(games.get(m.sender).timeout);
             games.delete(m.sender);
         }
 
-        // 2. Obtener nuevo personaje
+        // 2. Obtener personaje
         const res = await fetch('https://api.vreden.my.id/api/tebakff');
         const { result } = await res.json();
         const { jawaban, img } = result;
 
-        // 3. Configurar nuevo juego
+        // 3. Configurar juego
         games.set(m.sender, {
             answer: jawaban.toLowerCase(),
             timeout: setTimeout(() => {
@@ -23,10 +31,10 @@ const handler = async (m, { conn, usedPrefix, command }) => {
                     text: `⏰ ¡TIEMPO AGOTADO!\nRespuesta: *${jawaban}*` 
                 }, { quoted: m });
                 games.delete(m.sender);
-            }, 30000) // 30 segundos
+            }, 30000)
         });
 
-        // 4. Enviar mensaje con botón que simplemente MANDA el texto .adivinaff
+        // 4. Enviar mensaje con botón
         await conn.sendMessage(m.chat, {
             image: { url: img },
             caption: `🎮 *ADIVINA EL PERSONAJE FREE FIRE* 🎮\n\nTienes *30 segundos* para adivinar.`,
@@ -35,7 +43,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
                 { 
                     quickReplyButton: { 
                         displayText: "🔄 INTENTAR OTRO", 
-                        id: `${usedPrefix}${command}` // <- Esto enviará .adivinaff como texto
+                        id: `${usedPrefix}${command}` 
                     } 
                 }
             ],
@@ -50,7 +58,15 @@ const handler = async (m, { conn, usedPrefix, command }) => {
 
 // MANEJADOR DE RESPUESTAS
 handler.before = async (m, { conn, usedPrefix }) => {
-    // Ignorar si es comando o no hay juego activo
+    // SI ES BOTÓN, CONVERTIRLO EN TEXTO
+    if (m.message?.buttonsResponseMessage) {
+        m.text = m.message.buttonsResponseMessage.selectedButtonId || '';
+    }
+    if (m.message?.templateButtonReplyMessage) {
+        m.text = m.message.templateButtonReplyMessage.selectedId || '';
+    }
+
+    // Ignorar si es comando o no hay juego
     if (m.text.startsWith(usedPrefix) || !games.has(m.sender)) return;
 
     const game = games.get(m.sender);
