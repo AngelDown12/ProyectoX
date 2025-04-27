@@ -1,3 +1,6 @@
+import pkg from '@whiskeysockets/baileys';
+const { generateWAMessageFromContent, proto } = pkg;
+
 let handler = m => m;
 
 handler.before = async function (m, { conn, groupMetadata }) {
@@ -24,7 +27,7 @@ handler.before = async function (m, { conn, groupMetadata }) {
   ▸ .menu → *Menú general*
   ▸ .menuimg → *Imágenes AI*
   ▸ .menuhot → *Contenido hot*
-  ▸ .menuaudios→ *Efectos*
+  ▸ .menuaudios → *Efectos*
   ▸ .menujuegos → *Juegos grupal*
   ▸ .menufreefire → *Free Fire tools*
   ━━━━━━━━━━━━━━━━━━━
@@ -33,26 +36,71 @@ handler.before = async function (m, { conn, groupMetadata }) {
   // Configuración de botones
   const buttons = [
     {
-      buttonId: `.menu`, // Comando que se ejecutará
-      buttonText: { displayText: 'Hola' }, // Texto del botón
-      type: 1, // Tipo de botón
+      buttonId: 'menu_general',
+      buttonText: { displayText: '📜 Menú General' },
+      type: 1,
     },
+    {
+      buttonId: 'menu_img',
+      buttonText: { displayText: '🖼️ Imágenes AI' },
+      type: 1,
+    },
+    {
+      buttonId: 'menu_freefire',
+      buttonText: { displayText: '🔥 Free Fire Tools' },
+      type: 1,
+    }
   ];
 
-  // Enviar el mensaje con botones
-  try {
-    await conn.sendMessage(m.chat, {
-      image: { url: imageUrl }, // Enviar imagen
-      caption: welcomeBot,      // Mensaje de bienvenida
-      buttons: buttons,         // Botones
-      footer: "EliteBotGlobal | © 2023", // Pie de página
-      headerType: 4,            // Tipo de encabezado (4 = Imagen con texto)
-    }, { quoted: m }); // Mensaje citado
+  // Generar mensaje interactivo
+  const mensaje = generateWAMessageFromContent(m.chat, {
+    viewOnceMessage: {
+      message: {
+        messageContextInfo: {
+          deviceListMetadata: {},
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: { text: welcomeBot },
+          footer: { text: "Selecciona una opción:" },
+          nativeFlowMessage: { buttons }
+        })
+      }
+    }
+  }, {});
 
-    console.log("Mensaje de bienvenida enviado correctamente.");
-  } catch (err) {
-    console.error("Error al enviar el mensaje con botones:", err);
-  }
+  // Enviar mensaje
+  await conn.relayMessage(m.chat, mensaje.message, { messageId: mensaje.key.id });
 };
+
+export async function after(m, { conn }) {
+  try {
+    const button = m?.message?.buttonsResponseMessage;
+    if (!button) return;
+
+    const id = button.selectedButtonId;
+
+    // Responder según el botón seleccionado
+    switch (id) {
+      case 'menu_general':
+        await conn.sendMessage(m.chat, { text: '📜 Aquí tienes el menú general:\n.1 - Información\n.2 - Ayuda' });
+        break;
+      case 'menu_img':
+        await conn.sendMessage(m.chat, { text: '🖼️ Aquí tienes el menú de imágenes AI:\nPrueba el comando `.menuimg`' });
+        break;
+      case 'menu_freefire':
+        await conn.sendMessage(m.chat, { text: '🔥 Herramientas para Free Fire:\nUsa el comando `.menufreefire`' });
+        break;
+      default:
+        await conn.sendMessage(m.chat, { text: '❌ Opción no reconocida. Intenta de nuevo.' });
+    }
+  } catch (error) {
+    console.error('Error en after:', error);
+    await conn.sendMessage(m.chat, { text: '❌ Error al procesar tu selección' });
+  }
+}
+
+handler.customPrefix = /^(menu_general|menu_img|menu_freefire)$/i;
+handler.command = new RegExp;
+handler.group = true;
 
 export default handler;
