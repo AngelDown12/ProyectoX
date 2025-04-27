@@ -1,85 +1,39 @@
-import PhoneNumber from 'awesome-phonenumber';
-import fetch from 'node-fetch';
-import fs from 'fs';
+import { createHash } from 'crypto'
+import PhoneNumber from 'awesome-phonenumber'
+import fetch from 'node-fetch'
+let handler = async (m, { conn, usedPrefix }) => {
+let pp = 'https://telegra.ph/file/635b82df8d7abb4792eab.jpg'
+//const pp = await conn.profilePictureUrl(conn.user.jid).catch(_ => './src/avatar_contact.png')
+let user = global.db.data.users[m.sender]
+let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
+try {
+pp = await conn.getProfilePicture(who)         //pp = await conn.getProfilePicture(who)
+} catch (e) {
 
-const imagen1 = 'https://qu.ax/Mvhfa.jpg';
-
-const loadMarriages = () => {
-    if (fs.existsSync('./media/database/marry.json')) {
-        const data = JSON.parse(fs.readFileSync('./media/database/marry.json', 'utf-8'));
-        global.db.data.marriages = data;
-    } else {
-        global.db.data.marriages = {};
-    }
-};
-
-var handler = async (m, { conn }) => {
-    loadMarriages();
-
-    let who;
-    if (m.quoted && m.quoted.sender) {
-        who = m.quoted.sender;
-    } else {
-        who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender;
-    }
-
-    let pp = await conn.profilePictureUrl(who, 'image').catch(_ => imagen1);
-    let { premium, level, genre, birth, description, estrellas, exp, lastclaim, registered, regTime, age, role } = global.db.data.users[who] || {};
-    let username = conn.getName(who);
-
-    genre = genre === 0 ? 'No especificado' : genre || 'No especificado';
-    age = registered ? (age || 'Desconocido') : 'Sin especificar';
-    birth = birth || 'No Establecido';
-    description = description || 'Sin Descripción';
-    role = role || 'Aldeano';
-    let isMarried = who in global.db.data.marriages;
-    let partner = isMarried ? global.db.data.marriages[who] : null;
-    let partnerName = partner ? conn.getName(partner) : 'Nadie';
-
-    let noprem = `
-「 𖤘 *Perfil De Usuario* 」
-❀ *N᥆mᑲrᥱ:* ${username}
-❖ *Eძᥲძ:* ${age}
-⚥ *Gᥱᥒᥱr᥆:* ${genre}
-❀ *Cᥙm⍴ᥣᥱᥲᥒ̃᥆s:* ${birth} 
-♡ *Cᥲsᥲძ@:* ${isMarried ? partnerName : 'Nadie'}
-✎ *Dᥱsᥴrі⍴ᥴі᥆́ᥒ:* ${description}
-❍ *Rᥱgіs𝗍rᥲძ᥆:* ${registered ? '✅': '❌'}
-
-「 ✦ *Recursos - User* 」
-✩ *Es𝗍rᥱᥣᥣᥲs:* ${estrellas || 0}
- ${level || 0}
-◭ *E᥊⍴ᥱrіᥱᥒᥴіᥲ:* ${exp || 0}
-⚡︎ *Rᥲᥒg᥆:* ${role}
-
-> ✧ ⍴ᥲrᥲ ᥱძі𝗍ᥲr 𝗍ᥙ ⍴ᥱr𝖿іᥣ ᥙsᥲ *#perfildates*`.trim();
-
-    let prem = `╭──⪩ 𝐔𝐒𝐔𝐀𝐑𝐈𝐎 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 ⪨
-│⧼👤⧽ *ᴜsᴜᴀʀɪᴏ:* *${username}*
-│⧼💠⧽ *ᴇᴅᴀᴅ:* *${age}*
-│⧼⚧️⧽ *ɢᴇɴᴇʀᴏ:* *${genre}*
-│⧼🎂⧽ *ᴄᴜᴍᴘʟᴇᴀɴ̃ᴏs:* ${birth}
-│⧼👩‍❤️‍👩⧽ *ᴄᴀsᴀᴅᴏ:* ${isMarried ? partnerName : 'Nadie'}
-📜 *ᴅᴇsᴄʀɪᴘᴄɪᴏɴ:* ${description}
-│⧼🌀⧽ *ʀᴇɢɪsᴛʀᴀᴅᴏ:* ${registered ? '✅': '❌'}
-
-╰─────────────────⪨
-
-╭────⪩ 𝐑𝐄𝐂𝐔𝐑𝐒𝐎𝐒 ⪨
-│⧼💴⧽ *estrellas:* ${estrellas || 0}
-│⧼🌟⧽ *ɴɪᴠᴇʟ:* ${level || 0}
-│⧼✨⧽ *ᴇxᴘᴇʀɪᴇɴᴄɪᴀ:* ${exp || 0}
-│⧼⚜️⧽ *ʀᴀɴɢᴏ:* ${role}
-╰───⪨ *𝓤𝓼𝓾𝓪𝓻𝓲𝓸 𝓓𝓮𝓼𝓽𝓪𝓬𝓪𝓭𝓸* ⪩`.trim();
-
-    conn.sendFile(m.chat, pp, 'perfil.jpg', `${premium ? prem.trim() : noprem.trim()}`, m, { mentions: [who] });
-}
-
-handler.help = ['profile'];
-handler.register = true;
-handler.group = false;
-handler.tags = ['rg'];
-handler.command = ['profile', 'perfil'];
-handler.estrellas = 2;
-
-export default handler;
+} finally {
+let { name, limit, lastclaim, registered, regTime, age } = global.db.data.users[who]
+//let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
+let mentionedJid = [who]
+let username = conn.getName(who)
+let prem = global.prems.includes(who.split`@`[0])
+let sn = createHash('md5').update(who).digest('hex')
+let str = `┏━━°❀❬ *𝙋𝙀𝙍𝙁𝙄𝙇* ❭❀°━━┓
+┃ *🔥𝙉𝙤𝙢𝙗𝙧𝙚🔥 :* ${name}
+┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+┃ *✨𝙉𝙪𝙢𝙚𝙧𝙤✨ :* ${PhoneNumber('+' + who.replace('@s.whatsapp.net', '')).getNumber('international')}
+┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+┃ *🔰𝙀𝙩𝙞𝙦𝙪𝙚𝙩𝙖𝙨🔰 :* wa.me/${who.split`@`[0]}${registered ?'\n┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n┃ 𝙀𝙙𝙖𝙙 ' + age + ' *años*' : ''}
+┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+┃ *💎𝙇𝙞𝙢𝙞𝙩𝙚𝙨💎 :* *${limit}* 𝙙𝙚 𝙪𝙨𝙤𝙨
+┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+┃ *❇️𝙍𝙚𝙜𝙞𝙨𝙩𝙧𝙖𝙙𝙤 :* ${user.registered === true ? '✅' : '❌ _#verificar_'}
+┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+┃ *❇️𝙋𝙧𝙚𝙢𝙞𝙪𝙢 :* ${user.premiumTime > 0 ? '✅' : '❌ _#pase premium_'}
+┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+┃ *🔰 Mi estado:* ${typeof user.miestado !== 'string' ? '_#miestado || Estado no asignado_' : '_Me siento ' + user.miestado + '_'}
+┗━━━━━━━━━━━━━━`.trim()
+conn.sendFile(m.chat, pp, 'pp.jpg', str, m, false, { contextInfo: { mentionedJid }})}}
+handler.help = ['profile [@user]']
+handler.tags = ['xp']
+handler.command = /^perfil|profile?$/i
+export default handler
