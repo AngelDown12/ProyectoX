@@ -1,29 +1,38 @@
 import fetch from 'node-fetch';
 
 const handler = async (m, { conn, usedPrefix, command }) => {
-  conn.tebakff = conn.tebakff || {};
-  
-  if (conn.tebakff[m.sender]) return conn.reply(m.chat, '❗ Aún tienes una adivinanza pendiente. Responde primero.', m);
-
   try {
+    // Limpiar juego anterior si existe
+    if (conn.tebakff?.[m.sender]) {
+      clearTimeout(conn.tebakff[m.sender].timeout);
+      delete conn.tebakff[m.sender];
+    }
+
     const res = await fetch('https://api.vreden.my.id/api/tebakff');
     if (!res.ok) throw new Error('API no responde');
     const json = await res.json();
     const { jawaban, img } = json.result;
 
+    conn.tebakff = conn.tebakff || {};
     conn.tebakff[m.sender] = {
       jawaban: jawaban.toLowerCase(),
-      timeout: setTimeout(async () => {
-        await conn.sendMessage(m.chat, { 
-          text: `⏰ ¡Tiempo agotado!\nLa respuesta era: *${jawaban}*`, 
+      timeout: setTimeout(() => {
+        conn.sendMessage(m.chat, { 
+          text: `⏰ ¡Tiempo agotado!\nLa respuesta era: *${jawaban}*`,
           footer: '*The Teddies 🐻🔥*',
-          buttons: [{ buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }]
+          buttons: [
+            { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
+          ]
         }, { quoted: m });
         delete conn.tebakff[m.sender];
       }, 30000)
     };
 
-    await conn.sendMessage(m.chat, {
+    await conn.sendMessage(m.chat, { 
+      react: { text: '🕵️', key: m.key } 
+    });
+
+    const buttonMessage = {
       image: { url: img },
       caption: `✨ *Adivina el personaje de Free Fire* ✨
 
@@ -36,41 +45,50 @@ Escribe tu respuesta en el chat.`,
       buttons: [
         { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
       ],
-      headerType: 4
-    }, { quoted: m });
-    
+      headerType: 4,
+      viewOnce: true
+    };
+
+    await conn.sendMessage(m.chat, buttonMessage, { quoted: m });
+
   } catch (e) {
     console.error('Error en tebakff:', e);
-    await conn.sendMessage(m.chat, {
-      text: "❌ Error al cargar el personaje. Intenta más tarde."
+    await conn.sendMessage(m.chat, { 
+      text: "❌ Error al cargar el personaje. Intenta nuevamente más tarde."
     }, { quoted: m });
   }
 };
 
-handler.before = async (m, { conn, usedPrefix, command }) => {
-  conn.tebakff = conn.tebakff || {};
+// Esta parte se queda igual
+handler.before = async (m, { conn, usedPrefix }) => {
+  // Ignorar comandos que empiezan con prefijo
+  if (m.text.startsWith(usedPrefix)) return;
 
-  if (!conn.tebakff[m.sender]) return; // No hay partida activa, no hacer nada
-  
-  if (m.text.startsWith(usedPrefix)) return; // Si es comando, ignorar
-
-  const { jawaban, timeout } = conn.tebakff[m.sender];
-  if (m.text.toLowerCase().trim() === jawaban) {
-    clearTimeout(timeout);
-    delete conn.tebakff[m.sender];
-    await conn.sendMessage(m.chat, {
-      text: "✅ ¡Correcto! Eres un pro.",
-      footer: "*The Teddies 🐻🔥*",
-      buttons: [{ buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }]
-    }, { quoted: m });
-  } else {
-    await conn.sendMessage(m.chat, { text: "❌ Incorrecto, sigue intentando..." }, { quoted: m });
+  if (conn.tebakff?.[m.sender]) {
+    const { jawaban, timeout } = conn.tebakff[m.sender];
+    
+    if (m.text.toLowerCase().trim() === jawaban) {
+      clearTimeout(timeout);
+      delete conn.tebakff[m.sender];
+      await conn.sendMessage(m.chat, { 
+        text: "✅ *¡Correcto!* Eres un experto en Free Fire 🔥",
+        footer: "*The Teddies 🐻🔥*",
+        buttons: [
+          { buttonId: `${usedPrefix}tebakff`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
+        ]
+      }, { quoted: m });
+    } else {
+      await conn.sendMessage(m.chat, { 
+        text: "❌ Incorrecto, sigue intentando...",
+        quoted: m
+      });
+    }
   }
 };
 
 handler.help = ["tebakff"];
-handler.tags = ["juegos"];
-handler.command = /^tebakff|adivinaff$/i;
+handler.tags = ["juego"];
+handler.command = /^(tebakff|adivinaff)$/i;
 handler.exp = 20;
 
 export default handler;
