@@ -18,14 +18,18 @@ const handler = async (m, { conn, usedPrefix, command }) => {
       jawaban: jawaban.toLowerCase(),
       timeout: setTimeout(() => {
         conn.sendMessage(m.chat, { 
-          text: `⏰ Tiempo agotado!\nLa respuesta era: *${jawaban}*` 
-        }, { quoted: m });
+          text: `⏰ ¡Tiempo agotado!\nLa respuesta era: *${jawaban}*`,
+          buttons: [
+            { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
+          ],
+          footer: "*The Teddies 🐻🔥*"
+        });
         delete conn.tebakff[m.sender];
       }, 30000)
     };
 
     await conn.sendMessage(m.chat, { 
-      react: { text: '🕵️', key: m.key } 
+      react: { text: '🕵️', key: m.key }
     });
 
     const buttonMessage = {
@@ -45,19 +49,18 @@ Escribe tu respuesta en el chat.`,
       viewOnce: true
     };
 
-    await conn.sendMessage(m.chat, buttonMessage, { quoted: m });
+    await conn.sendMessage(m.chat, buttonMessage); // <- sin quoted: m
 
   } catch (e) {
     console.error('Error en tebakff:', e);
     await conn.sendMessage(m.chat, { 
-      text: "❌ Error al cargar el personaje. Intenta nuevamente más tarde." 
-    }, { quoted: m });
+      text: "❌ Error al cargar el personaje. Intenta nuevamente más tarde."
+    });
   }
 };
 
-handler.before = async (m, { conn, usedPrefix }) => {
-  // Ignorar comandos que empiezan con prefijo
-  if (m.text.startsWith(usedPrefix)) return;
+handler.before = async (m, { conn, usedPrefix, command }) => {
+  if (m.text.startsWith(usedPrefix)) return; // Ignorar comandos
 
   if (conn.tebakff?.[m.sender]) {
     const { jawaban, timeout } = conn.tebakff[m.sender];
@@ -67,12 +70,14 @@ handler.before = async (m, { conn, usedPrefix }) => {
       delete conn.tebakff[m.sender];
       await conn.sendMessage(m.chat, { 
         text: "✅ *¡Correcto!* Eres un experto en Free Fire 🔥",
-        quoted: m
+        buttons: [
+          { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
+        ],
+        footer: "*The Teddies 🐻🔥*"
       });
     } else {
       await conn.sendMessage(m.chat, { 
-        text: "❌ Incorrecto, sigue intentando...",
-        quoted: m
+        text: "❌ Incorrecto, sigue intentando..."
       });
     }
   }
