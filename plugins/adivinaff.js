@@ -1,50 +1,41 @@
 import fetch from 'node-fetch';
 
-const games = new Map(); // { sender: { answer, timeout } }
+const games = new Map();
 
 const handler = async (m, { conn, usedPrefix, command }) => {
     try {
-        // SI ES BOTÓN, CONVERTIRLO EN TEXTO
-        if (m.message?.buttonsResponseMessage) {
-            m.text = m.message.buttonsResponseMessage.selectedButtonId || '';
-        }
-        if (m.message?.templateButtonReplyMessage) {
-            m.text = m.message.templateButtonReplyMessage.selectedId || '';
-        }
-
-        // 1. Limpiar juego anterior
+        // LIMPIAR SI HAY JUEGO
         if (games.has(m.sender)) {
             clearTimeout(games.get(m.sender).timeout);
             games.delete(m.sender);
         }
 
-        // 2. Obtener personaje
+        // OBTENER PERSONAJE
         const res = await fetch('https://api.vreden.my.id/api/tebakff');
         const { result } = await res.json();
         const { jawaban, img } = result;
 
-        // 3. Configurar juego
+        // CONFIGURAR NUEVO JUEGO
         games.set(m.sender, {
             answer: jawaban.toLowerCase(),
             timeout: setTimeout(() => {
                 conn.sendMessage(m.chat, { 
-                    text: `⏰ ¡TIEMPO AGOTADO!\nRespuesta: *${jawaban}*` 
+                    text: `⏰ ¡TIEMPO AGOTADO!\nRespuesta: *${jawaban}*`
                 }, { quoted: m });
                 games.delete(m.sender);
             }, 30000)
         });
 
-        // 4. Enviar mensaje con botón
+        // ENVIAR IMAGEN + BOTÓN
         await conn.sendMessage(m.chat, {
             image: { url: img },
             caption: `🎮 *ADIVINA EL PERSONAJE FREE FIRE* 🎮\n\nTienes *30 segundos* para adivinar.`,
             footer: "Escribe el nombre del personaje",
-            templateButtons: [
+            buttons: [
                 { 
-                    quickReplyButton: { 
-                        displayText: "🔄 INTENTAR OTRO", 
-                        id: `${usedPrefix}${command}` 
-                    } 
+                    buttonId: 'tryagain', 
+                    buttonText: { displayText: "🔄 INTENTAR OTRO" }, 
+                    type: 1 
                 }
             ],
             viewOnce: true
@@ -56,17 +47,14 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     }
 };
 
-// MANEJADOR DE RESPUESTAS
-handler.before = async (m, { conn, usedPrefix }) => {
-    // SI ES BOTÓN, CONVERTIRLO EN TEXTO
-    if (m.message?.buttonsResponseMessage) {
-        m.text = m.message.buttonsResponseMessage.selectedButtonId || '';
+// RESPUESTA AL BOTÓN
+handler.handleButton = async (m, { conn, buttonId, usedPrefix, command }) => {
+    if (buttonId === 'tryagain') {
+        await conn.sendMessage(m.chat, { text: `${usedPrefix}${command}` });
     }
-    if (m.message?.templateButtonReplyMessage) {
-        m.text = m.message.templateButtonReplyMessage.selectedId || '';
-    }
+};
 
-    // Ignorar si es comando o no hay juego
+handler.before = async (m, { conn, usedPrefix }) => {
     if (m.text.startsWith(usedPrefix) || !games.has(m.sender)) return;
 
     const game = games.get(m.sender);
