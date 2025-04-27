@@ -39,7 +39,11 @@ Estás viendo a un personaje super conocido...
 Escribe tu respuesta en el chat.`,
       footer: "*The Teddies 🐻🔥*",
       buttons: [
-        { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
+        { 
+          buttonId: `/${command}`, // Cambiado para usar solo el comando
+          buttonText: { displayText: "🔁 Intentar otro" }, 
+          type: 1 
+        }
       ],
       headerType: 4,
       viewOnce: true
@@ -55,19 +59,19 @@ Escribe tu respuesta en el chat.`,
   }
 };
 
-// Nuevo manejador específico para botones
-handler.button = async (m, { conn, usedPrefix, command }) => {
-  // Solo procesar si es el botón "Intentar otro"
+// Manejador para interacciones de botones
+export async function button(m, { conn }) {
   if (m.text === '🔁 Intentar otro') {
-    await handler(m, { conn, usedPrefix, command });
+    await handler(m, { 
+      conn, 
+      usedPrefix: '/', 
+      command: m.body.replace('🔁 Intentar otro', '').trim() 
+    });
   }
-};
+}
 
 handler.before = async (m, { conn, usedPrefix }) => {
-  // Ignorar completamente los mensajes de botones
-  if (m.text === '🔁 Intentar otro') return;
-  
-  // Ignorar comandos que empiezan con prefijo
+  // Ignorar mensajes que son comandos
   if (m.text.startsWith(usedPrefix)) return;
 
   if (conn.tebakff?.[m.sender]) {
@@ -80,7 +84,7 @@ handler.before = async (m, { conn, usedPrefix }) => {
         text: "✅ *¡Correcto!* Eres un experto en Free Fire 🔥",
         quoted: m
       });
-    } else if (m.text) {
+    } else if (m.text && m.text !== '🔁 Intentar otro') {
       await conn.sendMessage(m.chat, { 
         text: "❌ Incorrecto, sigue intentando...",
         quoted: m
