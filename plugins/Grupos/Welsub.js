@@ -6,12 +6,10 @@ let handler = m => m
 handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin }) {
   if (!m.messageStubType || !m.isGroup) return
 
-  // Foto predeterminada en ruta local
-  const FOTO_PREDETERMINADA = './media/sinfoto3.jpg' 
+  const FOTO_PREDETERMINADA = './src/comprar.jpg' 
 
   let pp
   try {
-    // Intentar obtener la foto de perfil del usuario
     pp = await conn.profilePictureUrl(m.messageStubParameters[0], 'image').catch(_ => null)
   } catch {
     pp = null
@@ -27,17 +25,32 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
   }
 
   if (!img) {
-    // Si no hay imagen externa, usa la imagen local
     try {
       img = fs.readFileSync(FOTO_PREDETERMINADA)
     } catch {
-      img = null // Si ni siquiera existe la imagen local
+      img = null
     }
   }
 
   let usuario = `@${m.sender.split`@`[0]}`
   let chat = global.db.data.chats[m.chat]
   let users = participants.map(u => conn.decodeJid(u.id))
+
+  // **DEFINIMOS fkontak aquí (copiado del primer código)**
+  const fkontak = {
+    "key": {
+      "participants":"0@s.whatsapp.net",
+      "remoteJid": "status@broadcast",
+      "fromMe": false,
+      "id": "Halo"
+    },
+    "message": {
+      "contactMessage": {
+        "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
+      }
+    },
+    "participant": "0@s.whatsapp.net"
+  }
 
   if (chat.welcome && m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
     let subject = groupMetadata.subject
