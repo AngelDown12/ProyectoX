@@ -11,7 +11,7 @@ let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin }) => {
         return conn.reply(m.chat, '> 𝘙𝘦𝘴𝘱𝘰𝘯𝘥𝘦 𝘢𝘭 𝘮𝘦𝘯𝘴𝘢𝘫𝘦 𝘥𝘦𝘭 𝘶𝘴𝘶𝘢𝘳𝘪𝘰 𝘲𝘶𝘦 𝘥𝘦𝘴𝘦𝘢𝘴 𝘮𝘶𝘵𝘦𝘢𝘳.\n\n 𝘌𝘫𝘦𝘮𝘱𝘭𝘰: .𝘮𝘶𝘵𝘦 (𝘙𝘦𝘴𝘱𝘰𝘯𝘥𝘪𝘦𝘯𝘥𝘰 𝘢 𝘴𝘶 𝘮𝘦𝘯𝘴𝘢𝘫𝘦).🥖', m);
     }
 
-    if (command === "mute") {
+    if (command === "mute2") {
         mutedUsers.add(user);
         conn.reply(m.chat, `𝘜𝘴𝘶𝘢𝘳𝘪𝘰 𝘮𝘶𝘵𝘦𝘢𝘥𝘰: @${user.split('@')[0]}  🥖`, m, { mentions: [user] });
     } else if (command === "unmute") {
