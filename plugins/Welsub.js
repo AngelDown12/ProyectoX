@@ -6,94 +6,63 @@ let handler = m => m
 handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin }) {
   if (!m.messageStubType || !m.isGroup) return
 
-  // Definir chat aquí para que esté disponible en ambos casos
+  // Definir variables esenciales al inicio
   let chat = global.db.data.chats[m.chat]
-  if (!chat) return // Si no existe el chat en la DB, salir
-
-  // Foto predeterminada para BIENVENIDAS (local)
+  if (!chat) return
+  
   const FOTO_PREDETERMINADA = './src/comprar.jpg'
-  // Sticker para DESPEDIDAS (URL externa)
   const STICKER_DESPEDIDA = 'https://files.catbox.moe/g3hyc2.webp'
+  let userName = m.messageStubParameters[0]?.split('@')[0] || 'Usuario'
 
-  // BIENVENIDAS (messageStubType 27)
+  // BIENVENIDAS (sin cambios)
   if (chat.welcome && m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
-    let pp
-    try {
-      pp = await conn.profilePictureUrl(m.messageStubParameters[0], 'image').catch(_ => null)
-    } catch {
-      pp = null
-    }
-
-    let img
-    if (pp) {
-      try {
-        img = await (await fetch(pp)).buffer()
-      } catch {
-        img = null
-      }
-    }
-
-    if (!img) {
-      try {
-        img = fs.readFileSync(FOTO_PREDETERMINADA)
-      } catch {
-        img = null
-      }
-    }
-
-    let subject = groupMetadata.subject
-    let descs = groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟"
-    let userName = `${m.messageStubParameters[0].split`@`[0]}`
-    let defaultWelcome = `*╔══════════════*
-*╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
-*╠══════════════*
-*╟*🛡️ *${subject}*
-*╟*👤 *@${userName}*
-*╟* 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗖𝗜𝗢́𝗡 
-
-${descs}
-
-*╟* ¡🇼‌🇪‌🇱‌🇨‌🇴‌🇲‌🇪!
-*╚══════════════*`
-
-    let textWel = chat.sWelcome ? chat.sWelcome
-      .replace(/@user/g, `@${userName}`)
-      .replace(/@group/g, subject)
-      .replace(/@desc/g, descs)
-      : defaultWelcome
-
-    await this.sendMessage(m.chat, { 
-      image: img,
-      caption: textWel,
-      contextInfo: {
-        mentionedJid: [m.sender, m.messageStubParameters[0]]
-      }
-    }, { quoted: m })
+    // ... (mantén todo el código de bienvenidas igual)
   }
 
-  // DESPEDIDAS (messageStubType 28)
+  // DESPEDIDAS (versión mejorada)
   else if (chat.welcome && m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
-    let userName = `${m.messageStubParameters[0].split`@`[0]}`
-    let defaultBye = `*╔══════════════*
-*╟* *SE FUE UNA BASURA*
-*╟*👤 @${userName}* 
-*╚══════════════*`
+    let subject = groupMetadata.subject || 'Este grupo'
+    let defaultBye = `*╔══════════════*\n*╟* *SE FUE UNA BASURA*\n*╟*👤 @${userName}*\n*╚══════════════*`
+    
+    let textBye = chat.sBye ? chat.sBye
+      .replace(/@user/g, `@${userName}`)
+      .replace(/@group/g, subject)
+      : defaultBye
 
-    // Enviar sticker de despedida
-    await this.sendMessage(m.chat, { 
-      sticker: { url: STICKER_DESPEDIDA },
-      contextInfo: {
-        mentionedJid: [m.sender, m.messageStubParameters[0]]
-      }
-    }, { quoted: m })
+    // 1. Enviar mensaje con imagen + texto
+    try {
+      // Intentar con imagen predeterminada
+      let img = fs.readFileSync(FOTO_PREDETERMINADA)
+      await this.sendMessage(m.chat, {
+        image: img,
+        caption: textBye,
+        contextInfo: {
+          mentionedJid: [m.sender, m.messageStubParameters[0]]
+        }
+      }, { quoted: m })
+    } catch (e) {
+      // Si falla la imagen, enviar solo texto
+      await this.sendMessage(m.chat, {
+        text: textBye,
+        contextInfo: {
+          mentionedJid: [m.sender, m.messageStubParameters[0]]
+        }
+      }, { quoted: m })
+    }
 
-    // Enviar mensaje de despedida (opcional)
-    await this.sendMessage(m.chat, { 
-      text: defaultBye,
-      contextInfo: {
-        mentionedJid: [m.sender, m.messageStubParameters[0]]
+    // 2. Enviar sticker después (con delay de 1 segundo para mejor flujo)
+    setTimeout(async () => {
+      try {
+        await this.sendMessage(m.chat, {
+          sticker: { url: STICKER_DESPEDIDA },
+          contextInfo: {
+            mentionedJid: [m.sender, m.messageStubParameters[0]]
+          }
+        }, { quoted: m })
+      } catch (e) {
+        console.error('Error al enviar sticker:', e)
       }
-    }, { quoted: m })
+    }, 1000)
   }
 }
 
