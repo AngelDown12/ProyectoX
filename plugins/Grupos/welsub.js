@@ -41,7 +41,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
 
   if (chat.welcome && m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
     let subject = groupMetadata.subject
-    let descs = groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟"
+    let descs = groupMetadata.desc || "Sin descripción"
     let userName = `${m.messageStubParameters[0].split`@`[0]}`
     let defaultWelcome = `*╔══════════════*
 *╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
