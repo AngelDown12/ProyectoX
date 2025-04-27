@@ -2,35 +2,22 @@ import fetch from 'node-fetch';
 import pkg from '@whiskeysockets/baileys';
 const { generateWAMessageFromContent, proto } = pkg;
 
-const games = new Map();
+const games = new Map(); // { sender: { answer, timeout } }
 
-const handler = async (m, { conn, usedPrefix }) => {
-    const msgText = m.text?.toLowerCase();
-    const groupId = m.chat;
-
-    const response =
-        m.message?.buttonsResponseMessage?.selectedButtonId ||
-        m.message?.interactiveResponseMessage?.nativeFlowResponseButtonResponse?.id ||
-        m.message?.interactiveResponseMessage?.buttonReplyMessage?.selectedId ||
-        m.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
-        msgText || '';
-
-    // Cuando escribe manualmente el comando .adivinaff
-    if (msgText?.startsWith(`${usedPrefix}adivinaff`)) {
-        console.log("Comando .adivinaff activado");  // Para depuración
-
-        // Limpiar juego anterior si existe
+const handler = async (m, { conn, usedPrefix, command }) => {
+    try {
+        // 1. Limpiar juego anterior SI existe
         if (games.has(m.sender)) {
             clearTimeout(games.get(m.sender).timeout);
             games.delete(m.sender);
         }
 
-        // Obtener nuevo personaje
+        // 2. Obtener nuevo personaje
         const res = await fetch('https://api.vreden.my.id/api/tebakff');
         const { result } = await res.json();
         const { jawaban, img } = result;
 
-        // Guardar juego
+        // 3. Configurar nuevo juego
         games.set(m.sender, {
             answer: jawaban.toLowerCase(),
             timeout: setTimeout(() => {
@@ -38,28 +25,25 @@ const handler = async (m, { conn, usedPrefix }) => {
                     text: `⏰ ¡TIEMPO AGOTADO!\nRespuesta: *${jawaban}*`
                 }, { quoted: m });
                 games.delete(m.sender);
-            }, 30000)
+            }, 30000) // 30 segundos
         });
 
-        // Botones para intentar de nuevo
+        // 4. Enviar mensaje CON BOTÓN
         const buttons = [
             {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "🔄 Intentar otro",
-                    id: "repetir_adivinaff" // ID personalizado
-                })
+                buttonId: `${usedPrefix}${command}`, // Mismo comando al presionar el botón
+                buttonText: { displayText: "🔄 Intentar otro" },
+                type: 1
             }
         ];
 
-        // Crear el mensaje
         const mensaje = generateWAMessageFromContent(m.chat, {
             viewOnceMessage: {
                 message: {
                     messageContextInfo: {},
                     interactiveMessage: proto.Message.InteractiveMessage.create({
                         body: {
-                            text: `🎮 *ADIVINA EL PERSONAJE DE FREE FIRE* 🎮\n\nTienes *30 segundos* para adivinar.`
+                            text: `🎮 *ADIVINA EL PERSONAJE FREE FIRE* 🎮\n\nTienes *30 segundos* para adivinar.`
                         },
                         footer: { text: "Escribe el nombre del personaje" },
                         nativeFlowMessage: { buttons }
@@ -68,17 +52,27 @@ const handler = async (m, { conn, usedPrefix }) => {
             }
         }, {});
 
-        // Enviar mensaje
         await conn.relayMessage(m.chat, mensaje.message, {});
-        return;
+
+    } catch (e) {
+        console.error("Error:", e);
+        m.reply("❌ Error cargando personaje. Intenta con: " + usedPrefix + command);
     }
+};
 
-    // Si se presiona el botón "Intentar otro"
-    if (response === 'repetir_adivinaff') {
-        console.log("Botón Intentar Otro presionado");  // Para depuración
+// MANEJADOR DE RESPUESTAS
+handler.before = async (m, { conn, usedPrefix }) => {
+    const msgText = m.text?.toLowerCase();
 
-        // Manda texto como si el usuario escribiera .adivinaff
-        await conn.sendMessage(m.chat, { text: `${usedPrefix}adivinaff` });
+    // Si se presiona un botón con el mismo comando, volver a ejecutar .adivinaff
+    const response =
+        m.message?.buttonsResponseMessage?.selectedButtonId ||
+        m.message?.interactiveResponseMessage?.nativeFlowResponseButtonResponse?.id ||
+        m.message?.interactiveResponseMessage?.buttonReplyMessage?.selectedId ||
+        m.message?.listResponseMessage?.singleSelectReply?.selectedRowId || '';
+
+    if (response === `${usedPrefix}adivinaff`) {
+        await handler(m, { conn, usedPrefix, command: 'adivinaff' });  // Llamamos al mismo comando al presionar el botón
         return;
     }
 
@@ -93,8 +87,9 @@ const handler = async (m, { conn, usedPrefix }) => {
     }
 };
 
-handler.customPrefix = /^(\.adivinaff|repetir_adivinaff)$/i;
-handler.command = new RegExp;
-handler.group = true;
+handler.help = ['adivinaff'];
+handler.tags = ['juegos'];
+handler.command = /^(adivinaff|tebakff)$/i;
+handler.exp = 20;
 
 export default handler;
