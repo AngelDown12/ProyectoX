@@ -1,44 +1,51 @@
 import * as e from "fs";
 
 let handler = async (a, { conn: n, participants: r, usedPrefix, command }) => {
-  // Foto de perfil del bot o imagen por defecto
+  // Foto de perfil del bot (si falla, una imagen épica de Free Fire)
   let s = await n.profilePictureUrl(a.sender, "image").catch((e) => "./Menu2.jpg");
 
-  // Aseguramos que la ruta local de la imagen sea válida
+  // Cargamos la imagen (si falla, una de respaldo)
   let imageBuffer;
   try {
-    imageBuffer = e.readFileSync(s); // Intentamos leer la imagen
+    imageBuffer = e.readFileSync(s);
   } catch (error) {
     console.error("Error al leer la imagen:", error);
-    // Si hay error al leer, asignamos una URL externa
-    imageBuffer = await (await fetch("https://example.com/your-image.jpg")).buffer();
+    imageBuffer = await (await fetch("https://i.imgur.com/3pZ9X7L.jpg")).buffer(); // Imagen de respaldo épica
   }
 
-  // Seleccionar aleatoriamente un participante para ejecutar el comando
+  // Seleccionar aleatoriamente a la víctima
   var p = [];
   r.map(async (e) => {
     p.push(e.id.replace("c.us", "s.whatsapp.net"));
   });
 
-  let o = 3e4; // 30 segundos de espera (30000 ms)
-  let m = p[Math.floor(Math.random() * p.length)];
+  let tiempoEspera = 3e4; // 30 segundos para suplicar
+  let victima = p[Math.floor(Math.random() * p.length)];
 
-  // Evitar que el bot sea seleccionado
-  if (m.startsWith(n.user.id.split(":")[0])) return a.reply("Hoy no muere nadie :D");
+  // Si el bot es seleccionado (nadie lo toca)
+  if (victima.startsWith(n.user.id.split(":")[0])) return a.reply("⚠️ *Aquí manda el admin, no el bot, GG* 😏");
 
-  // Enviar mensaje con la razón de la ejecución y el aviso de inactividad
+  // MENSAJE DE ELIMINACIÓN (Modo Tóxico ON)
   await n.sendMessage(
     a.chat,
     {
-      text: `*[ Basura Inactiva ]* 📓
+      text: `*¡ATENCIÓN!SE VA UN NOOB*☠️
 
-┏━⊱ *Seleccionado:* @${m.split("@")[0]}
-┗⊱ *Razón de su ejecución:* *Inactividad*
+┏━━⊱ *VÍCTIMA:* @${victima.split("@")[0]}
+┣━━⊱ *Rango:* Hierro III 🗑️
+┣━━⊱ *K/D:* 0.01 (Más bajo que tu autoestima) 📉
+┣━━⊱ *Armas usadas:* NINGUNA (Corre y esconde) 🏃‍♂️💨
+┗━━⊱ *Razón:* Jugador fantasma (¡Inactivo como tu papá!) 👻
 
-@${m.split("@")[0]} tienes *30 segundos* para despedirte de este grupo.
+@${victima.split("@")[0]} Tienes *30 segundos* para:
+✅ *Suplicar por perdón*
+✅ *Subir una foto de tu K/D real*
+✅ *Aceptar que eres un NOOB*
 
-¡Buena suerte! 😎`,
-      mentions: [m],
+*O...* te vas *BANEADO* como campero de zona segura. 🚫🔥
+
+*¡Acepta tu destino, bot!* 🤖⚡`,
+      mentions: [victima],
     },
     {
       ephemeralExpiration: 86400,
@@ -49,7 +56,7 @@ let handler = async (a, { conn: n, participants: r, usedPrefix, command }) => {
             groupJid: "51995386439-1616169743@g.us",
             inviteCode: "m",
             groupName: "P",
-            caption: `⚰️@${m.split("@")[0]} 💀`,
+            caption: `⚡ @${victima.split("@")[0]} *¡PREPÁRATE PARA EL BAN!* 💣`,
             jpegThumbnail: imageBuffer,
           },
         },
@@ -57,19 +64,19 @@ let handler = async (a, { conn: n, participants: r, usedPrefix, command }) => {
     }
   );
 
-  // Esperar 30 segundos antes de eliminar al usuario
+  // Esperar 30 segundos y BANEAR
   setTimeout(() => {
     setTimeout(() => {
-      // Eliminar al usuario del grupo
-      n.groupParticipantsUpdate(a.chat, [m], "remove").catch((e) => {
-        a.reply("ERROR");
+      // Eliminar al usuario
+      n.groupParticipantsUpdate(a.chat, [victima], "remove").catch((e) => {
+        a.reply("*¡ERROR!* Seguro usaste hacks para evitar el ban. 🚫");
       });
-    }, 1e3); // Elimina al usuario después de 1 segundo de retraso
+    }, 1e3); // 1 segundo de delay épico
 
-    // Enviar mensaje de despedida
+    // Mensaje de despedida (con burla incluida)
     n.sendMessage(
       a.chat,
-      { text: "Adiós [F]", mentions: [m] },
+      { text: `*@${victima.split("@")[0]}* ¡Fuiste *ELIMINADO* como un *NOOB* en zona abierta! [F] 🪦\n*K/D actualizado: -∞* 📉`, mentions: [victima] },
       {
         ephemeralExpiration: 86400,
         quoted: {
@@ -79,21 +86,22 @@ let handler = async (a, { conn: n, participants: r, usedPrefix, command }) => {
               groupJid: "51995386439-1616169743@g.us",
               inviteCode: "m",
               groupName: "P",
-              caption: `C come una manzana* :v🍎`,
-              jpegThumbnail: imageBuffer, // Enviar imagen con el mensaje
+              caption: `*Se fue como las skins gratis...* 🎁💨\n*¡Nadie lo extrañará!* 😂`,
+              jpegThumbnail: imageBuffer,
             },
           },
         },
       }
     );
-  }, o); // Se ejecuta luego de 30 segundos
+  }, tiempoEspera); // Fin del tiempo
 };
 
-(handler.help = ["basurainactiva"]),
-  (handler.tags = ["games"]),
-  (handler.command = /^(basurainactiva)$/i),
-  (handler.group = !0),
-  (handler.admin = !0),
-  (handler.botAdmin = !0);
+// Configuración del comando
+handler.help = ["eliminartoxico"];
+handler.tags = ["games"];
+handler.command = /^(eliminartoxico|fftoxic|banvsfriki)$/i; // Nuevos comandos
+handler.group = true;
+handler.admin = true;
+handler.botAdmin = true;
 
 export default handler;
