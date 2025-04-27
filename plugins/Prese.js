@@ -6,10 +6,10 @@ handler.before = async function (m, { conn, groupMetadata }) {
 
   let subject = groupMetadata.subject || "el grupo";
   let botName = conn.user.name; // Obtiene el nombre de la cuenta del bot
-  let imageUrl = 'https://qu.ax/nxskN.jpg'; // Aquí pones el enlace de la imagen
+  let imageUrl = 'https://qu.ax/nxskN.jpg'; // Enlace de la imagen
 
   let welcomeBot = `🥇 ¡𝗛𝗢𝗟𝗔 𝗚𝗥𝗨𝗣𝗢!🥇
-  
+
   ¡Soy ${botName}, su nuevo asistente digital!
   
   ━━━━━━━━━━━━━━━━━━━
@@ -33,20 +33,19 @@ handler.before = async function (m, { conn, groupMetadata }) {
   // Botones adicionales
   const buttons = [
     {
-      buttonId: `.menu`,
-      buttonText: { displayText: 'Hola' },
-      type: 1,
+      buttonId: `.menu`, // Comando que se ejecutará al presionar el botón
+      buttonText: { displayText: 'Hola' }, // Texto visible en el botón
+      type: 1, // Tipo de botón
     }
   ];
 
-  // Enviar la imagen junto con el texto y los botones
+  // Enviar el mensaje con la imagen y los botones
   await conn.sendMessage(m.chat, {
-    image: { url: imageUrl },
-    caption: welcomeBot,
-    buttons,
-    footer: "EliteBotGlobal | © 2023",
-    viewOnce: true,
-  }, { quoted: m });
+    image: { url: imageUrl }, // Enviar la imagen desde el enlace
+    caption: welcomeBot,      // Mensaje de bienvenida
+    buttons,                  // Botones configurados
+    footer: "EliteBotGlobal | © 2023", // Pie de página del mensaje
+  }, { quoted: m }); // Mensaje citado
 };
 
 export default handler;
