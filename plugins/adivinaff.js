@@ -1,15 +1,14 @@
 import fetch from 'node-fetch';
 
-const handler = async (m, { conn, usedPrefix, command, fromButton }) => {
+const handler = async (m, { conn, usedPrefix, command }) => {
+  conn.tebakff = conn.tebakff || {};
+  
+  if (conn.tebakff[m.sender]) {
+    clearTimeout(conn.tebakff[m.sender].timeout);
+    delete conn.tebakff[m.sender];
+  }
+
   try {
-    conn.tebakff = conn.tebakff || {};
-
-    // Limpiar juego anterior si existe
-    if (conn.tebakff[m.sender]) {
-      clearTimeout(conn.tebakff[m.sender].timeout);
-      delete conn.tebakff[m.sender];
-    }
-
     const res = await fetch('https://api.vreden.my.id/api/tebakff');
     if (!res.ok) throw new Error('API no responde');
     const json = await res.json();
@@ -18,7 +17,7 @@ const handler = async (m, { conn, usedPrefix, command, fromButton }) => {
     conn.tebakff[m.sender] = {
       jawaban: jawaban.toLowerCase(),
       timeout: setTimeout(async () => {
-        await conn.sendMessage(m.chat, { 
+        await conn.sendMessage(m.chat, {
           text: `⏰ ¡Tiempo agotado!\nLa respuesta era: *${jawaban}*`,
           footer: '*The Teddies 🐻🔥*',
           buttons: [
@@ -28,12 +27,6 @@ const handler = async (m, { conn, usedPrefix, command, fromButton }) => {
         delete conn.tebakff[m.sender];
       }, 30000)
     };
-
-    if (!fromButton) { // Solo manda la reacción si es por mensaje de texto
-      await conn.sendMessage(m.chat, { 
-        react: { text: '🕵️', key: m.key }
-      });
-    }
 
     const buttonMessage = {
       image: { url: img },
@@ -56,8 +49,8 @@ Escribe tu respuesta en el chat.`,
 
   } catch (e) {
     console.error('Error en tebakff:', e);
-    await conn.sendMessage(m.chat, { 
-      text: "❌ Error al cargar el personaje. Intenta nuevamente más tarde."
+    await conn.sendMessage(m.chat, {
+      text: "❌ Error al cargar el personaje. Intenta nuevamente más tarde.",
     }, { quoted: m });
   }
 };
@@ -65,7 +58,13 @@ Escribe tu respuesta en el chat.`,
 handler.before = async (m, { conn, usedPrefix, command }) => {
   conn.tebakff = conn.tebakff || {};
 
-  if (m.text.startsWith(usedPrefix)) return; // Ignorar comandos
+  // Si el mensaje viene de botón "Intentar otro", ejecutar comando directamente
+  if (m.buttonId === `${usedPrefix}${command}`) {
+    return handler(m, { conn, usedPrefix, command });
+  }
+
+  // Ignorar mensajes que empiezan por prefijo
+  if (m.text.startsWith(usedPrefix)) return;
 
   if (conn.tebakff[m.sender]) {
     const { jawaban, timeout } = conn.tebakff[m.sender];
@@ -73,15 +72,15 @@ handler.before = async (m, { conn, usedPrefix, command }) => {
     if (m.text.toLowerCase().trim() === jawaban) {
       clearTimeout(timeout);
       delete conn.tebakff[m.sender];
-      await conn.sendMessage(m.chat, { 
-        text: "✅ *¡Correcto!* Eres un experto en Free Fire 🔥",
+      await conn.sendMessage(m.chat, {
+        text: "✅ *¡Correcto!* ¡Muy bien crack!",
         footer: "*The Teddies 🐻🔥*",
         buttons: [
           { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
         ]
       }, { quoted: m });
     } else {
-      await conn.sendMessage(m.chat, { 
+      await conn.sendMessage(m.chat, {
         text: "❌ Incorrecto, sigue intentando...",
         quoted: m
       });
