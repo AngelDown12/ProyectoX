@@ -8,6 +8,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
 
   // Foto predeterminada en ruta local
   const FOTO_PREDETERMINADA = './src/comprar.jpg'
+  const STICKER_URL = 'https://files.catbox.moe/g3hyc2.webp' // URL del sticker
 
   let pp
   try {
@@ -39,38 +40,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
   let chat = global.db.data.chats[m.chat]
   let users = participants.map(u => conn.decodeJid(u.id))
 
-  if (chat.welcome && m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
-    let subject = groupMetadata.subject
-    let descs = groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟"
-    let userName = `${m.messageStubParameters[0].split`@`[0]}`
-    let defaultWelcome = `*╔══════════════*
-*╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
-*╠══════════════*
-*╟*🛡️ *${subject}*
-*╟*👤 *@${userName}*
-*╟* 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗖𝗜𝗢́𝗡 
-
-${descs}
-
-*╟* ¡🇼‌🇪‌🇱‌🇨‌🇴‌🇲‌🇪!
-*╚══════════════*`
-
-    let textWel = chat.sWelcome ? chat.sWelcome
-      .replace(/@user/g, `@${userName}`)
-      .replace(/@group/g, subject)
-      .replace(/@desc/g, descs)
-      : defaultWelcome
-
-    await this.sendMessage(m.chat, { 
-      image: img,
-      caption: textWel,
-      contextInfo: {
-        mentionedJid: [m.sender, m.messageStubParameters[0]]
-      }
-    }, { quoted: m })
-  }
-
-  else if (chat.welcome && m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
+  if (chat.welcome && m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
     let subject = groupMetadata.subject
     let userName = `${m.messageStubParameters[0].split`@`[0]}`
     let defaultBye = `*╔══════════════*
@@ -83,13 +53,19 @@ ${descs}
       .replace(/@group/g, subject)
       : defaultBye
 
+    // Primero enviamos el mensaje de despedida
     await this.sendMessage(m.chat, { 
-      image: img,
-      caption: textBye,
+      text: textBye,
       contextInfo: {
         mentionedJid: [m.sender, m.messageStubParameters[0]]
       }
     }, { quoted: m })
+
+    // Luego enviamos el sticker desde el enlace
+    let sticker = await (await fetch(STICKER_URL)).buffer()  // Obtenemos el sticker desde el enlace
+    await this.sendMessage(m.chat, { 
+      sticker: sticker  // Enviamos el sticker
+    })
   }
 }
 
