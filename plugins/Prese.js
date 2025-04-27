@@ -44,7 +44,9 @@ handler.before = async function (m, { conn, groupMetadata, usedPrefix }) {
     image: { url: imageUrl },
     buttons: buttons, // Aquí añades los botones
     headerType: 4 // Tipo de mensaje con imagen y botones
-  }, { quoted: m })
+  }).catch(err => {
+    console.error("Error al enviar el mensaje:", err);
+  });
 }
 
 export default handler
