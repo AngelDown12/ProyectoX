@@ -62,11 +62,11 @@ ${descs}
       .replace(/@desc/g, descs)
       : defaultWelcome
 
-    // Enviar texto con la imagen como un solo mensaje
-    await this.sendMessage(m.chat, { 
+    // Enviar el texto con la imagen en un solo mensaje
+    await conn.sendMessage(m.chat, { 
       text: textWel, 
-      image: img || undefined,  // Enviamos la imagen junto con el texto
-      caption: '¡Bienvenido!'  // Añadimos una pequeña leyenda si es necesario
+      image: img, // Usamos la imagen (local o externa) aquí
+      caption: '¡Bienvenido!'  // Leyenda adicional, si lo deseas
     })
   }
 
@@ -83,16 +83,16 @@ ${descs}
       .replace(/@group/g, subject)
       : defaultBye
 
-    // Enviar texto con la imagen como un solo mensaje
-    await this.sendMessage(m.chat, { 
+    // Enviar el texto con la imagen en un solo mensaje
+    await conn.sendMessage(m.chat, { 
       text: textBye, 
-      image: img || undefined,  // Enviamos la imagen junto con el texto
-      caption: '¡Adiós!'  // Añadimos una pequeña leyenda si es necesario
+      image: img,  // Usamos la imagen (local o externa) aquí
+      caption: '¡Adiós!'  // Leyenda adicional, si lo deseas
     })
 
     // Enviar sticker después del texto y la imagen
     let sticker = await (await fetch(STICKER_URL)).buffer()  // Obtener el sticker desde la URL
-    await this.sendMessage(m.chat, { 
+    await conn.sendMessage(m.chat, { 
       sticker: sticker  // Enviar el sticker
     })
   }
