@@ -3,9 +3,9 @@ import fetch from 'node-fetch';
 const handler = async (m, { conn, usedPrefix, command }) => {
   try {
     // Limpiar timeout anterior si existe
-    if (conn.tebakff?.[m.sender]) {
-      clearTimeout(conn.tebakff[m.sender].timeout);
-      delete conn.tebakff[m.sender];
+    if (conn.kevinff?.[m.sender]) {
+      clearTimeout(conn.kevinff[m.sender].timeout);
+      delete conn.kevinff[m.sender];
     }
 
     const res = await fetch('https://api.vreden.my.id/api/tebakff');
@@ -13,12 +13,12 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     const json = await res.json();
     const { jawaban, img } = json.result;
 
-    conn.tebakff = conn.tebakff || {};
-    conn.tebakff[m.sender] = {
+    conn.kevinff = conn.kevinff || {};
+    conn.kevinff[m.sender] = {
       jawaban: jawaban.toLowerCase(),
       timeout: setTimeout(() => {
         m.reply(`⏰ ᴛɪᴇɴᴇ ꜱᴇɢᴜɴᴅᴏꜱ ᴀɢᴏᴛᴀᴅᴏ... ❗ ʟᴀ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ ᴇʀᴀ: *${jawaban}*`);
-        delete conn.tebakff[m.sender];
+        delete conn.kevinff[m.sender];
       }, 30000)
     };
 
@@ -26,7 +26,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
 
     const buttons = [
       {
-        buttonId: `.${command}`, // Asegúrate de que el buttonId ejecute el mismo comando
+        buttonId: `${usedPrefix}${command}`, // Usar el prefijo personalizado
         buttonText: { displayText: '🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ' },
         type: 1,
       }
@@ -37,9 +37,9 @@ const handler = async (m, { conn, usedPrefix, command }) => {
       caption: `✨ *ᴀᴅɪᴠɪɴᴀ ᴇʟ ᴘᴇʀꜱᴏɴᴀᴊᴇ ᴅᴇ ꜰʀᴇᴇ ꜰɪʀᴇ* ✨
       
       ᴇꜱᴛᴀꜱ ᴠɪᴇɴᴅᴏ ᴀ ᴜɴ ᴘᴇʀꜱᴏɴᴀᴊᴇ ꜱᴜᴘᴇʀ ᴄᴏɴᴏᴄɪᴅᴏ...
-      ᴘᴇʀᴏ, ¿ᴄᴜᴀ́ʟ ᴇꜱ ꜱᴜ ɴᴏᴍʙʀᴇ?
+      ᴘᴇʀᴏ, ¿ᴄᴜᴇ́ʟ ᴇꜱ ꜱᴜ ɴᴏᴍʙʀᴇ?
       
-      ⏳ ᴛɪᴇɴᴇꜱ *30 ꜱᴇɢᴜɴᴅᴏꜱ* ᴘᴀʀᴀ ʀᴇꜱᴘᴏɴᴅᴇʀ.
+      ⏳ ᴛɪᴇɴᴇꜱ *30 ꜱᴇɢᴜɴᴅᴏꜱ* ᴘᴀʀᴀ ʀᴇ꜂ꜱᴘᴏɴᴅᴇʀ.
       ᴇꜱᴄʀɪʙᴇ ᴛᴜ ʀᴇ꜂ꜱᴘᴜᴇꜱᴛᴀ ᴇɴ ᴇʟ ᴄʜᴀᴛ.`,
       buttons,
       footer: "*The Teddies 🐻🔥*",
@@ -65,15 +65,15 @@ handler.before = async (m, { conn, usedPrefix }) => {
   // Ignorar mensajes que son comandos o clics en botones
   if (m.text.startsWith(usedPrefix) || m.text === '🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ') return;
 
-  if (conn.tebakff?.[m.sender]) {
-    const { jawaban, timeout } = conn.tebakff[m.sender];
+  if (conn.kevinff?.[m.sender]) {
+    const { jawaban, timeout } = conn.kevinff[m.sender];
     const userAnswer = m.text.toLowerCase().trim();
     
     if (userAnswer === jawaban) {
       clearTimeout(timeout);
-      delete conn.tebakff[m.sender];
+      delete conn.kevinff[m.sender];
       await conn.sendMessage(m.chat, { 
-        text: "✅ *ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ!* ᴇʀᴇꜱ ᴜɴ ᴇxᴘᴇʀᴛᴏ ꜰꜰ 🔥",
+        text: "✅ *ʀᴇꜱᴘᴜꜱᴇᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ!* ᴇʀᴇꜱ ᴜɴ ᴇxᴘᴇʀᴛᴏ ꜰꜰ 🔥",
         quoted: m
       });
     } else if (userAnswer) {
@@ -85,10 +85,12 @@ handler.before = async (m, { conn, usedPrefix }) => {
   }
 };
 
-// Cambiar los comandos aquí para que no necesite el punto
+// Cambiar el `command` a kevinff sin punto
+handler.command = /^kevinff$/i; // El comando ahora es sin el punto
+handler.customPrefix = /kevinff/i; // Ahora responde al prefijo "kevinff" sin el punto
+
 handler.help = ["kevinff"];
 handler.tags = ["juegos"];
-handler.command = /^kevinff$/i; // Cambiar el comando aquí para no incluir el punto
 handler.exp = 20;
 
 export default handler;
