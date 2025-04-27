@@ -2,13 +2,14 @@ import fetch from 'node-fetch';
 
 const handler = async (m, { conn, usedPrefix, command }) => {
   try {
-    // Limpiar timeout anterior si existe
-    if (conn.tebakff && conn.tebakff[m.sender]) {
+    // Limpiar juego anterior si existe
+    if (conn.tebakff?.[m.sender]) {
       clearTimeout(conn.tebakff[m.sender].timeout);
       delete conn.tebakff[m.sender];
     }
 
     const res = await fetch('https://api.vreden.my.id/api/tebakff');
+    if (!res.ok) throw new Error('API no responde');
     const json = await res.json();
     const { jawaban, img } = json.result;
 
@@ -16,22 +17,18 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     conn.tebakff[m.sender] = {
       jawaban: jawaban.toLowerCase(),
       timeout: setTimeout(() => {
-        m.reply(`⏰ Tiempo agotado...\n❗ La respuesta correcta era: *${jawaban}*`);
+        conn.sendMessage(m.chat, { 
+          text: `⏰ Tiempo agotado!\nLa respuesta era: *${jawaban}*` 
+        }, { quoted: m });
         delete conn.tebakff[m.sender];
       }, 30000)
     };
 
-    await conn.sendMessage(m.chat, { react: { text: '🕵️', key: m.key } });
+    await conn.sendMessage(m.chat, { 
+      react: { text: '🕵️', key: m.key } 
+    });
 
-    const buttons = [
-      {
-        buttonId: `${usedPrefix + command}`,
-        buttonText: { displayText: "🔁 Intentar otro" },
-        type: 1,
-      }
-    ];
-
-    await conn.sendMessage(m.chat, {
+    const buttonMessage = {
       image: { url: img },
       caption: `✨ *Adivina el personaje de Free Fire* ✨
 
@@ -40,34 +37,50 @@ Estás viendo a un personaje super conocido...
 
 ⏳ Tienes *30 segundos* para responder.
 Escribe tu respuesta en el chat.`,
-      buttons,
-      footer: "*The Teddies �🔥*",
-      viewOnce: true,
-    }, { quoted: m });
+      footer: "*The Teddies 🐻🔥*",
+      buttons: [
+        { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
+      ],
+      headerType: 4,
+      viewOnce: true
+    };
+
+    await conn.sendMessage(m.chat, buttonMessage, { quoted: m });
 
   } catch (e) {
-    console.error(e);
-    await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } });
-    m.reply("❌ Ocurrió un error al cargar el personaje. Intenta más tarde.");
+    console.error('Error en tebakff:', e);
+    await conn.sendMessage(m.chat, { 
+      text: "❌ Error al cargar el personaje. Intenta nuevamente más tarde." 
+    }, { quoted: m });
   }
 };
 
-handler.before = async (m, { conn }) => {
-  if (conn.tebakff && conn.tebakff[m.sender]) {
-    const respuesta = conn.tebakff[m.sender].jawaban;
-    if (m.text.toLowerCase().trim() === respuesta) {
-      clearTimeout(conn.tebakff[m.sender].timeout);
+handler.before = async (m, { conn, usedPrefix }) => {
+  // Ignorar comandos que empiezan con prefijo
+  if (m.text.startsWith(usedPrefix)) return;
+
+  if (conn.tebakff?.[m.sender]) {
+    const { jawaban, timeout } = conn.tebakff[m.sender];
+    
+    if (m.text.toLowerCase().trim() === jawaban) {
+      clearTimeout(timeout);
       delete conn.tebakff[m.sender];
-      return m.reply("✅ *¡Respuesta correcta!* Eres un experto FF 🔥");
-    } else if (!m.text.startsWith(usedPrefix)) {
-      return m.reply("❌ *No es esa*, intenta otra vez...");
+      await conn.sendMessage(m.chat, { 
+        text: "✅ *¡Correcto!* Eres un experto en Free Fire 🔥",
+        quoted: m
+      });
+    } else {
+      await conn.sendMessage(m.chat, { 
+        text: "❌ Incorrecto, sigue intentando...",
+        quoted: m
+      });
     }
   }
 };
 
 handler.help = ["tebakff"];
-handler.tags = ["juegos"];
-handler.command = /^tebakff|adivinaff$/i;
+handler.tags = ["juego"];
+handler.command = /^(tebakff|adivinaff)$/i;
 handler.exp = 20;
 
 export default handler;
