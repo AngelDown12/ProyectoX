@@ -2,6 +2,12 @@ import fetch from 'node-fetch';
 
 const handler = async (m, { conn, usedPrefix, command }) => {
   try {
+    // Limpiar timeout anterior si existe
+    if (conn.tebakff && conn.tebakff[m.sender]) {
+      clearTimeout(conn.tebakff[m.sender].timeout);
+      delete conn.tebakff[m.sender];
+    }
+
     const res = await fetch('https://api.vreden.my.id/api/tebakff');
     const json = await res.json();
     const { jawaban, img } = json.result;
@@ -35,7 +41,7 @@ Estás viendo a un personaje super conocido...
 ⏳ Tienes *30 segundos* para responder.
 Escribe tu respuesta en el chat.`,
       buttons,
-      footer: "*The Teddies 🐻🔥*",
+      footer: "*The Teddies �🔥*",
       viewOnce: true,
     }, { quoted: m });
 
@@ -53,7 +59,7 @@ handler.before = async (m, { conn }) => {
       clearTimeout(conn.tebakff[m.sender].timeout);
       delete conn.tebakff[m.sender];
       return m.reply("✅ *¡Respuesta correcta!* Eres un experto FF 🔥");
-    } else {
+    } else if (!m.text.startsWith(usedPrefix)) {
       return m.reply("❌ *No es esa*, intenta otra vez...");
     }
   }
@@ -62,6 +68,6 @@ handler.before = async (m, { conn }) => {
 handler.help = ["tebakff"];
 handler.tags = ["juegos"];
 handler.command = /^tebakff|adivinaff$/i;
-
+handler.exp = 20;
 
 export default handler;
