@@ -1,19 +1,23 @@
 import * as e from "fs";
 
 let handler = async (a, { conn: n, participants: r, usedPrefix, command }) => {
+  // Foto de perfil del bot o imagen por defecto
   let s = await n.profilePictureUrl(a.sender, "image").catch((e) => "./Menu2.jpg");
+
+  // Seleccionar aleatoriamente un participante para ejecutar el comando
   var p = [];
   r.map(async (e) => {
     p.push(e.id.replace("c.us", "s.whatsapp.net"));
   });
 
-  let o = 3e4; // 30 segundos (30,000 milisegundos)
+  let o = 3e4; // 30 segundos de espera (30000 ms)
   let m = p[Math.floor(Math.random() * p.length)];
 
+  // Evitar que el bot sea seleccionado
   if (m.startsWith(n.user.id.split(":")[0])) return a.reply("Hoy no muere nadie :D");
 
-  // Enviar mensaje avisando de la despedida
-  n.sendMessage(
+  // Enviar mensaje con la razón de la ejecución y el aviso de inactividad
+  await n.sendMessage(
     a.chat,
     {
       text: `*[ Basura Inactiva ]* 📓
@@ -43,15 +47,16 @@ let handler = async (a, { conn: n, participants: r, usedPrefix, command }) => {
     }
   );
 
-  // Espera 30 segundos antes de eliminar al usuario
+  // Esperar 30 segundos antes de eliminar al usuario
   setTimeout(() => {
     setTimeout(() => {
+      // Eliminar al usuario del grupo
       n.groupParticipantsUpdate(a.chat, [m], "remove").catch((e) => {
         a.reply("ERROR");
       });
-    }, 1e3); // Elimina al usuario después de 1 segundo de retraso.
+    }, 1e3); // Elimina al usuario después de 1 segundo de retraso
 
-    // Enviar un mensaje de despedida
+    // Enviar mensaje de despedida
     n.sendMessage(
       a.chat,
       { text: "Adiós [F]", mentions: [m] },
