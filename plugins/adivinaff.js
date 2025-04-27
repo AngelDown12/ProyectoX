@@ -26,7 +26,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
 
     const buttons = [
       {
-        buttonId: `${usedPrefix + command}`, // Repite el comando al hacer clic en el botón
+        buttonId: `.${command}`, // Asegúrate de que el buttonId ejecute el mismo comando
         buttonText: { displayText: '🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ' },
         type: 1,
       }
@@ -56,6 +56,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
 // Manejador específico para el botón
 handler.button = async (m, { conn, usedPrefix, command }) => {
   if (m.text === '🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ') {
+    // Reenvío manual del comando usando el `command` correcto
     await handler(m, { conn, usedPrefix, command });
   }
 };
