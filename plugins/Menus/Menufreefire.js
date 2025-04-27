@@ -117,10 +117,10 @@ await m.reply(lenguajeGB['smsMalError3']() + '\n*' + lenguajeGB.smsMensError1() 
 console.log(`❗❗ ${lenguajeGB['smsMensError2']()} ${usedPrefix + command} ❗❗`)
 console.log(e)}}
 
-handler.command = /^(menuff|menufreefire)$/i
-handler.register = false
-handler.group = true
-export default handler
+handler.customPrefix = /menuff|menufreefire/i 
+handler.command = new RegExp
+handler.exp = 0
+handler.owner = true
     
 function clockString(ms) {
 let h = isNaN(ms) ? '--' : Math.floor(ms / 3600000)
