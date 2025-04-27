@@ -14,7 +14,7 @@ let handler = async (m, { conn, participants }) => {
 
     // Mensaje ULTRA-TÓXICO (formato FF)
     await conn.sendMessage(m.chat, {
-        text: `*🔥*¡ATENCIÓN! SE VA UN NOOB*🔥*
+        text: `🔥*¡ATENCIÓN! SE VA UN NOOB*🔥
 
 @${victim.split('@')[0]} 
 *DETECTADO COMO:*
