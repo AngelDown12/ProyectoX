@@ -1,11 +1,14 @@
+import fetch from 'node-fetch';
 import pkg from '@whiskeysockets/baileys';
 const { generateWAMessageFromContent, proto } = pkg;
 
-let handler = async (m, { conn }) => {
+const games = new Map();
+
+const handler = async (m, { conn, usedPrefix, command }) => {
     const msgText = m.text?.toLowerCase();
     const groupId = m.chat;
 
-    // Obtener la respuesta de los botones (si es que no se me crashea el juego)
+    // Obtener la respuesta de los botones
     const response =
         m.message?.buttonsResponseMessage?.selectedButtonId ||
         m.message?.interactiveResponseMessage?.nativeFlowResponseButtonResponse?.id ||
@@ -13,21 +16,37 @@ let handler = async (m, { conn }) => {
         m.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
         msgText || '';
 
-    // Flujo de comando .1vs1 (PA' QUE SE HUMILLEN)
-    if (msgText?.startsWith('.1vs1')) {
+    // Cuando escribe manualmente el comando .adivinaff
+    if (msgText?.startsWith(`${usedPrefix}adivinaff`) || msgText?.startsWith(`${usedPrefix}tebakff`)) {
+        // Limpiar juego anterior si existe
+        if (games.has(m.sender)) {
+            clearTimeout(games.get(m.sender).timeout);
+            games.delete(m.sender);
+        }
+
+        // Obtener nuevo personaje
+        const res = await fetch('https://api.vreden.my.id/api/tebakff');
+        const { result } = await res.json();
+        const { jawaban, img } = result;
+
+        // Guardar juego
+        games.set(m.sender, {
+            answer: jawaban.toLowerCase(),
+            timeout: setTimeout(() => {
+                conn.sendMessage(m.chat, { 
+                    text: `⏰ ¡TIEMPO AGOTADO!\nRespuesta: *${jawaban}*`
+                }, { quoted: m });
+                games.delete(m.sender);
+            }, 30000)
+        });
+
+        // Botones para intentar de nuevo
         const buttons = [
             {
                 name: "quick_reply",
                 buttonParamsJson: JSON.stringify({
-                    display_text: "ACEPTO (PA' HUMILLARTE)", // Nadie lo hace xd
-                    id: "acepto"
-                })
-            },
-            {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "NEGADO (SOY NOOB)", // Seguro es bronce
-                    id: "negado"
+                    display_text: "🔄 INTENTAR OTRO",
+                    id: "repetir_adivinaff" // <- ID PERSONALIZADO
                 })
             }
         ];
@@ -38,9 +57,9 @@ let handler = async (m, { conn }) => {
                     messageContextInfo: {},
                     interactiveMessage: proto.Message.InteractiveMessage.create({
                         body: {
-                            text: `🔥 *MODO TÓXICO ACTIVADO* 🔥\n\n¿QUIÉN SE ATREVE A UN 1VS1? (O SOLO SABEN HUIR COMO RATAS?) 🐁💨\n───────────────\n*Si pierdes, borras el juego y te vas a jugar Candy Crush* 🍭💀`
+                            text: `🎮 *ADIVINA EL PERSONAJE DE FREE FIRE* 🎮\n\nTienes *30 segundos* para adivinar.`
                         },
-                        footer: { text: "*Acepta si tienes huevos* 🥚" },
+                        footer: { text: "Escribe el nombre del personaje" },
                         nativeFlowMessage: { buttons }
                     })
                 }
@@ -51,74 +70,25 @@ let handler = async (m, { conn }) => {
         return;
     }
 
-    // Confirmación de respuesta "ACEPTO" (SORPRESA, ALGUIEN SE CREYÓ PRO)
-    if (response === 'acepto') {
-        const nombre = await conn.getName(m.sender);
-
-        const buttons = [
-            {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "YO LA HAGO (PORQUE SOY PRO)", // Spoiler: No lo es
-                    id: "yomismo"
-                })
-            },
-            {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "NO TENGO SALA (SOY POBRE)", // Típico
-                    id: "notengo"
-                })
-            }
-        ];
-
-        const mensaje = generateWAMessageFromContent(m.chat, {
-            viewOnceMessage: {
-                message: {
-                    messageContextInfo: {
-                        mentionedJid: [m.sender]
-                    },
-                    interactiveMessage: proto.Message.InteractiveMessage.create({
-                        body: { text: `*¡JA! ${nombre} TE ENTERRASTE TU MISMO!* 😈\n\n*A ver, ¿quién pone la sala o solo sabes chupar experiencia?* 🍼` },
-                        footer: { text: "*¿Pones sala o que?* 🐭" },
-                        nativeFlowMessage: { buttons }
-                    })
-                }
-            }
-        }, {});
-
-        await conn.relayMessage(m.chat, mensaje.message, {});
+    // Cuando presiona el botón "🔄 Intentar Otro"
+    if (response === 'repetir_adivinaff') {
+        // Manda texto como si el usuario escribiera .adivinaff
+        await conn.sendMessage(m.chat, { text: `${usedPrefix}adivinaff` });
         return;
     }
 
-    // Confirmación de respuesta "NEGADO" (COBARDES DETECTADOS)
-    if (response === 'negado') {
-        const nombre = await conn.getName(m.sender);
-        await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\n*${nombre} ES TAN NOOB QUE NI EL BOT LE JUEGA.*\n┗━━━━━━━━━━━━━━━━┛\n*Vete a practicar contra bots, baby* 🤖🍼`,
-            mentions: [m.sender]
-        });
-        return;
-    }
-
-    // Respuesta al botón "Yomismo" (MENTIRA, NADIE TIENE SALA)
-    if (response === 'yomismo') {
-        await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\n*FINALMENTE ALGUIEN CON HUEVOS* 🥚🔥\n\n@${m.sender.split('@')[0]}\n\n*Pero seguro se desconectan a medio juego* 📵💀\n*MANDA DATOS DE LA SALA DE UUUNA*`
-        });
-        return;
-    }
-
-    // Respuesta al botón "Notengo" (CLÁSICO)
-    if (response === 'notengo') {
-        await conn.sendMessage(m.chat, {
-            text: `┏━━━━━━━━━━━━━━━━┓\n*¿PA' QUÉ ACEPTAS SI ERES POBRE?* �💸\n\n*Anda a vender dulces para que te compres una sala, rata* 🍬🐀`
-        });
-        return;
+    // Verificar respuesta del juego
+    if (games.has(m.sender)) {
+        const game = games.get(m.sender);
+        if (msgText?.trim() === game.answer) {
+            clearTimeout(game.timeout);
+            games.delete(m.sender);
+            await m.reply("✅ ¡CORRECTO! +20 XP");
+        }
     }
 };
 
-handler.customPrefix = /^(acepto|negado|yomismo|notengo|\.1vs1.*)$/i;
+handler.customPrefix = /^(\.adivinaff|\.tebakff|repetir_adivinaff)$/i;
 handler.command = new RegExp;
 handler.group = true;
 
