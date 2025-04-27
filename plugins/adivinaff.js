@@ -26,16 +26,19 @@ const handler = async (m, { conn, usedPrefix, command }) => {
             }, 30000) // 30 segundos
         });
 
-        // 4. Enviar mensaje CON BOTÓN que simula el comando
+        // 4. Enviar mensaje con botón que simplemente MANDA el texto .adivinaff
         await conn.sendMessage(m.chat, {
             image: { url: img },
             caption: `🎮 *ADIVINA EL PERSONAJE FREE FIRE* 🎮\n\nTienes *30 segundos* para adivinar.`,
             footer: "Escribe el nombre del personaje",
-            buttons: [{ 
-                buttonId: `${usedPrefix}${command}`, // ¡IMPORTANTE! MISMO COMANDO
-                buttonText: { displayText: "🔄 INTENTAR OTRO" }, 
-                type: 1 
-            }],
+            templateButtons: [
+                { 
+                    quickReplyButton: { 
+                        displayText: "🔄 INTENTAR OTRO", 
+                        id: `${usedPrefix}${command}` // <- Esto enviará .adivinaff como texto
+                    } 
+                }
+            ],
             viewOnce: true
         }, { quoted: m });
 
