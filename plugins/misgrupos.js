@@ -6,10 +6,15 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     // Obtener el estado (bio) del usuario
     let status = 'Sin estado'
     try {
-        const statusData = await conn.getStatus(user)
+        const statusData = await conn.fetchStatus(user)
         status = statusData.status || status
     } catch (e) {
         console.error('Error al obtener estado:', e)
+    }
+
+    // Si no se obtiene el estado, intentamos usar un estado predeterminado
+    if (status === 'Sin estado') {
+        status = 'El usuario no ha configurado un estado.'
     }
     
     // Mapeo de códigos de país
