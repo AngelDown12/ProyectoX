@@ -7,7 +7,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
   if (!m.messageStubType || !m.isGroup) return
 
   // Foto predeterminada en ruta local
-  const FOTO_PREDETERMINADA = './src/comprar.jpg'
+  const FOTO_PREDETERMINADA = './src/comprar.jpg' 
   const STICKER_URL = 'https://files.catbox.moe/g3hyc2.webp' // URL del sticker
 
   let pp
