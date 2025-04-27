@@ -1,66 +1,40 @@
-import { canModifyGroup } from '@whiskeysockets/baileys';
+let mutedUsers = new Set();
 
-let mutedUsers = {}; // Base de datos temporal de muteados
+let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin }) => {
+    if (!isBotAdmin) return conn.reply(m.chat, '> 𝘉𝘰𝘭𝘪𝘭𝘭𝘰𝘉𝘰𝘵 𝘯𝘦𝘤𝘦𝘴𝘪𝘵𝘢 𝘴𝘦𝘳 𝘢𝘥𝘮𝘪𝘯𝘪𝘴𝘵𝘳𝘢𝘥𝘰𝘳. 🥖', m);
+    if (!isAdmin) return conn.reply(m.chat, '> 𝘌𝘴𝘵𝘦 𝘤𝘰𝘮𝘢𝘯𝘥𝘰 𝘴𝘰𝘭𝘰 𝘱𝘶𝘦𝘥𝘦𝘯 𝘶𝘴𝘢𝘳𝘭𝘰 𝘢𝘥𝘮𝘪𝘯𝘪𝘴𝘵𝘳𝘢𝘥𝘰𝘳𝘦𝘴. 🥖', m);
 
-const handler = async (m, { conn, args, participants, isAdmin, isBotAdmin }) => {
-    // Verificación mejorada de permisos
-    if (!m.isGroup) return m.reply('*⚠️ Este comando solo funciona en grupos*');
-    if (!isBotAdmin) return m.reply('*🤖 ¡El bot necesita ser admin para mutear!*');
-    if (!isAdmin) return m.reply('*👑 Solo admins pueden usar este comando*');
+    let user;
+    if (m.quoted) {
+        user = m.quoted.sender;
+    } else {
+        return conn.reply(m.chat, '> 𝘙𝘦𝘴𝘱𝘰𝘯𝘥𝘦 𝘢𝘭 𝘮𝘦𝘯𝘴𝘢𝘫𝘦 𝘥𝘦𝘭 𝘶𝘴𝘶𝘢𝘳𝘪𝘰 𝘲𝘶𝘦 𝘥𝘦𝘴𝘦𝘢𝘴 𝘮𝘶𝘵𝘦𝘢𝘳.\n\n 𝘌𝘫𝘦𝘮𝘱𝘭𝘰: .𝘮𝘶𝘵𝘦 (𝘙𝘦𝘴𝘱𝘰𝘯𝘥𝘪𝘦𝘯𝘥𝘰 𝘢 𝘴𝘶 𝘮𝘦𝘯𝘴𝘢𝘫𝘦).🥖', m);
+    }
 
-    // Detección mejorada de menciones
-    const mention = m.mentionedJid[0] || (args[0] ? args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net' : null;
-    if (!mention) return m.reply('*🔎 Etiqueta al usuario o escribe su número*\nEjemplo: *.mute2 @usuario*');
-
-    // Evitar mutear a admins
-    const isTargetAdmin = participants.find(p => p.id === mention)?.admin;
-    if (isTargetAdmin) return m.reply('*⚔️ No puedes mutear a otro admin*');
-
-    try {
-        // Mute permanente (restrict sin tiempo)
-        await conn.groupParticipantsUpdate(m.chat, [mention], 'restrict');
-        
-        // Registrar en la "base de datos"
-        if (!mutedUsers[m.chat]) mutedUsers[m.chat] = [];
-        mutedUsers[m.chat].push(mention);
-
-        // Mensaje de confirmación con estilo
-        await conn.sendMessage(m.chat, {
-            text: `▄︻デ══━ *MUTE PERMANENTE* ══━︻▄
-
-• *Usuario:* @${mention.split('@')[0]}
-• *Razón:* Comportamiento tóxico 🚫
-• *Duración:* INFINITO 🔄
-• *Sancionado por:* @${m.sender.split('@')[0]}
-
-_"El silencio es tu nuevo mejor amigo"_ 🤐`,
-            mentions: [mention, m.sender]
-        }, { quoted: m });
-
-    } catch (error) {
-        console.error('Error al mutear:', error);
-        m.reply('*🚨 Error al mutear* ¿El usuario tiene protección?');
+    if (command === "mute") {
+        mutedUsers.add(user);
+        conn.reply(m.chat, `𝘜𝘴𝘶𝘢𝘳𝘪𝘰 𝘮𝘶𝘵𝘦𝘢𝘥𝘰: @${user.split('@')[0]}  🥖`, m, { mentions: [user] });
+    } else if (command === "unmute") {
+        mutedUsers.delete(user);
+        conn.reply(m.chat, `𝘜𝘴𝘶𝘢𝘳𝘪𝘰 𝘥𝘦𝘴𝘮𝘶𝘵𝘦𝘢𝘥𝘰: @${user.split('@')[0]}  🥖 `, m, { mentions: [user] });
     }
 };
 
-// Comando para ver muteados (opcional)
-const listMuted = async (m) => {
-    if (!mutedUsers[m.chat]?.length) return m.reply('*📭 No hay usuarios muteados en este grupo*');
-    
-    let text = '╔═══════════════╗\n   *🔇 USUARIOS MUTEADOS*   \n╚═══════════════╝\n\n';
-    mutedUsers[m.chat].forEach(user => {
-        text += `• @${user.split('@')[0]}\n`;
-    });
-    
-    await m.reply(text, null, { mentions: mutedUsers[m.chat] });
+handler.before = async (m, { conn }) => {
+    if (mutedUsers.has(m.sender) && m.mtype !== 'stickerMessage') {
+        try {
+            await conn.sendMessage(m.chat, { delete: m.key });
+        } catch (e) {
+            console.error(e);
+        }
+    }
 };
 
-// Configuración del handler
-handler.help = ['mute2 @usuario'];
-handler.tags = ['moderacion'];
-handler.command = /^(mute2|mutar|silenciar)$/i; // Detecta múltiples comandos
+handler.help = ['mute', 'unmute'];
+handler.tags = ['group'];
+handler.command = /^(mute2|unmute)$/i;
 handler.group = true;
 handler.admin = true;
 handler.botAdmin = true;
 
-export { handler, listMuted };
+export default handler;
