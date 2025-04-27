@@ -56,6 +56,9 @@ Escribe tu respuesta en el chat.`,
 };
 
 handler.before = async (m, { conn, usedPrefix }) => {
+  // Ignorar completamente los mensajes que son clics en botones
+  if (m.type === 'buttonsMessage') return;
+  
   // Ignorar comandos que empiezan con prefijo
   if (m.text.startsWith(usedPrefix)) return;
 
@@ -69,7 +72,7 @@ handler.before = async (m, { conn, usedPrefix }) => {
         text: "✅ *¡Correcto!* Eres un experto en Free Fire 🔥",
         quoted: m
       });
-    } else {
+    } else if (m.text) { // Solo responder si es texto (no botones)
       await conn.sendMessage(m.chat, { 
         text: "❌ Incorrecto, sigue intentando...",
         quoted: m
