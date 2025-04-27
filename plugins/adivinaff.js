@@ -27,7 +27,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     const buttons = [
       {
         buttonId: `.${command}`,
-        buttonText: { displayText: '🔄 VOLVER A INTENTAR' },
+        buttonText: { displayText: 'Menufreefire' },
         type: 1,
       }
     ];
