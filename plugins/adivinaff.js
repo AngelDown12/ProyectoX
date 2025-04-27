@@ -9,10 +9,11 @@ const handler = async (m, { conn, usedPrefix }) => {
     console.log("Mensaje recibido:", m.text);
 
     const msgText = m.text?.toLowerCase();
+    const groupId = m.chat;
 
     // Si el texto es .adivinaff, proceder a iniciar el juego
     if (msgText?.startsWith(`${usedPrefix}adivinaff`)) {
-        console.log("Comando .adivinaff activado");  // Mensaje de depuración
+        console.log("Comando .adivinaff activado");
 
         // Limpiar juego anterior si existe
         if (games.has(m.sender)) {
@@ -39,20 +40,29 @@ const handler = async (m, { conn, usedPrefix }) => {
         // Botones para intentar de nuevo
         const buttons = [
             {
-                buttonId: "repetir_adivinaff", // ID para el botón "Intentar otro"
-                buttonText: { displayText: "🔄 Intentar otro" },
-                type: 1
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: "🔄 Intentar otro",
+                    id: "repetir_adivinaff" // ID personalizado
+                })
             }
         ];
 
-        // Crear el mensaje con el botón
+        // Crear el mensaje
         const mensaje = generateWAMessageFromContent(m.chat, {
-            interactiveMessage: proto.Message.InteractiveMessage.create({
-                body: { text: `🎮 *ADIVINA EL PERSONAJE DE FREE FIRE* 🎮\n\nTienes *30 segundos* para adivinar.` },
-                footer: { text: "Escribe el nombre del personaje" },
-                buttons
-            })
-        });
+            viewOnceMessage: {
+                message: {
+                    messageContextInfo: {},
+                    interactiveMessage: proto.Message.InteractiveMessage.create({
+                        body: {
+                            text: `🎮 *ADIVINA EL PERSONAJE DE FREE FIRE* 🎮\n\nTienes *30 segundos* para adivinar.`
+                        },
+                        footer: { text: "Escribe el nombre del personaje" },
+                        nativeFlowMessage: { buttons }
+                    })
+                }
+            }
+        }, {});
 
         // Enviar mensaje
         await conn.relayMessage(m.chat, mensaje.message, {});
@@ -67,9 +77,9 @@ const handler = async (m, { conn, usedPrefix }) => {
         m.message?.listResponseMessage?.singleSelectReply?.selectedRowId || '';
 
     if (response === 'repetir_adivinaff') {
-        console.log("Botón 'Intentar otro' presionado");  // Mensaje de depuración
+        console.log("Botón 'Intentar otro' presionado");
 
-        // Reenviar el mensaje como si fuera un comando
+        // Manda texto como si el usuario escribiera .adivinaff
         await conn.sendMessage(m.chat, { text: `${usedPrefix}adivinaff` });
         return;
     }
