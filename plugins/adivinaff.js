@@ -10,7 +10,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     conn.tebakff[m.sender] = {
       jawaban: jawaban.toLowerCase(),
       timeout: setTimeout(() => {
-        m.reply(`⏰ ᴛɪᴇᴍᴘᴏ ᴀɢᴏᴛᴀᴅᴏ...\n❗ ʟᴀ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ ᴇʀᴀ: *${jawaban}*`);
+        m.reply(`⏰ Tiempo agotado...\n❗ La respuesta correcta era: *${jawaban}*`);
         delete conn.tebakff[m.sender];
       }, 30000)
     };
@@ -20,25 +20,20 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     const buttons = [
       {
         buttonId: `${usedPrefix + command}`,
-        buttonText: { displayText: "🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ" },
-        type: 1,
-      },
-      {
-        buttonId: `${usedPrefix}menu`,
-        buttonText: { displayText: "🏡 ᴍᴇɴᴜ ᴘʀɪɴᴄɪᴘᴀʟ" },
+        buttonText: { displayText: "🔁 Intentar otro" },
         type: 1,
       }
     ];
 
     await conn.sendMessage(m.chat, {
       image: { url: img },
-      caption: `✨ *ᴀᴅɪᴠɪɴᴀ ᴇʟ ᴘᴇʀꜱᴏɴᴀᴊᴇ ᴅᴇ ꜰʀᴇᴇ ꜰɪʀᴇ* ✨
+      caption: `✨ *Adivina el personaje de Free Fire* ✨
 
-ᴇꜱᴛᴀꜱ ᴠɪᴇɴᴅᴏ ᴀ ᴜɴ ᴘᴇʀꜱᴏɴᴀᴊᴇ ꜱᴜᴘᴇʀ ᴄᴏɴᴏᴄɪᴅᴏ...
-ᴘᴇʀᴏ, ¿ᴄᴜᴀ́ʟ ᴇꜱ ꜱᴜ ɴᴏᴍʙʀᴇ?
+Estás viendo a un personaje super conocido...
+¿Pero, cuál es su nombre?
 
-⏳ ᴛɪᴇɴᴇꜱ *30 ꜱᴇɢᴜɴᴅᴏꜱ* ᴘᴀʀᴀ ʀᴇꜱᴘᴏɴᴅᴇʀ.
-ᴇꜱᴄʀɪʙᴇ ᴛᴜ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴇɴ ᴇʟ ᴄʜᴀᴛ.`,
+⏳ Tienes *30 segundos* para responder.
+Escribe tu respuesta en el chat.`,
       buttons,
       footer: "*The Teddies 🐻🔥*",
       viewOnce: true,
@@ -47,19 +42,19 @@ const handler = async (m, { conn, usedPrefix, command }) => {
   } catch (e) {
     console.error(e);
     await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } });
-    m.reply("❌ ᴏᴄᴜʀʀɪᴏ́ ᴜɴ ᴇʀʀᴏʀ ᴀʟ ᴄᴀʀɢᴀʀ ᴇʟ ᴘᴇʀꜱᴏɴᴀᴊᴇ. ɪɴᴛᴇɴᴛᴀ ᴍᴀ́s ᴛᴀʀᴅᴇ.");
+    m.reply("❌ Ocurrió un error al cargar el personaje. Intenta más tarde.");
   }
 };
 
 handler.before = async (m, { conn }) => {
   if (conn.tebakff && conn.tebakff[m.sender]) {
     const respuesta = conn.tebakff[m.sender].jawaban;
-    if (m.text.toLowerCase() === respuesta) {
+    if (m.text.toLowerCase().trim() === respuesta) {
       clearTimeout(conn.tebakff[m.sender].timeout);
       delete conn.tebakff[m.sender];
-      return m.reply("✅ *ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ!* ᴇʀᴇꜱ ᴜɴ ᴇxᴘᴇʀᴛᴏ ꜰꜰ 🔥");
+      return m.reply("✅ *¡Respuesta correcta!* Eres un experto FF 🔥");
     } else {
-      return m.reply("❌ *ɴᴏ ᴇꜱ ᴇꜱᴀ*, ɪɴᴛᴇɴᴛᴀ ᴏᴛʀᴀ ᴠᴇᴢ...");
+      return m.reply("❌ *No es esa*, intenta otra vez...");
     }
   }
 };
@@ -67,6 +62,6 @@ handler.before = async (m, { conn }) => {
 handler.help = ["tebakff"];
 handler.tags = ["juegos"];
 handler.command = /^tebakff|adivinaff$/i;
-handler.exp = 20;
+
 
 export default handler;
