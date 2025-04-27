@@ -1,65 +1,66 @@
 import { canModifyGroup } from '@whiskeysockets/baileys';
 
-const handler = async (m, { conn, args, participants, isBotAdmin, isAdmin }) => {
-    // Verificación de permisos mejorada
-    if (!isBotAdmin) return m.reply('*🚨 El bot no es admin, no puede mutear* 🤖💔');
-    if (!isAdmin) return m.reply('*🔐 Solo admins pueden usar este comando* 👑');
-    
-    // Obtener usuario mencionado
-    const target = m.mentionedJid[0] || args[0];
-    if (!target) return m.reply('*📍 Etiqueta al usuario*\nEjemplo: .mute2 @usuario');
-    
-    // No mutear al dueño del grupo
-    const groupMetadata = await conn.groupMetadata(m.chat);
-    if (target === groupMetadata.owner) return m.reply('*👑 No puedes mutear al rey del grupo*');
+let mutedUsers = {}; // Base de datos temporal de muteados
 
-    // Mute permanente (sin tiempo)
+const handler = async (m, { conn, args, participants, isAdmin, isBotAdmin }) => {
+    // Verificación mejorada de permisos
+    if (!m.isGroup) return m.reply('*⚠️ Este comando solo funciona en grupos*');
+    if (!isBotAdmin) return m.reply('*🤖 ¡El bot necesita ser admin para mutear!*');
+    if (!isAdmin) return m.reply('*👑 Solo admins pueden usar este comando*');
+
+    // Detección mejorada de menciones
+    const mention = m.mentionedJid[0] || (args[0] ? args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net' : null;
+    if (!mention) return m.reply('*🔎 Etiqueta al usuario o escribe su número*\nEjemplo: *.mute2 @usuario*');
+
+    // Evitar mutear a admins
+    const isTargetAdmin = participants.find(p => p.id === mention)?.admin;
+    if (isTargetAdmin) return m.reply('*⚔️ No puedes mutear a otro admin*');
+
     try {
-        await conn.groupParticipantsUpdate(m.chat, [target], 'restrict');
+        // Mute permanente (restrict sin tiempo)
+        await conn.groupParticipantsUpdate(m.chat, [mention], 'restrict');
         
-        // Mensaje épico de confirmación
-        await conn.sendMessage(m.chat, { 
-            text: `╔════════════════╗
-            
-  *🔇 MUTE PERMANENTE* 🔕
-  
-  ╚════════════════╝
-  
-  ▢ *Usuario:* @${target.split('@')[0]}
-  ▢ *Razón:* Comportamiento tóxico ☣️
-  ▢ *Sanción:* SIN CHAT POR SIEMPRE
-  ▢ *Admin:* @${m.sender.split('@')[0]}
-  
-  *"Aquí termina tu viaje, noob"* 🎮⚰️`,
-            mentions: [target, m.sender]
+        // Registrar en la "base de datos"
+        if (!mutedUsers[m.chat]) mutedUsers[m.chat] = [];
+        mutedUsers[m.chat].push(mention);
+
+        // Mensaje de confirmación con estilo
+        await conn.sendMessage(m.chat, {
+            text: `▄︻デ══━ *MUTE PERMANENTE* ══━︻▄
+
+• *Usuario:* @${mention.split('@')[0]}
+• *Razón:* Comportamiento tóxico 🚫
+• *Duración:* INFINITO 🔄
+• *Sancionado por:* @${m.sender.split('@')[0]}
+
+_"El silencio es tu nuevo mejor amigo"_ 🤐`,
+            mentions: [mention, m.sender]
         }, { quoted: m });
 
-        // Añadir a lista de muteados
-        if (!conn.mutedUsers) conn.mutedUsers = {};
-        conn.mutedUsers[target] = true;
-
     } catch (error) {
-        console.error(error);
-        m.reply('*⚠️ Error al mutear* ¿El usuario es admin?');
+        console.error('Error al mutear:', error);
+        m.reply('*🚨 Error al mutear* ¿El usuario tiene protección?');
     }
 };
 
-// Comando para ver muteados
-const listMutedHandler = async (m, { conn }) => {
-    if (!conn.mutedUsers) return m.reply('*📭 No hay usuarios muteados*');
+// Comando para ver muteados (opcional)
+const listMuted = async (m) => {
+    if (!mutedUsers[m.chat]?.length) return m.reply('*📭 No hay usuarios muteados en este grupo*');
     
-    let text = '╔════════════════╗\n     *🔇 USUARIOS MUTEADOS* \n╚════════════════╝\n\n';
-    for (let user in conn.mutedUsers) {
-        text += `▢ @${user.split('@')[0]}\n`;
-    }
-    await conn.sendMessage(m.chat, { text, mentions: Object.keys(conn.mutedUsers).map(u => u) });
+    let text = '╔═══════════════╗\n   *🔇 USUARIOS MUTEADOS*   \n╚═══════════════╝\n\n';
+    mutedUsers[m.chat].forEach(user => {
+        text += `• @${user.split('@')[0]}\n`;
+    });
+    
+    await m.reply(text, null, { mentions: mutedUsers[m.chat] });
 };
 
-handler.help = ['mute2 @usuario', 'listamute'];
+// Configuración del handler
+handler.help = ['mute2 @usuario'];
 handler.tags = ['moderacion'];
-handler.command = /^(mute2|listamute)$/i;
+handler.command = /^(mute2|mutar|silenciar)$/i; // Detecta múltiples comandos
 handler.group = true;
 handler.admin = true;
 handler.botAdmin = true;
 
-export { handler, listMutedHandler };
+export { handler, listMuted };
