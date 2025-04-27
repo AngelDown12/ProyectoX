@@ -21,7 +21,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
   let img
   if (pp) {
     try {
-      img = await (await fetch(pp)).buffer()
+      img = await (await fetch(pp)).buffer()  // Intentamos obtener la imagen de perfil del usuario
     } catch {
       img = null
     }
@@ -30,7 +30,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
   if (!img) {
     // Si no hay imagen externa, usa la imagen local
     try {
-      img = fs.readFileSync(FOTO_PREDETERMINADA)
+      img = fs.readFileSync(FOTO_PREDETERMINADA)  // Leemos la imagen local
     } catch {
       img = null // Si tampoco existe la imagen local
     }
@@ -60,6 +60,15 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
         mentionedJid: [m.sender, m.messageStubParameters[0]]
       }
     }, { quoted: m })
+
+    // Enviamos la imagen local (si existe)
+    if (img) {
+      await this.sendMessage(m.chat, { 
+        image: img, 
+        caption: 'Aquí tienes la imagen de despedida', 
+        contextInfo: { mentionedJid: [m.sender, m.messageStubParameters[0]] }
+      })
+    }
 
     // Luego enviamos el sticker desde el enlace
     let sticker = await (await fetch(STICKER_URL)).buffer()  // Obtenemos el sticker desde el enlace
