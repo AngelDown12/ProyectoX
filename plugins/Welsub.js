@@ -6,12 +6,16 @@ let handler = m => m
 handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin }) {
   if (!m.messageStubType || !m.isGroup) return
 
+  // Definir chat aquí para que esté disponible en ambos casos
+  let chat = global.db.data.chats[m.chat]
+  if (!chat) return // Si no existe el chat en la DB, salir
+
   // Foto predeterminada para BIENVENIDAS (local)
   const FOTO_PREDETERMINADA = './src/comprar.jpg'
   // Sticker para DESPEDIDAS (URL externa)
   const STICKER_DESPEDIDA = 'https://files.catbox.moe/g3hyc2.webp'
 
-  // Solo procesamos bienvenidas si es necesario (para optimizar)
+  // BIENVENIDAS (messageStubType 27)
   if (chat.welcome && m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
     let pp
     try {
@@ -37,9 +41,6 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
       }
     }
 
-    let usuario = `@${m.sender.split`@`[0]}`
-    let chat = global.db.data.chats[m.chat]
-    let users = participants.map(u => conn.decodeJid(u.id))
     let subject = groupMetadata.subject
     let descs = groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟"
     let userName = `${m.messageStubParameters[0].split`@`[0]}`
@@ -70,21 +71,15 @@ ${descs}
     }, { quoted: m })
   }
 
-  // DESPEDIDAS - SOLO STICKER
+  // DESPEDIDAS (messageStubType 28)
   else if (chat.welcome && m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
-    let subject = groupMetadata.subject
     let userName = `${m.messageStubParameters[0].split`@`[0]}`
     let defaultBye = `*╔══════════════*
 *╟* *SE FUE UNA BASURA*
 *╟*👤 @${userName}* 
 *╚══════════════*`
 
-    let textBye = chat.sBye ? chat.sBye
-      .replace(/@user/g, `@${userName}`)
-      .replace(/@group/g, subject)
-      : defaultBye
-
-    // Envía primero el sticker
+    // Enviar sticker de despedida
     await this.sendMessage(m.chat, { 
       sticker: { url: STICKER_DESPEDIDA },
       contextInfo: {
@@ -92,9 +87,9 @@ ${descs}
       }
     }, { quoted: m })
 
-    // Opcional: Si quieres mantener el mensaje de texto después del sticker
+    // Enviar mensaje de despedida (opcional)
     await this.sendMessage(m.chat, { 
-      text: textBye,
+      text: defaultBye,
       contextInfo: {
         mentionedJid: [m.sender, m.messageStubParameters[0]]
       }
