@@ -5,7 +5,7 @@ handler.before = async function (m, { conn, groupMetadata }) {
   if (m.messageStubType !== 20) return // 20 = Creación de grupo
 
   let botName = conn.user.name // Obtiene el nombre de la cuenta del bot
-  let audioPath = './Audios/Kya.mp3' // Ruta del archivo de audio local
+  let audioPath = './Audios/presentacion.mp3' // Ruta del archivo de audio local
 
   // Texto opcional para enviar junto con el audio
   let welcomeBotText = `🥇 ¡𝗛𝗢𝗟𝗔 𝗚𝗥𝗨𝗣𝗢!🥇  
