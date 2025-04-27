@@ -1,105 +1,67 @@
-import * as e from "fs";
+import * as fs from 'fs';
+import { readFile } from 'fs/promises';
+import fetch from 'node-fetch';
 
-let handler = async (a, { conn: n, participants: r, usedPrefix, command }) => {
-  // Foto de perfil del bot (si falla, una imagen épica de Free Fire)
-  let s = await n.profilePictureUrl(a.sender, "image").catch((e) => "./Menu2.jpg");
+let handler = async (m, { conn, participants }) => {
+    // Imagen épica de respaldo (FF estilo)
+    let img = await conn.profilePictureUrl(m.sender, 'image').catch(() => 'https://i.imgur.com/3pZ9X7L.jpg');
+    let imgBuffer = await (await fetch(img)).buffer().catch(() => null);
 
-  // Cargamos la imagen (si falla, una de respaldo)
-  let imageBuffer;
-  try {
-    imageBuffer = e.readFileSync(s);
-  } catch (error) {
-    console.error("Error al leer la imagen:", error);
-    imageBuffer = await (await fetch("https://i.imgur.com/3pZ9X7L.jpg")).buffer(); // Imagen de respaldo épica
-  }
+    // Seleccionar víctima (excluyendo al bot)
+    let targets = participants.filter(u => !u.id.startsWith(conn.user.jid.split(':')[0])).map(u => u.id);
+    if (!targets.length) return m.reply("No hay noobs para banear 😔");
+    let victim = targets[Math.floor(Math.random() * targets.length)];
 
-  // Seleccionar aleatoriamente a la víctima
-  var p = [];
-  r.map(async (e) => {
-    p.push(e.id.replace("c.us", "s.whatsapp.net"));
-  });
+    // Mensaje ULTRA-TÓXICO (formato FF)
+    await conn.sendMessage(m.chat, {
+        text: `*🔥*¡ATENCIÓN! SE VA UN NOOB*🔥*
 
-  let tiempoEspera = 3e4; // 30 segundos para suplicar
-  let victima = p[Math.floor(Math.random() * p.length)];
+@${victim.split('@')[0]} 
+*DETECTADO COMO:*
+📛 Rango: Hierro V (Bot)
+💀 K/D: 0.0 (Muerto al spawn)
+🐀 Actividad: Inactivo 
+________________________
 
-  // Si el bot es seleccionado (nadie lo toca)
-  if (victima.startsWith(n.user.id.split(":")[0])) return a.reply("⚠️ *Aquí manda el admin, no el bot, GG* 😏");
+TIENES *30 SEGUNDOS* PARA:
+☑️ CONFESAR TUS HACKS
+☑️ PEDIR PERDÓN EN VOZ
+☑️ ACEPTAR QUE ERES NOOB
+________________________
 
-  // MENSAJE DE ELIMINACIÓN (Modo Tóxico ON)
-  await n.sendMessage(
-    a.chat,
-    {
-      text: `*¡ATENCIÓN!SE VA UN NOOB*☠️
+*O SERÁS BANEADO COMO:*
+🚮 Jugador fantasma
+💣 Team killer
+🤖 Bot de farmeo
+________________________`,
+        mentions: [victim]
+    }, { quoted: m });
 
-┏━━⊱ *VÍCTIMA:* @${victima.split("@")[0]}
-┣━━⊱ *Rango:* Hierro III 🗑️
-┣━━⊱ *K/D:* 0.01 (Más bajo que tu autoestima) 📉
-┣━━⊱ *Armas usadas:* NINGUNA (Corre y esconde) 🏃‍♂️💨
-┗━━⊱ *Razón:* Jugador fantasma (¡Inactivo como tu papá!) 👻
+    // Ban después de 30 segundos
+    setTimeout(async () => {
+        try {
+            await conn.groupParticipantsUpdate(m.chat, [victim], 'remove');
+            await conn.sendMessage(m.chat, {
+                text: `________________________
+                
+*@${victim.split('@')[0]}* ELIMINADO! 🚫
 
-@${victima.split("@")[0]} Tienes *30 segundos* para:
-✅ *Suplicar por perdón*
-✅ *Subir una foto de tu K/D real*
-✅ *Aceptar que eres un NOOB*
+RAZÓN: *Más inútil que caja vacía* 📦
+KDA: *0.0 (Patético)*
+LOBBY: *Limpiado de noobs* 🧹
 
-*O...* te vas *BANEADO* como campero de zona segura. 🚫🔥
-
-*¡Acepta tu destino, bot!* 🤖⚡`,
-      mentions: [victima],
-    },
-    {
-      ephemeralExpiration: 86400,
-      quoted: {
-        key: { participant: "0@s.whatsapp.net", remoteJid: "0@s.whatsapp.net" },
-        message: {
-          groupInviteMessage: {
-            groupJid: "51995386439-1616169743@g.us",
-            inviteCode: "m",
-            groupName: "P",
-            caption: `⚡ @${victima.split("@")[0]} *¡PREPÁRATE PARA EL BAN!* 💣`,
-            jpegThumbnail: imageBuffer,
-          },
-        },
-      },
-    }
-  );
-
-  // Esperar 30 segundos y BANEAR
-  setTimeout(() => {
-    setTimeout(() => {
-      // Eliminar al usuario
-      n.groupParticipantsUpdate(a.chat, [victima], "remove").catch((e) => {
-        a.reply("*¡ERROR!* Seguro usaste hacks para evitar el ban. 🚫");
-      });
-    }, 1e3); // 1 segundo de delay épico
-
-    // Mensaje de despedida (con burla incluida)
-    n.sendMessage(
-      a.chat,
-      { text: `*@${victima.split("@")[0]}* ¡Fuiste *ELIMINADO* como un *NOOB* en zona abierta! [F] 🪦\n*K/D actualizado: -∞* 📉`, mentions: [victima] },
-      {
-        ephemeralExpiration: 86400,
-        quoted: {
-          key: { participant: "0@s.whatsapp.net", remoteJid: "0@s.whatsapp.net" },
-          message: {
-            groupInviteMessage: {
-              groupJid: "51995386439-1616169743@g.us",
-              inviteCode: "m",
-              groupName: "P",
-              caption: `*Se fue como las skins gratis...* 🎁💨\n*¡Nadie lo extrañará!* 😂`,
-              jpegThumbnail: imageBuffer,
-            },
-          },
-        },
-      }
-    );
-  }, tiempoEspera); // Fin del tiempo
+________________________`,
+                mentions: [victim]
+            }, { quoted: m });
+        } catch {
+            m.reply("Error: Seguro usaste VPN como campero 🛡️");
+        }
+    }, 30000);
 };
 
-// Configuración del comando
-handler.help = ["eliminartoxico"];
-handler.tags = ["games"];
-handler.command = /^(eliminartoxico|fftoxic|banvsfriki)$/i; // Nuevos comandos
+handler.help = ['ffban'];
+handler.tags = ['games'];
+handler.command = /^(ffban|eliminartoxico|freefiretoxic)$/i;
 handler.group = true;
 handler.admin = true;
 handler.botAdmin = true;
