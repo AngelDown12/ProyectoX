@@ -17,7 +17,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     conn.tebakff[m.sender] = {
       jawaban: jawaban.toLowerCase(),
       timeout: setTimeout(() => {
-        m.reply(`⏰ ᴛɪᴇᴍᴘᴏ ᴀɢᴏᴛᴀᴅᴏ...\n❗ ʟᴀ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ ᴇʀᴀ: *${jawaban}*`);
+        m.reply(`⏰ ᴛɪᴇɴᴇ ꜱᴇɢᴜɴᴅᴏꜱ ᴀɢᴏᴛᴀᴅᴏ... ❗ ʟᴀ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴄᴏʀʀᴇᴄᴛᴀ ᴇʀᴀ: *${jawaban}*`);
         delete conn.tebakff[m.sender];
       }, 30000)
     };
@@ -26,8 +26,8 @@ const handler = async (m, { conn, usedPrefix, command }) => {
 
     const buttons = [
       {
-        buttonId: `${usedPrefix + command}`,
-        buttonText: { displayText: "🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ" },
+        buttonId: `${usedPrefix + command}`, // Repite el comando al hacer clic en el botón
+        buttonText: { displayText: '🔁 ɪɴᴛᴇɴᴛᴀʀ ᴏᴛʀᴏ' },
         type: 1,
       }
     ];
@@ -35,12 +35,12 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     await conn.sendMessage(m.chat, {
       image: { url: img },
       caption: `✨ *ᴀᴅɪᴠɪɴᴀ ᴇʟ ᴘᴇʀꜱᴏɴᴀᴊᴇ ᴅᴇ ꜰʀᴇᴇ ꜰɪʀᴇ* ✨
-
-ᴇꜱᴛᴀꜱ ᴠɪᴇɴᴅᴏ ᴀ ᴜɴ ᴘᴇʀꜱᴏɴᴀᴊᴇ ꜱᴜᴘᴇʀ ᴄᴏɴᴏᴄɪᴅᴏ...
-ᴘᴇʀᴏ, ¿ᴄᴜᴀ́ʟ ᴇꜱ ꜱᴜ ɴᴏᴍʙʀᴇ?
-
-⏳ ᴛɪᴇɴᴇꜱ *30 ꜱᴇɢᴜɴᴅᴏꜱ* ᴘᴀʀᴀ ʀᴇꜱᴘᴏɴᴅᴇʀ.
-ᴇꜱᴄʀɪʙᴇ ᴛᴜ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴇɴ ᴇʟ ᴄʜᴀᴛ.`,
+      
+      ᴇꜱᴛᴀꜱ ᴠɪᴇɴᴅᴏ ᴀ ᴜɴ ᴘᴇʀꜱᴏɴᴀᴊᴇ ꜱᴜᴘᴇʀ ᴄᴏɴᴏᴄɪᴅᴏ...
+      ᴘᴇʀᴏ, ¿ᴄᴜᴀ́ʟ ᴇꜱ ꜱᴜ ɴᴏᴍʙʀᴇ?
+      
+      ⏳ ᴛɪᴇɴᴇꜱ *30 ꜱᴇɢᴜɴᴅᴏꜱ* ᴘᴀʀᴀ ʀᴇꜱᴘᴏɴᴅᴇʀ.
+      ᴇꜱᴄʀɪʙᴇ ᴛᴜ ʀᴇꜱᴘᴜᴇꜱᴛᴀ ᴇɴ ᴇʟ ᴄʜᴀᴛ.`,
       buttons,
       footer: "*The Teddies 🐻🔥*",
       viewOnce: true,
