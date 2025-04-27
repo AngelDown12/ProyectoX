@@ -1,15 +1,6 @@
 import * as e from "fs";
 
-let handler = async (a, { conn: n, text: t, participants: r, usedPrefix, command }) => {
-  if (!t)
-    return a.reply(`*[ ! ] Agrega una razón para la ejecución*
-Ejemplo: 
-
-${usedPrefix + command} Razón de la ejecución
-`);
-  
-  if (t.length < 9) return a.reply("*[ ! ] La razón es muy corta*");
-
+let handler = async (a, { conn: n, participants: r, usedPrefix, command }) => {
   let s = await n.profilePictureUrl(a.sender, "image").catch((e) => "./Menu2.jpg");
   var p = [];
   r.map(async (e) => {
@@ -27,8 +18,7 @@ ${usedPrefix + command} Razón de la ejecución
       text: `*[ Basura Inactiva ]* 📓
 
 ┏━⊱ *Seleccionado:* @${m.split("@")[0]}
-┗⊱ *Razón de su ejecución:* 
-${t}
+┗⊱ *Razón de su ejecución: Desconocida*
 
 _Tiene ${(o % 6e4) / 1e3} segundos para decir sus últimas palabras_
 `,
@@ -57,7 +47,7 @@ _Tiene ${(o % 6e4) / 1e3} segundos para decir sus últimas palabras_
         a.reply("ERROR");
       });
     }, 1e3);
-    
+
     n.sendMessage(
       a.chat,
       { text: "Press [F]", mentions: [m] },
