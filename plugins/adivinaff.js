@@ -1,9 +1,11 @@
 import fetch from 'node-fetch';
 
-const handler = async (m, { conn, usedPrefix, command }) => {
+const handler = async (m, { conn, usedPrefix, command, fromButton }) => {
   try {
+    conn.tebakff = conn.tebakff || {};
+
     // Limpiar juego anterior si existe
-    if (conn.tebakff?.[m.sender]) {
+    if (conn.tebakff[m.sender]) {
       clearTimeout(conn.tebakff[m.sender].timeout);
       delete conn.tebakff[m.sender];
     }
@@ -13,11 +15,10 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     const json = await res.json();
     const { jawaban, img } = json.result;
 
-    conn.tebakff = conn.tebakff || {};
     conn.tebakff[m.sender] = {
       jawaban: jawaban.toLowerCase(),
-      timeout: setTimeout(() => {
-        conn.sendMessage(m.chat, { 
+      timeout: setTimeout(async () => {
+        await conn.sendMessage(m.chat, { 
           text: `⏰ ¡Tiempo agotado!\nLa respuesta era: *${jawaban}*`,
           footer: '*The Teddies 🐻🔥*',
           buttons: [
@@ -28,9 +29,11 @@ const handler = async (m, { conn, usedPrefix, command }) => {
       }, 30000)
     };
 
-    await conn.sendMessage(m.chat, { 
-      react: { text: '🕵️', key: m.key } 
-    });
+    if (!fromButton) { // Solo manda la reacción si es por mensaje de texto
+      await conn.sendMessage(m.chat, { 
+        react: { text: '🕵️', key: m.key }
+      });
+    }
 
     const buttonMessage = {
       image: { url: img },
@@ -59,14 +62,14 @@ Escribe tu respuesta en el chat.`,
   }
 };
 
-// Esta parte se queda igual
-handler.before = async (m, { conn, usedPrefix }) => {
-  // Ignorar comandos que empiezan con prefijo
-  if (m.text.startsWith(usedPrefix)) return;
+handler.before = async (m, { conn, usedPrefix, command }) => {
+  conn.tebakff = conn.tebakff || {};
 
-  if (conn.tebakff?.[m.sender]) {
+  if (m.text.startsWith(usedPrefix)) return; // Ignorar comandos
+
+  if (conn.tebakff[m.sender]) {
     const { jawaban, timeout } = conn.tebakff[m.sender];
-    
+
     if (m.text.toLowerCase().trim() === jawaban) {
       clearTimeout(timeout);
       delete conn.tebakff[m.sender];
@@ -74,7 +77,7 @@ handler.before = async (m, { conn, usedPrefix }) => {
         text: "✅ *¡Correcto!* Eres un experto en Free Fire 🔥",
         footer: "*The Teddies 🐻🔥*",
         buttons: [
-          { buttonId: `${usedPrefix}tebakff`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
+          { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
         ]
       }, { quoted: m });
     } else {
