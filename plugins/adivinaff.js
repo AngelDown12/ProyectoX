@@ -4,18 +4,18 @@ const games = new Map();
 
 const handler = async (m, { conn, usedPrefix, command }) => {
     try {
-        // LIMPIAR SI HAY JUEGO
+        // LIMPIAR JUEGO ANTERIOR
         if (games.has(m.sender)) {
             clearTimeout(games.get(m.sender).timeout);
             games.delete(m.sender);
         }
 
-        // OBTENER PERSONAJE
+        // OBTENER NUEVO PERSONAJE
         const res = await fetch('https://api.vreden.my.id/api/tebakff');
         const { result } = await res.json();
         const { jawaban, img } = result;
 
-        // CONFIGURAR NUEVO JUEGO
+        // GUARDAR EL JUEGO
         games.set(m.sender, {
             answer: jawaban.toLowerCase(),
             timeout: setTimeout(() => {
@@ -33,9 +33,9 @@ const handler = async (m, { conn, usedPrefix, command }) => {
             footer: "Escribe el nombre del personaje",
             buttons: [
                 { 
-                    buttonId: 'tryagain', 
-                    buttonText: { displayText: "🔄 INTENTAR OTRO" }, 
-                    type: 1 
+                    buttonId: `${usedPrefix}${command}`, // EL ID DEL BOTÓN SERÁ .adivinaff
+                    buttonText: { displayText: "🔄 INTENTAR OTRO" },
+                    type: 1
                 }
             ],
             viewOnce: true
@@ -43,19 +43,23 @@ const handler = async (m, { conn, usedPrefix, command }) => {
 
     } catch (e) {
         console.error("Error:", e);
-        m.reply("❌ Error cargando personaje. Intenta con: " + usedPrefix + command);
+        m.reply("❌ Error cargando personaje. Intenta otra vez con: " + usedPrefix + command);
     }
 };
 
-// RESPUESTA AL BOTÓN
-handler.handleButton = async (m, { conn, buttonId, usedPrefix, command }) => {
-    if (buttonId === 'tryagain') {
-        await conn.sendMessage(m.chat, { text: `${usedPrefix}${command}` });
-    }
-};
-
+// RESPUESTA DE BOTONES
 handler.before = async (m, { conn, usedPrefix }) => {
-    if (m.text.startsWith(usedPrefix) || !games.has(m.sender)) return;
+    if (m.message?.buttonsResponseMessage) {
+        m.text = m.message.buttonsResponseMessage.selectedButtonId || '';
+    }
+    if (m.message?.templateButtonReplyMessage) {
+        m.text = m.message.templateButtonReplyMessage.selectedId || '';
+    }
+
+    // SI EL USUARIO RESPONDE CORRECTAMENTE
+    if (m.text.startsWith(usedPrefix)) return; // Si es comando, no chequear respuesta
+
+    if (!games.has(m.sender)) return;
 
     const game = games.get(m.sender);
     if (m.text.toLowerCase().trim() === game.answer) {
