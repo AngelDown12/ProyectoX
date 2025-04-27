@@ -3,11 +3,8 @@ import fetch from 'node-fetch';
 const handler = async (m, { conn, usedPrefix, command }) => {
   conn.tebakff = conn.tebakff || {};
   
-  if (conn.tebakff[m.sender]) {
-    clearTimeout(conn.tebakff[m.sender].timeout);
-    delete conn.tebakff[m.sender];
-  }
-  
+  if (conn.tebakff[m.sender]) return conn.reply(m.chat, '❗ Aún tienes una adivinanza pendiente. Responde primero.', m);
+
   try {
     const res = await fetch('https://api.vreden.my.id/api/tebakff');
     if (!res.ok) throw new Error('API no responde');
@@ -17,13 +14,11 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     conn.tebakff[m.sender] = {
       jawaban: jawaban.toLowerCase(),
       timeout: setTimeout(async () => {
-        await conn.sendMessage(m.chat, {
-          text: `⏰ ¡Se acabó el tiempo!\nLa respuesta era: *${jawaban}*`,
+        await conn.sendMessage(m.chat, { 
+          text: `⏰ ¡Tiempo agotado!\nLa respuesta era: *${jawaban}*`, 
           footer: '*The Teddies 🐻🔥*',
-          buttons: [
-            { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
-          ]
-        });
+          buttons: [{ buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }]
+        }, { quoted: m });
         delete conn.tebakff[m.sender];
       }, 30000)
     };
@@ -41,48 +36,41 @@ Escribe tu respuesta en el chat.`,
       buttons: [
         { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
       ],
-      headerType: 4,
-      viewOnce: true
-    });
+      headerType: 4
+    }, { quoted: m });
     
   } catch (e) {
     console.error('Error en tebakff:', e);
     await conn.sendMessage(m.chat, {
-      text: "❌ Error al cargar el personaje. Intenta nuevamente más tarde."
-    });
+      text: "❌ Error al cargar el personaje. Intenta más tarde."
+    }, { quoted: m });
   }
 };
 
-// Este before solo responde si realmente hay un juego activo
 handler.before = async (m, { conn, usedPrefix, command }) => {
   conn.tebakff = conn.tebakff || {};
+
+  if (!conn.tebakff[m.sender]) return; // No hay partida activa, no hacer nada
   
-  if (m.text.startsWith(usedPrefix)) return; // Ignorar comandos
+  if (m.text.startsWith(usedPrefix)) return; // Si es comando, ignorar
 
-  if (conn.tebakff[m.sender]) {
-    const { jawaban, timeout } = conn.tebakff[m.sender];
-
-    if (m.text.toLowerCase().trim() === jawaban) {
-      clearTimeout(timeout);
-      delete conn.tebakff[m.sender];
-      await conn.sendMessage(m.chat, {
-        text: "✅ *¡Correcto!* ¡Muy bien crack!",
-        footer: "*The Teddies 🐻🔥*",
-        buttons: [
-          { buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }
-        ]
-      });
-    } else {
-      await conn.sendMessage(m.chat, {
-        text: "❌ Incorrecto, sigue intentando..."
-      });
-    }
+  const { jawaban, timeout } = conn.tebakff[m.sender];
+  if (m.text.toLowerCase().trim() === jawaban) {
+    clearTimeout(timeout);
+    delete conn.tebakff[m.sender];
+    await conn.sendMessage(m.chat, {
+      text: "✅ ¡Correcto! Eres un pro.",
+      footer: "*The Teddies 🐻🔥*",
+      buttons: [{ buttonId: `${usedPrefix}${command}`, buttonText: { displayText: "🔁 Intentar otro" }, type: 1 }]
+    }, { quoted: m });
+  } else {
+    await conn.sendMessage(m.chat, { text: "❌ Incorrecto, sigue intentando..." }, { quoted: m });
   }
 };
 
 handler.help = ["tebakff"];
 handler.tags = ["juegos"];
-handler.command = /^tebakff$/i;
+handler.command = /^tebakff|adivinaff$/i;
 handler.exp = 20;
 
 export default handler;
