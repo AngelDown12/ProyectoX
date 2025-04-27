@@ -66,13 +66,8 @@ ${descs}
     await this.sendMessage(m.chat, { 
       text: textWel, 
       image: img || undefined,  // Enviamos la imagen junto con el texto
-      caption: '¡Bienvenido!', 
-      contextInfo: {
-        forwardingScore: 9999999,
-        isForwarded: true,
-        mentionedJid: [m.sender, m.messageStubParameters[0]]
-      }
-    }, { quoted: m })
+      caption: '¡Bienvenido!'  // Añadimos una pequeña leyenda si es necesario
+    })
   }
 
   else if (chat.welcome && m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
@@ -92,13 +87,8 @@ ${descs}
     await this.sendMessage(m.chat, { 
       text: textBye, 
       image: img || undefined,  // Enviamos la imagen junto con el texto
-      caption: '¡Adiós!', 
-      contextInfo: {
-        forwardingScore: 9999999,
-        isForwarded: true,
-        mentionedJid: [m.sender, m.messageStubParameters[0]]
-      }
-    }, { quoted: m })
+      caption: '¡Adiós!'  // Añadimos una pequeña leyenda si es necesario
+    })
 
     // Enviar sticker después del texto y la imagen
     let sticker = await (await fetch(STICKER_URL)).buffer()  // Obtener el sticker desde la URL
