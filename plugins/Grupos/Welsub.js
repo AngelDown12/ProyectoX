@@ -40,7 +40,42 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
   let chat = global.db.data.chats[m.chat]
   let users = participants.map(u => conn.decodeJid(u.id))
 
-  if (chat.welcome && m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
+  if (chat.welcome && m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
+    let subject = groupMetadata.subject
+    let descs = groupMetadata.desc || "🌟 ¡Bienvenido al grupo! 🌟"
+    let userName = `${m.messageStubParameters[0].split`@`[0]}`
+    let defaultWelcome = `*╔══════════════*
+*╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
+*╠══════════════*
+*╟*🛡️ *${subject}*
+*╟*👤 *@${userName}*
+*╟* 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗖𝗜Ó𝗡 
+
+${descs}
+
+*╟* ¡🇼‌🇪‌🇱‌🇨‌🇴‌🇲‌🇪!
+*╚══════════════*`
+
+    let textWel = chat.sWelcome ? chat.sWelcome
+      .replace(/@user/g, `@${userName}`)
+      .replace(/@group/g, subject) 
+      .replace(/@desc/g, descs)
+      : defaultWelcome
+
+    // Enviar texto + imagen (si existe) en un solo mensaje
+    await this.sendMessage(m.chat, { 
+      text: textWel, 
+      image: img || undefined, 
+      caption: '¡Bienvenido!', 
+      contextInfo: {
+        forwardingScore: 9999999,
+        isForwarded: true,
+        mentionedJid: [m.sender, m.messageStubParameters[0]]
+      }
+    }, { quoted: m })
+  }
+
+  else if (chat.welcome && m.messageStubType == 28 && this.user.jid != global.conn.user.jid) {
     let subject = groupMetadata.subject
     let userName = `${m.messageStubParameters[0].split`@`[0]}`
     let defaultBye = `*╔══════════════*
@@ -53,27 +88,22 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
       .replace(/@group/g, subject)
       : defaultBye
 
-    // Primero enviamos el mensaje de despedida
+    // Enviar texto + imagen (si existe) en un solo mensaje
     await this.sendMessage(m.chat, { 
       text: textBye,
+      image: img || undefined, 
+      caption: '¡Adiós!', 
       contextInfo: {
+        forwardingScore: 9999999,
+        isForwarded: true,
         mentionedJid: [m.sender, m.messageStubParameters[0]]
       }
     }, { quoted: m })
 
-    // Enviamos la imagen local (si existe)
-    if (img) {
-      await this.sendMessage(m.chat, { 
-        image: img, 
-        caption: 'Aquí tienes la imagen de despedida', 
-        contextInfo: { mentionedJid: [m.sender, m.messageStubParameters[0]] }
-      })
-    }
-
-    // Luego enviamos el sticker desde el enlace
-    let sticker = await (await fetch(STICKER_URL)).buffer()  // Obtenemos el sticker desde el enlace
+    // Enviar sticker después del texto y la imagen
+    let sticker = await (await fetch(STICKER_URL)).buffer()  // Obtener el sticker desde la URL
     await this.sendMessage(m.chat, { 
-      sticker: sticker  // Enviamos el sticker
+      sticker: sticker  // Enviar el sticker
     })
   }
 }
