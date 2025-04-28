@@ -1,4 +1,4 @@
-let handler = async (m, { conn, text }) => {
+/*let handler = async (m, { conn, text }) => {
 function no(number){
 return number.replace(/\s/g,'').replace(/([@+-])/g,'')}
 text = no(text)
@@ -35,3 +35,4 @@ handler.command = ['restablecerdatos', 'borrardatos', 'deletedatauser']
 handler.owner = true
 
 export default handler
+*/
