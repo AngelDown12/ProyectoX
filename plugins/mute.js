@@ -1,48 +1,45 @@
-let mutedUsers = new Set();
+let mutedUsers = new Set()
 
-let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin }) => {
-    if (!isBotAdmin) return m.reply('⚠️ *El bot necesita ser admin*');
-    if (!isAdmin) return m.reply('⚠️ *Solo admins pueden usar este comando*');
-
-    // Detección INFALIBLE del usuario (menciones + respuestas)
-    let user = (m.mentions && m.mentions[0]) || 
-               (m.quoted ? m.quoted.sender : null);
-
-    if (!user) return m.reply(`🔴 *¡Menciona a alguien o responde a su mensaje!*\nEjemplo: *${usedPrefix + command} @usuario*`);
-
-    // Verificación del comando (respeta tu customPrefix)
-    const isMute = /^\.?mute2$/i.test(m.text.split(/\s+/)[0]);
-    const isUnmute = /^\.?unmute2$/i.test(m.text.split(/\s+/)[0]);
-
-    if (isMute) {
-        mutedUsers.add(user);
-        await conn.sendMessage(m.chat, { 
-            text: `🔇 *@${user.split('@')[0]} MUTEADO*\n¡Sus mensajes serán eliminados!`, 
-            mentions: [user] 
-        }, { quoted: m });
+let handler = async (m, { conn, usedPrefix, command, text }) => {
+    if (!m.quoted && !m.mentionedJid[0]) throw `🌠 *¿A quién deseas mutear?*\n\n✨ *Ejemplo:*\n${usedPrefix + command} @usuario`
+    
+    // Extracción INFALIBLE del usuario (como en tu plugin 'mirar')
+    let user = m.mentionedJid[0] || m.quoted.sender
+    
+    // Acciones (manteniendo tu estilo de mensajes)
+    if (/^\.?mute2$/i.test(command)) {
+        mutedUsers.add(user)
+        await conn.sendMessage(m.chat, {
+            text: `🔇 *@${user.split('@')[0]} muteado*\n¡Sus mensajes serán eliminados!`,
+            mentions: [user]
+        }, { quoted: m })
+        await m.react('🚫')
     } 
-    else if (isUnmute) {
-        mutedUsers.delete(user);
-        await conn.sendMessage(m.chat, { 
-            text: `✅ *@${user.split('@')[0]} DESMUTEADO*\n¡Ya puede enviar mensajes!`, 
-            mentions: [user] 
-        }, { quoted: m });
+    else if (/^\.?unmute2$/i.test(command)) {
+        mutedUsers.delete(user)
+        await conn.sendMessage(m.chat, {
+            text: `✅ *@${user.split('@')[0]} desmuteado*\n¡Ya puede enviar mensajes!`,
+            mentions: [user]
+        }, { quoted: m })
+        await m.react('👌')
     }
 }
 
-// Elimina mensajes de usuarios muteados
-handler.before = async (m, { conn }) => {
-    if (mutedUsers.has(m.sender) && !/sticker|image|video/.test(m.mtype)) {
-        await conn.sendMessage(m.chat, { delete: m.key }).catch(e => console.log(e));
+// Anti-mensajes (mejorado)
+handler.before = async (m) => {
+    if (mutedUsers.has(m.sender) {
+        try {
+            await m.delete()
+        } catch (e) {
+            console.log('Error al borrar mensaje:', e)
+        }
     }
 }
 
-handler.help = ['mute2 @usuario', 'unmute2 @usuario'];
-handler.tags = ['moderación'];
-handler.customPrefix = /^(\.?)(mute2|unmute2)$/i;
-handler.command = new RegExp;
-handler.group = true;
-handler.admin = true;
-handler.botAdmin = true;
+handler.help = ['mute2 @usuario', 'unmute2 @usuario']
+handler.tags = ['moderación']
+handler.command = /^(mute2|unmute2)$/i
+handler.admin = true
+handler.group = true
 
-export default handler;
+export default handler
