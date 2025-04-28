@@ -1,4 +1,4 @@
-
+/*
 let handler = async(m, { user, isOwner, isAdmin, conn, text, participants, args, command }) => {
 if (!(isAdmin || isOwner || user)) {
 global.dfail('admin', m, conn)
@@ -29,3 +29,4 @@ handler.command = /^(staff|terminos|leer)$/i
 handler.admin = false
 handler.group = true
 export default handler
+*/
