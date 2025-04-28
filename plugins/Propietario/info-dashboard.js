@@ -1,4 +1,4 @@
-/*let handler = async (m, { conn }) => {
+let handler = async (m, { conn }) => {
   let stats = Object.entries(db.data.stats).map(([key, val]) => {
     let name = Array.isArray(plugins[key]?.help) ? plugins[key]?.help?.join(' & ') : plugins[key]?.help || key 
     if (/exec/.test(name)) return
@@ -37,4 +37,3 @@ export function getTime(ms) {
   else if (now.minutes) return `${now.minutes} minutes ago`
 else return `hace unos segunos`
 }
-*/
