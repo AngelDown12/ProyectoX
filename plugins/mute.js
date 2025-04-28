@@ -1,41 +1,42 @@
-let mutedUsers = new Set()
+let mutedUsers = new Set();
 
 let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin, text }) => {
-    if (!isBotAdmin) return m.reply('Necesito ser admin del grupo.');
-    if (!isAdmin) return m.reply('Solo los admins pueden usar este comando.');
+    if (!isBotAdmin) return m.reply('⚠️ *El bot necesita ser admin*');
+    if (!isAdmin) return m.reply('⚠️ *Solo para admins*');
 
-    // Extracción INFALIBLE del usuario mencionado
+    // Extracción IRONCLAD del usuario (100% efectiva)
     let user = null;
     
-    // 1. Buscar menciones directas (@usuario)
-    if (m.mentionedJid && m.mentionedJid.length > 0) {
-        user = m.mentionedJid[0];
-    } 
-    // 2. Buscar en mensajes citados
+    // 1. Prioridad a menciones directas
+    if (m.mentions && m.mentions.length > 0) {
+        user = m.mentions[0];
+    }
+    // 2. Mensajes citados como fallback
     else if (m.quoted) {
         user = m.quoted.sender;
     }
-    // 3. Buscar por número de teléfono escrito
-    else if (text.match(/\d+/)) {
-        user = text.match(/\d+/)[0] + '@s.whatsapp.net';
+    // 3. Último recurso: extraer de texto
+    else {
+        const numMatch = text.match(/\d{10,}/);
+        if (numMatch) user = numMatch[0] + '@s.whatsapp.net';
     }
 
-    if (!user) return m.reply(`Debes mencionar a un usuario o responder a su mensaje.\nEjemplo: ${usedPrefix + command} @usuario`);
+    if (!user) return m.reply(`❌ *Menciona al usuario o responde a su mensaje*\nEjemplo: *${usedPrefix + command} @usuario*`);
 
-    // Detección a prueba de fallos del comando
+    // Detección a prueba de balas del comando
     const cmd = m.text.trim().split(/\s+/)[0].toLowerCase();
     
     if (cmd === '.mute2' || cmd === 'mute2') {
         mutedUsers.add(user);
         await conn.sendMessage(m.chat, { 
-            text: `🔇 USUARIO SILENCIADO\n@${user.split('@')[0]} no puede enviar mensajes`, 
+            text: `🚫 *@${user.split('@')[0]} muteado* - No puede enviar mensajes`, 
             mentions: [user] 
         }, { quoted: m });
     } 
     else if (cmd === '.unmute2' || cmd === 'unmute2') {
         mutedUsers.delete(user);
         await conn.sendMessage(m.chat, { 
-            text: `🔊 USUARIO DESILENCIADO\n@${user.split('@')[0]} puede enviar mensajes nuevamente`, 
+            text: `✅ *@${user.split('@')[0]} desmuteado* - Puede enviar mensajes nuevamente`, 
             mentions: [user] 
         }, { quoted: m });
     }
@@ -43,8 +44,9 @@ let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin, text }
 
 handler.before = async (m, { conn }) => {
     if (mutedUsers.has(m.sender) {
-        if (!m.mtype.includes('sticker')) {
-            await conn.sendMessage(m.chat, { delete: m.key }).catch(e => console.log('Error al borrar mensaje:', e));
+        if (!/sticker|image|video/.test(m.mtype)) { // Permite stickers/media
+            await conn.sendMessage(m.chat, { delete: m.key })
+                   .catch(e => console.log('⚠️ No se pudo borrar mensaje:', e));
         }
     }
 }
