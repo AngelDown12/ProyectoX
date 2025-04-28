@@ -1,17 +1,16 @@
 let mutedUsers = new Set();
 
-let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin }) => {
+let handler = async (m, { conn, usedPrefix, command, text, isAdmin, isBotAdmin }) => {
     if (!isBotAdmin) return m.reply('⚠️ *El bot necesita ser admin*');
     if (!isAdmin) return m.reply('⚠️ *Solo admins pueden usar este comando*');
 
-    // Extracción IRONCLAD del usuario (como en tu plugin 'mirar')
+    // Extracción INFALIBLE del usuario (como en tu plugin 'mirar')
     let user = m.mentionedJid?.[0] || (m.quoted ? m.quoted.sender : null);
     if (!user) throw `❌ *Menciona o responde al usuario*\nEjemplo: *${usedPrefix + command} @usuario*`;
 
-    // Detección del comando (respetando TU customPrefix)
-    const cmd = m.text.trim().split(/\s+/)[0].toLowerCase();
-    const isMute = cmd === '.mute2' || cmd === 'mute2';
-    const isUnmute = cmd === '.unmute2' || cmd === 'unmute2';
+    // Detección del comando (sin regex complejos)
+    const isMute = m.text.startsWith('.mute') || m.text.startsWith('mute');
+    const isUnmute = m.text.startsWith('.unmute') || m.text.startsWith('unmute');
 
     if (isMute) {
         mutedUsers.add(user);
@@ -19,7 +18,6 @@ let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin }) => {
             text: `🔇 *@${user.split('@')[0]} MUTEADO*\n¡Sus mensajes serán borrados!`,
             mentions: [user]
         }, { quoted: m });
-        await m.react('🚫');
     } 
     else if (isUnmute) {
         mutedUsers.delete(user);
@@ -27,7 +25,6 @@ let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin }) => {
             text: `✅ *@${user.split('@')[0]} DESMUTEADO*\n¡Ya puede enviar mensajes!`,
             mentions: [user]
         }, { quoted: m });
-        await m.react('👌');
     }
 };
 
@@ -38,10 +35,9 @@ handler.before = async (m, { conn }) => {
     }
 };
 
-handler.help = ['mute2 @usuario', 'unmute2 @usuario'];
+handler.help = ['mute @usuario', 'unmute @usuario'];
 handler.tags = ['moderación'];
-handler.customPrefix = /^(\.?)(mute2|unmute2)$/i; // ✅ ¡TU customPrefix!
-handler.command = new RegExp; // Soporta .mute2 y mute2
+handler.command = /^(mute|unmute)$/i; // Soporta .mute2 y mute2
 handler.group = true;
 handler.admin = true;
 handler.botAdmin = true;
