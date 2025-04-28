@@ -1,4 +1,4 @@
-/*
+
 
 let handler = async (m, { conn }) => {
   if (!(m.chat in global.db.data.chats)) return m.reply('*Este chat no está registrado en la base de datos!*')
@@ -11,4 +11,4 @@ handler.command = /^unbanchat$/i
 handler.botAdmin = true
 handler.rowner = true
 export default handler
-*/
+
