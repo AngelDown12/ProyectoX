@@ -1,4 +1,4 @@
-const handler = async (m, { conn, usedPrefix }) => {
+/*const handler = async (m, { conn, usedPrefix }) => {
   // Información del creador (personalizable)
   const owner = {
     number: "593993370003@s.whatsapp.net",
@@ -52,3 +52,4 @@ handler.tags = ['info'];
 handler.command = /^(creador|owner|contacto|soporte|developer)$/i;
 
 export default handler;
+*/
