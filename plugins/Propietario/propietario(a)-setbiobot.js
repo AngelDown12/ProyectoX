@@ -1,4 +1,4 @@
-/*let handler = async (m, { conn, text }) => {
+let handler = async (m, { conn, text }) => {
    if (!text) throw `${lenguajeGB['smsAvisoMG']()}𝙄𝙉𝙂𝙍𝙀𝙎𝙀 𝙐𝙉 𝙏𝙀𝙓𝙏𝙊`
      try {
 		await conn.updateProfileStatus(text).catch(_ => _)
@@ -13,4 +13,4 @@ handler.command = /^biobot|setbotbio$/i
 handler.owner = true
 
 export default handler
-*/
+
