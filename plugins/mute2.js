@@ -1,52 +1,46 @@
-let mutedUsers = new Set();
+let mutedUsers = new Set()
 
-let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin }) => {
-    if (!isBotAdmin) return conn.reply(m.chat, '𝘯𝘦𝘤𝘦𝘴𝘪𝘵𝘢 𝘴𝘦𝘳 𝘢𝘥𝘮𝘪𝘯𝘪𝘴𝘵𝘳𝘢𝘥𝘰𝘳.', m);
-    if (!isAdmin) return conn.reply(m.chat, '> 𝘌𝘴𝘵𝘦 𝘤𝘰𝘮𝘢𝘯𝘥𝘰 𝘴𝘰𝘭𝘰 𝘱𝘶𝘦𝘥𝘦𝘯 𝘶𝘴𝘢𝘳𝘭𝘰 𝘢𝘥𝘮𝘪𝘯𝘪𝘴𝘵𝘳𝘢𝘥𝘰𝘳𝘦𝘴.', m);
+let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin, text }) => {
+    if (!isBotAdmin) return m.reply('𝘕𝘦𝘤𝘦𝘴𝘪𝘵𝘢 𝘴𝘦𝘳 𝘢𝘥𝘮𝘪𝘯.');
+    if (!isAdmin) return m.reply('> 𝘌𝘴𝘵𝘦 𝘤𝘰𝘮𝘢𝘯𝘥𝘰 𝘴𝘰𝘭𝘰 𝘭𝘰 𝘶𝘴𝘢𝘯 𝘢𝘥𝘮𝘪𝘯𝘴.');
 
-    let user = m.mentionedJid?.[0] || (m.quoted ? m.quoted.sender : null) || (m.text.match(/@(\d+)/)?.[1] + '@s.whatsapp.net');
+    let user = m.mentionedJid?.[0] || (m.quoted ? m.quoted.sender : null);
 
     if (!user) {
-        return conn.reply(m.chat, `> 𝘔𝘦𝘯𝘤𝘪𝘰𝘯𝘢 𝘢𝘭 𝘶𝘴𝘶𝘢𝘳𝘪𝘰 𝘰 𝘳𝘦𝘴𝘱𝘰𝘯𝘥𝘦 𝘢 𝘴𝘶 𝘮𝘦𝘯𝘴𝘢𝘫𝘦 𝘱𝘢𝘳𝘢 𝘮𝘶𝘵𝘦𝘢𝘳.\n\n𝘌𝘫𝘦𝘮𝘱𝘭𝘰: ${usedPrefix + command} @usuario`, m);
+        return m.reply(`> 𝘔𝘦𝘯𝘤𝘪𝘰𝘯𝘢 𝘰 𝘳𝘦𝘴𝘱𝘰𝘯𝘥𝘦 𝘢 𝘶𝘯 𝘶𝘴𝘶𝘢𝘳𝘪𝘰.\n\n𝘌𝘫𝘦𝘮𝘱𝘭𝘰: ${usedPrefix + command} @usuario`);
     }
 
-    if (!user.includes('@s.whatsapp.net')) {
-        user = user + '@s.whatsapp.net';
-    }
-
-    // Evitar que te mutees a ti mismo
-    if (user === m.sender) {
-        return conn.reply(m.chat, 'Ey espera, no puedes mutearte a ti mismo xd.', m);
-    }
-
-    if (command === "mute2") {
+    if (/^\.?mute2$/i.test(m.text)) {
         mutedUsers.add(user);
         await conn.sendMessage(m.chat, {
-            text: `𝘜𝘴𝘶𝘢𝘳𝘪𝘰 𝘮𝘶𝘵𝘦𝘢𝘥𝘰: @${user.split('@')[0]} 🔇`,
-            mentions: [user]
-        }, { quoted: m });
-    } else if (command === "unmute2") {
-        mutedUsers.delete(user);
-        await conn.sendMessage(m.chat, {
-            text: `𝘜𝘴𝘶𝘢𝘳𝘪𝘰 𝘥𝘦𝘴𝘮𝘶𝘵𝘦𝘢𝘥𝘰: @${user.split('@')[0]} ✔️`,
+            text: `🔇 𝘜𝘴𝘶𝘢𝘳𝘪𝘰 𝘮𝘶𝘵𝘦𝘢𝘥𝘰: @${user.split('@')[0]}`,
             mentions: [user]
         }, { quoted: m });
     }
-};
+
+    if (/^\.?unmute2$/i.test(m.text)) {
+        mutedUsers.delete(user);
+        await conn.sendMessage(m.chat, {
+            text: `✔️ 𝘜𝘴𝘶𝘢𝘳𝘪𝘰 𝘥𝘦𝘴𝘮𝘶𝘵𝘦𝘢𝘥𝘰: @${user.split('@')[0]}`,
+            mentions: [user]
+        }, { quoted: m });
+    }
+}
 
 handler.before = async (m, { conn }) => {
     if (mutedUsers.has(m.sender) && !m.mtype.includes('sticker')) {
         try {
             await conn.sendMessage(m.chat, { delete: m.key });
         } catch (e) {
-            console.error('Error al eliminar mensaje:', e);
+            console.error('Error al eliminar mensaje:', e)
         }
     }
-};
+}
 
 handler.help = ['mute2', 'unmute2'];
 handler.tags = ['group'];
-handler.command = /^(mute2|unmute2)$/i;
+handler.customPrefix = /^(\.?)(mute2|unmute2)$/i;
+handler.command = new RegExp; 
 handler.group = true;
 handler.admin = true;
 handler.botAdmin = true;
