@@ -1,4 +1,4 @@
-let handler = async (m, { conn, text, usedPrefix, command}) => {
+/*let handler = async (m, { conn, text, usedPrefix, command}) => {
 let user, number, bot, bant, ownerNumber, aa, users, usr, q, mime, img
 try {
 function no(number){
@@ -44,3 +44,4 @@ console.log(e)
 handler.command = /^banuser|bloquear$/i
 handler.owner = true
 export default handler
+*/
