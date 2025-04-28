@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+/*import { execSync } from 'child_process';
 
 const handler = async (m, { conn, text }) => {
   try {
@@ -42,3 +42,4 @@ handler.tags = ['owner'];
 handler.command = /^(update|actualizar)$/i;
 handler.rowner = true;
 export default handler;
+*/
