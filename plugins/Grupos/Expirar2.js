@@ -1,4 +1,4 @@
-export async function all(m, conn) {
+export async function before(m, conn) {
    
 if (!m.isGroup)
 return
@@ -9,7 +9,7 @@ if (+new Date() > chats.expired) {
 //let caption = `*${this.user.name}* ${lenguajeGB['smsBottem1']()}`
 let pp = './media/menus/Menu2.jpg'
 
-await m.reply(`${lenguajeGB['smsBottem1']()}`)
+await m.reply(`${this.user.name}\n ${lenguajeGB['smsBottem1']()}`)
 //await this.sendButton(m.chat, caption, lenguajeGB.smsBottem2() + wm, pp, [[lenguajeGB.smsBottem3(), '.hastapronto']], null)
 await this.groupLeave(m.chat)
 chats.expired = null
