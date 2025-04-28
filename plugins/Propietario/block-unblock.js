@@ -1,4 +1,4 @@
-import fs from 'fs';
+/*import fs from 'fs';
 const handler = async (m, { conn, command }) => {
   const why = `Uso correcto\n${command} @usuario`;
   const who = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null);
@@ -60,3 +60,4 @@ handler.command = /^(block|unblock)$/i;
 handler.rowner = true;
 
 export default handler;
+*/
