@@ -1,4 +1,4 @@
-/*
+
 
 let handler = async (m) => {
 global.db.data.chats[m.chat].isBanned = true
@@ -10,4 +10,4 @@ handler.command = /^banchat|banchat2$/i
 handler.botAdmin = true
 handler.rowner = true
 export default handler
-*/
+
