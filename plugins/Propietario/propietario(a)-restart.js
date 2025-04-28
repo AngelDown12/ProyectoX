@@ -1,4 +1,4 @@
-/*const handler = async (m, { conn, isROwner, text }) => {
+const handler = async (m, { conn, isROwner, text }) => {
 const datas = global
 
 if (!process.send) throw 'Dont: node main.js\nDo: node index.js'
@@ -18,4 +18,4 @@ handler.owner = true
 export default handler
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-*/
+
