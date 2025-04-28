@@ -1,4 +1,4 @@
-import { tmpdir } from 'os'
+/*import { tmpdir } from 'os'
 import path, { join } from 'path'
 import {
 readdirSync,
@@ -29,3 +29,4 @@ handler.command = /^(cleartmp|limpieza2|cleartemp|borrartmp|eliminartmp|borrarte
 handler.exp = 500
 handler.rowner = true
 export default handler
+*/
