@@ -1,4 +1,4 @@
-/*import cp from 'child_process';
+import cp from 'child_process';
 import { promisify } from 'util';
 const exec = promisify(cp.exec).bind(cp);
 
@@ -28,4 +28,4 @@ handler.tags = ['info'];
 handler.command = /^(speedtest?|test?speed)$/i;
 handler.register = false
 export default handler;
-*/
+
