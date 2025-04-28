@@ -122,7 +122,6 @@ console.log(e)}}
 handler.customPrefix = /menuff|menufreefire/i 
 handler.command = new RegExp
 handler.exp = 0
-handler.owner = true
 export default handler;   
 
 function clockString(ms) {
