@@ -30,3 +30,4 @@ function msToDate(ms) {
   let s = isNaN(ms) ? '--' : Math.floor(ms / 1000) % 60
   return [d, ' *Días*\n ', h, ' *Horas*\n ', m, ' *Minutos*\n ', s, ' *Segundos* '].map(v => v.toString().padStart(2, 0)).join('')
 }
+*/
