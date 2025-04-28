@@ -1,4 +1,4 @@
-/*
+
 import fs from 'fs'
 
 let handler = async (m, { usedPrefix, command, text }) => {
@@ -15,4 +15,4 @@ handler.command = /^(getplugin|gp)$/i
 handler.rowner = true
 
 export default handler
-*/
+
