@@ -1,4 +1,4 @@
-/*import { performance } from 'perf_hooks'
+import { performance } from 'perf_hooks'
 
 let handler = async (m, { conn }) => {
 
@@ -42,4 +42,4 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 function pickRandom(list) {
   return list[Math.floor(Math.random() * list.length)]
 }
-*/
+
