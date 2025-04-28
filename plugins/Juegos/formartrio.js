@@ -1,4 +1,4 @@
-let toM = a => '@' + a.split('@')[0]
+/*let toM = a => '@' + a.split('@')[0]
 function handler(m, { groupMetadata }) {
 let ps = groupMetadata.participants.map(v => v.id)
 let a = ps.getRandom()
@@ -16,3 +16,4 @@ handler.tags = ['fun']
 handler.command = ['formartrio','formartrios']
 handler.group = true
 export default handler 
+*/
