@@ -1,4 +1,4 @@
-
+/*
 let handler = async (m, { conn, args, usedPrefix, command }) => {
 	
 	if (global.db.data.chats[m.chat].expired < 1) throw `✅ 𝘌𝘴𝘵𝘦 𝘨𝘳𝘶𝘱𝘰 𝘯𝘰 𝘵𝘪𝘦𝘯𝘦 𝘭𝘪𝘮𝘪𝘵𝘦 𝘥𝘦 𝘵𝘪𝘦𝘮𝘱𝘰.`
