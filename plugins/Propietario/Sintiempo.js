@@ -1,4 +1,4 @@
-/*
+
 let handler = async (m, { conn, args, usedPrefix, command }) => {
     let who
     if (m.isGroup) who = args[1] ? args[1] : m.chat
@@ -17,4 +17,4 @@ handler.rowner = true
 handler.group = true
 
 export default handler
-*/
+
