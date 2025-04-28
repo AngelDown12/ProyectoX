@@ -18,7 +18,7 @@ let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin, text }
         }, { quoted: m });
     }
 
-    if (/^\.?unmute$/i.test(m.text)) {
+    if (/^\.?unmute2$/i.test(m.text)) {
         mutedUsers.delete(user);
         await conn.sendMessage(m.chat, {
             text: `✔️ 𝘜𝘴𝘶𝘢𝘳𝘪𝘰 𝘥𝘦𝘴𝘮𝘶𝘵𝘦𝘢𝘥𝘰: @${user.split('@')[0]}`,
@@ -37,9 +37,9 @@ handler.before = async (m, { conn }) => {
     }
 }
 
-handler.help = ['mute', 'unmute'];
+handler.help = ['mute', 'unmute2'];
 handler.tags = ['group'];
-handler.customPrefix = /^(\.?)(mute|unmute)$/i;
+handler.customPrefix = /^(\.?)(mute|unmute2)$/i;
 handler.command = new RegExp; 
 handler.group = true;
 handler.admin = true;
