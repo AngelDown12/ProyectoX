@@ -1,20 +1,33 @@
-// archivo: plugins/forceReply.js
+// archivo: plugins/fixReply.js
 
-import { sendMessage } from '@whiskeysockets/baileys'
+import { delay } from '@whiskeysockets/baileys'
 
 export async function before(m, { conn, text, args, command }) {
+  if (!m.isGroup) return
+  if (!m.text.startsWith(global.prefix)) return
+
   try {
-    // Verifica si el mensaje viene de grupo y es comando
-    if (!m.isGroup) return
-    if (!m.text.startsWith(global.prefix)) return
+    console.log(`[FIX-REPLY] Intentando responder comando ${command} en ${m.chat}`)
 
-    // Si detecta un comando que normalmente se perdería
-    console.log(`[FORCE-REPLY] Comando detectado: ${m.text} en ${m.chat}`)
-
-    // Enviar una respuesta forzada al grupo
-    await conn.sendMessage(m.chat, { text: `✅ Comando recibido: *${command}*` }, { quoted: m })
+    // Intentar enviar normalmente
+    await conn.sendMessage(m.chat, { text: `✅ Comando procesado: *${command}*` }, { quoted: m })
 
   } catch (e) {
-    console.error('[FORCE-REPLY-ERROR]', e)
+    console.error('[FIX-REPLY ERROR]', e)
+
+    // Intentar reconectar si falla
+    try {
+      console.log('[FIX-REPLY] Reintentando reconexión...')
+      await conn.ws.close()
+      await delay(3000) // esperar 3 segundos
+      await conn.connect()
+      console.log('[FIX-REPLY] Reconectado exitosamente.')
+
+      // Reintentar enviar mensaje después de reconectar
+      await conn.sendMessage(m.chat, { text: `✅ Bot reconectado. Comando: *${command}*` }, { quoted: m })
+
+    } catch (reconnectError) {
+      console.error('[FIX-REPLY RECONNECT ERROR]', reconnectError)
+    }
   }
 }
