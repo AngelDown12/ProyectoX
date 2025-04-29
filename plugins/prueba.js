@@ -7,19 +7,19 @@ handler.before = async (m, { conn }) => {
 
   // Si SIMI está activado para este chat
   if (chat.simi) {
+    const textodem = m.text;
 
-    // Aquí evitamos que SIMI responda a comandos específicos
-    if (/^.*false|disable|(turn)?off|0|!/.test(m.text)) return;  // Evitar comandos como !, off, 0, etc.
+    // ⛔ Ignorar si es comando (empieza con . ! / etc.)
+    if (/^[.!/#]/.test(textodem)) return;
 
-    let textodem = m.text;
-
-    // Lista de palabras excluidas para evitar que SIMI responda a ciertos comandos
+    // ⛔ Ignorar si contiene palabras clave que son comandos
     const excludedWords = ['serbot', 'bots', 'jadibot', 'menu', 'play', 'play2', 'playdoc', 'tiktok', 'facebook', 'menu2', 'infobot', 'estado', 'ping', 'sc', 'sticker', 's', 'textbot', 'qc'];
-
     const words = textodem.toLowerCase().split(/\s+/);
-
-    // Si la palabra está en la lista de excluidos, no responde
     if (excludedWords.some(word => words.includes(word))) return;
+
+    // ✅ Solo responde si mencionan al bot (opcional, puedes cambiar las palabras clave)
+    const activarPorMencion = /(barbozabot|barboza|bot)/i;
+    if (!activarPorMencion.test(textodem)) return;
 
     try {
       const username = `${conn.getName(m.sender)}`;
@@ -34,23 +34,16 @@ handler.before = async (m, { conn }) => {
       console.error('Error en handler Luminai:', error);
       await conn.reply(m.chat, '❌ Ocurrió un error al procesar tu mensaje', m);
     }
-    return !0;  // Esto evita que el bot siga procesando el mensaje
+    return !0;
   }
-  return true;  // Continúa con la ejecución normal si SIMI no está activo
+  return true;
 };
 
 export default handler;
 
-// Función para interactuar con tu API
+// Función para interactuar con la API
 async function callBarbozaAPI(query, username, prompt) {
   try {
-    console.log('Datos enviados a la API:', {
-      content: query,
-      user: username,
-      prompt: prompt,
-      webSearchMode: false
-    });
-
     const response = await axios.post("https://Luminai.my.id", {
       content: query,
       user: username,
@@ -58,16 +51,13 @@ async function callBarbozaAPI(query, username, prompt) {
       webSearchMode: false
     });
 
-    // Verificar la respuesta de la API
     if (response.status === 200 && response.data.result) {
       return response.data.result.trim() || '💛 Lo siento, no pude responder eso.';
     } else {
-      console.error('Respuesta inesperada de la API:', response);
       return '💛 Lo siento, hubo un problema con la respuesta de la API.';
     }
   } catch (error) {
     console.error('💛 Error al obtener respuesta de Luminai:', error);
-    console.error('Detalles del error:', error.response?.data); // Imprimir más detalles del error si están disponibles
     return '💛 Hubo un error al procesar tu solicitud. Intenta de nuevo más tarde.';
   }
 }
