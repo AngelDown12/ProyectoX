@@ -1466,9 +1466,19 @@ pp = await this.profilePictureUrl(user, 'image')
 let apii = await this.getFile(pp)
 const botTt2 = groupMetadata.participants.find(u => this.decodeJid(u.id) == this.user.jid) || {}
 const isBotAdminNn = botTt2?.admin === "admin" || false
-text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!').replace('@subject', await this.getName(id)).replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ') :
-(chat.sBye || this.bye || conn.bye || 'Bye, @user!')).replace('@user', '@' + user.split('@')[0])
+let image = chat.sWelcomeImage;
+text = (action === 'add' ? 
+  (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!') :
+  (chat.sBye || this.bye || conn.bye || 'Bye, @user!'))
+  .replace('@subject', await this.getName(id))
+  .replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝐿𝐵𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ')
+  .replace('@user', '@' + user.split('@')[0]);
 
+if (image) {
+  await this.sendMessage(id, { image: image, caption: text, mentions: [user] });
+} else {
+  await this.sendMessage(id, { text: text, mentions: [user] });
+}
 
 
 	
