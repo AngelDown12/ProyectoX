@@ -1,7 +1,11 @@
-handler.before = async (m, { conn }) => {
+handler.before = async (m, { conn, isCommand }) => {
   const chat = global.db.data.chats[m.chat];
   if (chat.simi) {
-    if (m.text?.startsWith(global.prefix)) return; // ⛔ Ignora comandos
+    if (m.text?.startsWith(global.prefix) || isCommand) return; // ⛔ Ignora comandos
+    
+    // También puedes bloquear los comandos detectados desde m.command
+    if (m.command) return;
+
     if (/^.*false|disable|(turn)?off|0/i.test(m.text)) return;
 
     let textodem = m.text;
