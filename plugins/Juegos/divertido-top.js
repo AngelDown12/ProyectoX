@@ -1,4 +1,4 @@
-/*let user = (a) => "@" + a.split("@")[0];
+let user = (a) => "@" + a.split("@")[0];
 function handler(m, {groupMetadata, conn, text}) {
   if (!text) throw `Ejemplo de uso:\n.top *texto*`;
   let ps = groupMetadata.participants.map((v) => v.id);
@@ -36,4 +36,4 @@ export default handler;
 function pickRandom(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
-*/
+
