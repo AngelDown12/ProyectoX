@@ -1439,7 +1439,6 @@ function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]
  * @param {import('@adiwajshing/baileys').BaileysEventMap<unknown>['group-participants.update']} groupsUpdate 
  */
 // copiar desde aqui para configurar despedida y bienvenida.
-
 export async function participantsUpdate({ id, participants, action }) {
     if (opts['self']) return
     if (this.isInit) return
@@ -1454,24 +1453,33 @@ export async function participantsUpdate({ id, participants, action }) {
             ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!')
             : (chat.sBye || this.bye || conn.bye || 'Bye, @user!'))
             .replace('@subject', await this.getName(id))
-            .replace('@desc', groupMetadata?.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ')
-            .replace('@user', '@' + user.split('@')[0]);
+            .replace('@desc', groupMetadata?.desc || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁')
+            .replace('@user', '@' + user.split('@')[0])
 
-        let image
-        if (action === 'add' && chat.sWelcomeImage) {
-            image = { image: chat.sWelcomeImage, caption: text, mentions: [user] }
-        } else {
-            let pp = './src/sinfoto.jpg'
-            try {
-                pp = await this.profilePictureUrl(user, 'image')
-            } catch (e) {}
-            image = { image: { url: pp }, caption: text, mentions: [user] }
+        try {
+            if (action === 'add' && chat.sWelcomeImage) {
+                await this.sendMessage(id, {
+                    image: chat.sWelcomeImage,
+                    caption: text,
+                    mentions: [user]
+                })
+            } else {
+                let pp = './src/sinfoto.jpg'
+                try {
+                    pp = await this.profilePictureUrl(user, 'image')
+                } catch (e) {}
+                await this.sendMessage(id, {
+                    image: { url: pp },
+                    caption: text,
+                    mentions: [user]
+                })
+            }
+        } catch (e) {
+            console.error('Error enviando mensaje de bienvenida/despedida:', e)
         }
-
-        await this.sendMessage(id, image)
     }
 }
-	
+
 			    
 if (chat.antifake && isBotAdminNn && action === 'add') {
 const prefijosPredeterminados = [ 2, 4, 6, 7, 234, 9] // Puedes editar que usuarios deseas que se eliminen si empieza por algunos de los números
