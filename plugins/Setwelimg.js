@@ -15,10 +15,10 @@ let handler = async (m, { conn, text, isROwner, isOwner }) => {
   }
 
   if (m.quoted && m.quoted.mtype === 'imageMessage') {
-    // Si el mensaje es una imagen, guardamos la imagen como la bienvenida
-    let image = await m.quoted.download(); // Descargar la imagen
-    global.db.data.chats[m.chat].sWelcomeImage = image; // Guardamos la imagen en la base de datos del chat
-    conn.reply(m.chat, lenguajeGB.smsSetImage(), fkontak, m); // Responde confirmando que se configuró la imagen
+    let image = await m.quoted.download()
+    global.db.data.chats[m.chat] = global.db.data.chats[m.chat] || {}
+    global.db.data.chats[m.chat].sWelcomeImage = image
+    conn.reply(m.chat, '✅ Imagen de bienvenida configurada correctamente.', fkontak, m)
   } else {
     throw `✦ ¡Hola!
 Te ayudaré a configurar la imagen de bienvenida.
@@ -26,7 +26,7 @@ Te ayudaré a configurar la imagen de bienvenida.
 💡 Para configurar una imagen de bienvenida, simplemente responde a este comando con una imagen.
 
 💫 Ejemplo:
-.envía una imagen y luego usa el comando .setweimg para configurarla como la imagen de bienvenida.`;
+.envía una imagen y luego usa el comando .setweimg para configurarla como la imagen de bienvenida.`
   }
 }
 
