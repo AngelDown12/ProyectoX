@@ -981,7 +981,7 @@ if (!('sPromote' in chat)) chat.sPromote = ''
 if (!('sDemote' in chat)) chat.sDemote = '' 
 if (!('sCondition' in chat)) chat.sCondition = ''
 if (!('sAutorespond' in chat)) chat.sAutorespond = '' 
-if (!('delete' in chat)) chat.delete = true                   
+if (!('delete' in chat)) chat.delete = false                 
 if (!('modohorny' in chat)) chat.modohorny = true       
 if (!('stickers' in chat)) chat.stickers = false            
 if (!('autosticker' in chat)) chat.autosticker = false      
@@ -1022,7 +1022,7 @@ fin: "23:59"
 global.db.data.chats[m.chat] = {
 isBanned: false,
 welcome: true,
-detect: true,
+detect: false,
 sWelcome: '',
 sBye: '',
 sPromote: '',
