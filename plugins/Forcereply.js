@@ -1,62 +1,108 @@
-// archivo: plugins/diagnostico-grupo.js
+import fs from 'fs'
+import fetch from 'node-fetch'
 
-export async function commandDiagnosticoGrupo(m, { conn, args }) {
+let handler = m => m
+
+handler.before = async function (m, { conn, participants, groupMetadata, isBotAdmin }) {
+  if (!m.messageStubType || !m.isGroup) return
+
+  // Imagen predeterminada local
+  const FOTO_PREDETERMINADA = './src/sinfoto2.jpg'
+  // Sticker despedida
+  const STICKER_URL = 'https://files.catbox.moe/g3hyc2.webp'
+
+  let pp
   try {
-    // Verifica que sea un grupo
-    if (!m.isGroup) return m.reply('Este comando solo se puede usar en grupos.')
+    pp = await conn.profilePictureUrl(m.messageStubParameters[0], 'image').catch(_ => null)
+  } catch {
+    pp = null
+  }
 
-    let chatSettings = global.db.data.chats[m.chat] || {}
-
-    // Comprobaciones básicas
-    let respuesta = `*[ DIAGNÓSTICO DEL GRUPO ]*\n\n`
-    respuesta += `ID del Grupo: ${m.chat}\n`
-    respuesta += `Nombre: ${await conn.groupMetadata(m.chat).then(res => res.subject).catch(() => 'Desconocido')}\n\n`
-
-    respuesta += `*Estado General:*\n`
-
-    // ¿El grupo está baneado?
-    if (chatSettings.isBanned) {
-      respuesta += `- Este grupo está *BANEADO*.\n`
-    } else {
-      respuesta += `- Este grupo *NO está baneado*.\n`
-    }
-
-    // ¿El bot es Admin?
-    const groupMetadata = await conn.groupMetadata(m.chat)
-    const botNumber = conn.user.id.split(':')[0] + '@s.whatsapp.net'
-    const participants = groupMetadata.participants || []
-    const botParticipant = participants.find(p => p.id === botNumber)
-
-    if (botParticipant?.admin) {
-      respuesta += `- El bot *ES ADMIN* en este grupo.\n`
-    } else {
-      respuesta += `- El bot *NO ES ADMIN* en este grupo.\n`
-    }
-
-    // ¿Puede enviar mensajes?
-    if (groupMetadata?.restrict) {
-      respuesta += `- El grupo tiene restricciones de envío (*modo solo admins*).\n`
-    } else {
-      respuesta += `- El grupo permite mensajes a *todos* los miembros.\n`
-    }
-
-    // Test rápido: intentar enviar un mensaje de prueba
+  let img
+  if (pp) {
     try {
-      await conn.sendMessage(m.chat, { text: '✅ Test de envío exitoso.' }, { quoted: m })
-      respuesta += `\n- *Mensaje de prueba enviado correctamente.*\n`
-    } catch (errorEnvio) {
-      respuesta += `\n- *Error al enviar mensaje de prueba:* ${errorEnvio.message}\n`
+      img = await (await fetch(pp)).buffer()
+    } catch {
+      img = null
     }
+  }
+  if (!img) {
+    try {
+      img = fs.readFileSync(FOTO_PREDETERMINADA)
+    } catch {
+      img = null
+    }
+  }
 
-    await conn.sendMessage(m.chat, { text: respuesta }, { quoted: m })
+  let usuario = `@${m.sender.split`@`[0]}`
+  let chat = global.db.data.chats[m.chat]
+  let users = participants.map(u => conn.decodeJid(u.id))
 
-  } catch (err) {
-    console.error('[DIAGNOSTICO-GRUPO ERROR]', err)
-    await m.reply('❌ Error al realizar el diagnóstico: ' + err.message)
+  let subject = groupMetadata.subject
+  let descs = groupMetadata.desc || "Sin descripción"
+  let userName = `${m.messageStubParameters[0].split`@`[0]}`
+
+  // Detectamos eventos
+  if (chat.welcome && m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
+    // Evento de bienvenida (27)
+    let defaultWelcome = `*╔══════════════*
+*╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
+*╠══════════════*
+*╟*🛡️ *${subject}*
+*╟*👤 *@${userName}*
+*╟* 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗖𝗜𝗢́𝗡 
+
+${descs}
+
+*╟* ¡🇼‌🇪‌🇱‌🇨‌🇴‌🇲‌🇪!
+*╚══════════════*`
+
+    let textWel = chat.sWelcome ? chat.sWelcome
+      .replace(/@user/g, `@${userName}`)
+      .replace(/@group/g, subject)
+      .replace(/@desc/g, descs)
+      : defaultWelcome
+
+    await this.sendMessage(m.chat, { 
+      image: img,
+      caption: textWel,
+      contextInfo: {
+        mentionedJid: [m.sender, m.messageStubParameters[0]]
+      }
+    }, { quoted: m })
+  }
+
+  else if (chat.welcome && (m.messageStubType == 28 || m.messageStubType == 32) && this.user.jid != global.conn.user.jid) {
+    // Evento de despedida (28 expulsado o 32 se salió)
+    let defaultBye = `*╔══════════════*
+*╟* *SE FUE UNA BASURA*
+*╟*👤 @${userName}* 
+*╚══════════════*`
+
+    let textBye = chat.sBye ? chat.sBye
+      .replace(/@user/g, `@${userName}`)
+      .replace(/@group/g, subject)
+      : defaultBye
+
+    // Enviar mensaje de despedida
+    await this.sendMessage(m.chat, { 
+      image: img,
+      caption: textBye,
+      contextInfo: {
+        mentionedJid: [m.sender, m.messageStubParameters[0]]
+      }
+    }, { quoted: m })
+
+    // Además, enviar el sticker de despedida (después de 2 segundos)
+    setTimeout(async () => {
+      try {
+        let sticker = await (await fetch(STICKER_URL)).buffer()
+        await conn.sendMessage(m.chat, { sticker: sticker })
+      } catch (e) {
+        console.error('Error enviando sticker de despedida:', e)
+      }
+    }, 2000)
   }
 }
 
-// Registrarlo como comando
-commandDiagnosticoGrupo.command = /^diagnosticogrupo$/i
-commandDiagnosticoGrupo.group = true
-export default commandDiagnosticoGrupo
+export default handler
