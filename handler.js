@@ -1439,7 +1439,7 @@ function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]
  * @param {import('@adiwajshing/baileys').BaileysEventMap<unknown>['group-participants.update']} groupsUpdate 
  */
 // copiar desde aqui para configurar despedida y bienvenida.
-/*export async function participantsUpdate({ id, participants, action }) {
+export async function participantsUpdate({ id, participants, action }) {
     if (opts['self'])
         return
     // if (id in conn.chats) return // First login will spam
@@ -1462,10 +1462,9 @@ pp = await this.profilePictureUrl(user, 'image')
 } finally {
 let apii = await this.getFile(pp)                                      
 const botTt2 = groupMetadata.participants.find(u => this.decodeJid(u.id) == this.user.jid) || {} 
-const isBotAdminNn = botTt2?.admin === "admin" || false*/
+const isBotAdminNn = botTt2?.admin === "admin" || false
 //text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!').replace('@subject', await this.getName(id)).replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ') :
 //(chat.sBye || this.bye || conn.bye || 'Bye, @user!')).replace('@user', '@' + user.split('@')[0])
-let image = chat.sWelcomeImage;
 text = (action === 'add'
   ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!')
   : (chat.sBye || this.bye || conn.bye || 'Bye, @user!'))
@@ -1473,8 +1472,8 @@ text = (action === 'add'
   .replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ')
   .replace('@user', '@' + user.split('@')[0]);
 
-if (image && action === 'add') {
-  await this.sendMessage(id, { image: image, caption: text, mentions: [user] });
+if (action === 'add' && chat.sWelcomeImage) {
+  await this.sendMessage(id, { image: chat.sWelcomeImage, caption: text, mentions: [user] });
 } else {
   let pp = './src/sinfoto.jpg';
   try {
