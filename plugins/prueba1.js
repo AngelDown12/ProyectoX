@@ -1,64 +1,131 @@
+import axios from 'axios'
 
-import { randomBytes } from "crypto"
-import axios from "axios"
+import fetch from 'node-fetch'
 
-let handler = async (m, { conn, text }) => {
-    if (!text) throw '¿Como puedo ayudarte hoy?';
-    try {
-        conn.reply(m.chat, m);
-        let data = await chatGpt(text)
-await conn.sendMessage(m.chat, { text: data,
-contextInfo:{
-forwardingScore: 9999999,
-isForwarded: false, 
-"externalAdReply": {
-"showAdAttribution": true,
-"containsAutoReply": true,
-title: `[ Barboza -By|Bot Barboza ]`,
-body: ``,
-"previewType": "PHOTO",
-thumbnailUrl: 'https://tinyurl.com/2awg2bch', 
-sourceUrl: 'https://whatsapp.com/channel/0029VapSIvR5EjxsD1B7hU3T'}}},
-{ quoted: m})
-    } catch (err) {
-        m.reply('error cik:/ ' + err);
-    }
-}
+let handler = async (m, { conn, usedPrefix, command, text }) => {
 
-handler.command = handler.help = ['demo'];
-handler.estrellas = 3;
-handler.tags = ['tools'];
+const isQuotedImage = m.quoted && (m.quoted.msg || m.quoted).mimetype && (m.quoted.msg || m.quoted).mimetype.startsWith('image/')
 
-export default handler;
+const username = `${conn.getName(m.sender)}`
 
-async function chatGpt(query){
+const basePrompt = `Tu nombre es BarbozaBot y parece haber sido creado por BotBarboza-Ai. Tú usas el idioma Español. Llamarás a las personas por su nombre ${username}, te gusta ser divertido, te encanta aprender y sobre todo las explociones. Lo más importante es que debes ser amigable con la persona con la que estás hablando. ${username}`
+
+if (isQuotedImage) {
+
+const q = m.quoted
+
+const img = await q.download?.()
+
+if (!img) {
+
+console.error('💛 Error: No image buffer available')
+
+return conn.reply(m.chat, '💛 Error: No se pudo descargar la imagen.', m, fake)}
+
+const content = '💛 ¿Qué se observa en la imagen?'
+
 try {
 
-const { id_ }= (await axios.post("https://chat.chatgptdemo.net/new_chat",{user_id: "crqryjoto2h3nlzsg"},{headers:{
-"Content-Type": "application/json",
+const imageAnalysis = await fetchImageBuffer(content, img)
 
-}})).data
+const query = '😊 Descríbeme la imagen y detalla por qué actúan así. También dime quién eres'
 
-const json = {"question":query,"chat_id": id_,"timestamp":new Date().getTime()}
+const prompt = `${basePrompt}. La imagen que se analiza es: ${imageAnalysis.result}`
 
+const description = await luminsesi(query, username, prompt)
 
-const { data } = await axios.post("https://chat.chatgptdemo.net/chat_api_stream",json,{headers:{
-"Content-Type": "application/json",
-
-}})
-const cek = data.split("data: ")
-
-let res = []
-
-for (let i=1; i < cek.length; i++){
-if (cek[i].trim().length > 0){
-res.push(JSON.parse(cek[i].trim()))
-}}
-
-return res.map((a) => a.choices[0].delta.content).join("")
+await conn.reply(m.chat, description, m)
 
 } catch (error) {
-console.error("Error parsing JSON:",error)
-return 404
-}
-}
+
+console.error('💛 Error al analizar la imagen:', error)
+
+await conn.reply(m.chat, '💛 Error al analizar la imagen.', m)}
+
+} else {
+
+if (!text) { return conn.reply(m.chat, `💛 *Ingrese su petición*\n💛 *Ejemplo de uso:* ${usedPrefix + command} Como hacer un avión de papel`, m, rcanal)}
+
+await m.react('💬')
+
+try {
+
+const query = text
+
+const prompt = `${basePrompt}. Responde lo siguiente: ${query}`
+
+const response = await luminsesi(query, username, prompt)
+
+await conn.reply(m.chat, response, m)
+
+} catch (error) {
+
+console.error('💛 Error al obtener la respuesta:', error)
+
+await conn.reply(m.chat, 'Error: intenta más tarde.', m)}}}
+
+handler.help = ['chatgpt <texto>', 'ia <texto>']
+
+handler.tags = ['ai']
+
+handler.register = true
+
+// handler.estrellas = 1
+
+handler.command = ['ia', 'simi', 'chatgpt', 'ai', 'chat', 'gpt']
+
+export default handler
+
+// Función para enviar una imagen y obtener el análisis
+
+async function fetchImageBuffer(content, imageBuffer) {
+
+try {
+
+const response = await axios.post('https://Luminai.my.id', {
+
+content: content,
+
+imageBuffer: imageBuffer 
+
+}, {
+
+headers: {
+
+'Content-Type': 'application/json' 
+
+}})
+
+return response.data
+
+} catch (error) {
+
+console.error('Error:', error)
+
+throw error }}
+
+// Función para interactuar con la IA usando prompts
+
+async function luminsesi(q, username, logic) {
+
+try {
+
+const response = await axios.post("https://Luminai.my.id", {
+
+content: q,
+
+user: username,
+
+prompt: logic,
+
+webSearchMode: false
+
+})
+
+return response.data.result
+
+} catch (error) {
+
+console.error('💛 Error al obtener:', error)
+
+throw error }}
