@@ -1,4 +1,4 @@
-/*import fetch from 'node-fetch'
+import fetch from 'node-fetch'
 
 let handler = m => m
 
@@ -19,4 +19,3 @@ handler.before = async function (m, { conn, groupMetadata, isBotAdmin }) {
 }
 
 export default handler
-*/
