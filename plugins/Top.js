@@ -19,7 +19,7 @@ async function handler(m, { groupMetadata, command, conn, text, usedPrefix }) {
     }
 
     // Aquí usamos @user directamente
-    let top = `*${emoji} TOP 10 ${text.toUpperCase()} DE ${groupName.toUpperCase()} ${emoji}*
+    let top = `*${emoji} TOP 10 ${text.toUpperCase()}\nDE ${groupName.toUpperCase()} ${emoji}*
 
 *_1.- 👑 ${user(winners[0].id)}_* ${pickRandom(frasesTop[1])}
 *_2.- 🥈 ${user(winners[1].id)}_* ${pickRandom(frasesTop[2])}
