@@ -60,9 +60,9 @@ async function callBarbozaAPI(query, username, prompt) {
   }
 }
 
-// Lista de palabras clave para emociones, gaming y mensajes comunes
+// Palabras clave para emociones de tristeza y Elite Bot
 const palabrasClave = [
-  // Emociones
+  // Tristeza
   'triste', 'deprimido', 'mal', 'llorar', 'soledad', 'dolor', 'pena', 'angustia', 'desilusión',
   'aburrido', 'ansiedad', 'miedo', 'pánico', 'nervios', 'preocupado', 'confusión', 'frustración',
   'cansado', 'vacío', 'rechazado', 'ignorado', 'enojo', 'rabia', 'furia', 'ira', 'indignado',
@@ -75,36 +75,6 @@ const palabrasClave = [
   'agradecido', 'esperando', 'viviendo', 'intentando', 'mejorando', 'disfrutar', 'momento', 'vida',
   'vivir', 'respirar', 'sentir', 'aprender', 'crecer', 'encuentro', 'alma', 'corazón', 'esperar',
   'necesario', 'ganas', 'vulnerable', 'lleno', 'equilibrio', 'valentía',
-
-  // Gaming / Free Fire
-  'free', 'fire', 'booyah', 'rush', 'campero', 'pared', 'gloo', 'paredes', 'escuadra', 'duo',
-  'pvp', 'insano', 'ruleta', 'recarga', 'diamantes', 'sala', 'heroico', 'gran', 'maestro',
-  'headshot', 'zona', 'azul', 'emote', 'reviveme', 'rushean', 'campean', 'sniper', 'mp40',
-  'scar', 'm1014', 'm82b', 'famas', 'ak', 'desert', 'm60', 'm1887', 'p90', 'vector', 'xm8',
-  'm1873', 'skull', 'macro', 'manco', 'rojo', 'estafaron', 'banearon', 'pase', 'elite',
-  'jugar', 'jugamos', 'skin', 'evento', 'clasificatoria', 'entrenamiento', 'clan',
-  'id', 'platino', 'oro', 'bronce', 'kill', 'score', 'loot', 'número', 'estrellas',
-  'subir', 'bajar', 'ranked', 'subida', 'torneo', 'liga', 'misión', 'recompensa',
-  'código', 'canjear', 'tienda', 'tokens', 'mejoras', 'ataque', 'disparo', 'correr',
-  'cabeza', 'movimiento', 'ágil', 'disparar', 'campeón', 'muertes', 'reaparición',
-  'equipo', 'ligas', 'fuego', 'zona', 'teletransportar', 'explosivo', 'trampa',
-  'jugabilidad', 'puntos', 'kills', 'salto', 'arena', 'combate', 'estrategia',
-  'match', 'lobby', 'matchmaking',
-
-  // Mensajes comunes WhatsApp
-  'hola', 'buenos días', 'buenas tardes', 'buenas noches', 'cómo estás', 'todo bien',
-  'bien y tú', 'qué haces', 'jajaja', 'jaja', 'lol', 'xd', 'gracias', 'ok', 'dale',
-  'de nada', 'te quiero', 'me voy', 'ya llegué', 'espera', 'ahora no', 'hablamos luego',
-  'sí', 'no', 'tal vez', 'quién eres', 'quién es', 'te conozco', 'me conoces', 'tqm',
-  'me gustas', 'jaj', 'jiji', 'jeje', 'bro', 'amigo', 'amiga', 'hermano', 'hermana',
-  'mamá', 'papá', 'abuela', 'abuelo', 'familia', 'novio', 'novia', 'te extraño',
-  'te amo', 'te adoro', 'dónde estás', 'vení', 'ven', 'andate', 'cuídate', 'nos vemos',
-  'chau', 'adiós', 'bye', 'see you', 'porfa', 'por favor', 'ya', 'dale', 'esperame',
-  'es verdad', 'mentira', 'en serio', 'wtf', 'no entiendo', 'qué', 'cómo', 'por qué',
-  'porque', 'nada', 'todo', 'algo', 'nadie', 'alguien', 'quedamos', 'saludos',
-  'bendiciones', 'feliz día', 'felicidades', 'feliz cumple', 'cumpleaños', 'navidad',
-  'año nuevo', 'fin de año', 'domingo', 'lunes', 'martes', 'miércoles', 'jueves',
-  'viernes', 'sábado', 'hoy', 'mañana', 'ayer', 'tarde', 'temprano', 'noche', 'ahora',
 
   // Palabras relacionadas con Elite Bot
   'elitebot', 'elite bot', 'global bot', 'elitebot global', 'global', 'bot global',
