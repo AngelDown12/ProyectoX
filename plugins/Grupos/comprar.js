@@ -26,7 +26,7 @@ https://sites.google.com/view/elitebotglobal?usp=sharing
 
  © 2023 EliteBotGlobal // ProyectoX `.trim()
     
-    const vi = ['']
+    const vi = ['https://files.catbox.moe/tpmd88.mp4']
 
     try {
         await conn.sendMessage(m.chat, { video: { url: vi.getRandom() }, gifPlayback: true, caption: menu, mentions: [m.sender, global.conn.user.jid] }, { quoted: fkontak }) 
