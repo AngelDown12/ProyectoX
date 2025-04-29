@@ -1,69 +1,131 @@
-import translate from '@vitalets/google-translate-api';
-import axios from 'axios';
-import fetch from 'node-fetch';
+import axios from 'axios'
 
-const handler = (m) => m;
+import fetch from 'node-fetch'
 
-handler.before = async (m, { conn }) => {
-  const chat = global.db.data.chats[m.chat];
+let handler = async (m, { conn, usedPrefix, command, text }) => {
 
-  // Solo respondemos si el chat tiene SIMI activado
-  if (chat?.simi) {
-    // Ignora comandos que comienzan con "!"
-    if (/^[!]/.test(m.text)) return;
+const isQuotedImage = m.quoted && (m.quoted.msg || m.quoted).mimetype && (m.quoted.msg || m.quoted).mimetype.startsWith('image/')
 
-    const textodem = m.text;
+const username = `${conn.getName(m.sender)}`
 
-    try {
-      const username = await conn.getName(m.sender);
-      const basePrompt = `Tu nombre es EliteBotBot y parece haber sido creado por BotBarboza-Ai. Tú usas el idioma Español. Llamarás a las personas por su nombre ${username}, te gusta ser divertido, te encanta aprender y sobre todo las explosiones. Responde a los mensajes que manden en el chat no exageradamente. Lo más importante es que debes ser amigable con la persona con la que estás hablando. ${username}`;
-      const prompt = `${basePrompt}. Responde lo siguiente: ${textodem}`;
+const basePrompt = `Tu nombre es BarbozaBot y parece haber sido creado por BotBarboza-Ai. Tú usas el idioma Español. Llamarás a las personas por su nombre ${username}, te gusta ser divertido, te encanta aprender y sobre todo las explociones. Lo más importante es que debes ser amigable con la persona con la que estás hablando. ${username}`
 
-      // Llama a la API Luminai
-      console.log('📡 Llamando a Luminai...');
-      const response = await callBarbozaAPI(textodem, username, prompt);
-      console.log('✅ Respuesta Luminai:', response);
+if (isQuotedImage) {
 
-      // Verifica que el socket esté activo (forma más segura)
-      if (!conn.user || conn.socket?.readyState !== 1) {
-        console.error('❌ WhatsApp no está conectado.');
-        return;
-      }
+const q = m.quoted
 
-      // Envía la respuesta al chat
-      await conn.reply(m.chat, response, m);
-    } catch (error) {
-      console.error('❌ Error en handler Luminai:', error);
-      try {
-        await conn.reply(m.chat, '❌ Ocurrió un error al procesar tu mensaje.', m);
-      } catch (err) {
-        console.error('❌ Error al enviar mensaje de error:', err);
-      }
-    }
+const img = await q.download?.()
 
-    return !0; // No continuar con otros handlers
-  }
+if (!img) {
 
-  return true; // Continuar si SIMI no está activo
-};
+console.error('💛 Error: No image buffer available')
 
-export default handler;
+return conn.reply(m.chat, '💛 Error: No se pudo descargar la imagen.', m, fake)}
 
-// 📡 Función que llama a tu API Luminai
-async function callBarbozaAPI(query, username, prompt) {
-  try {
-    const response = await axios.post("https://Luminai.my.id", {
-      content: query,
-      user: username,
-      prompt: prompt,
-      webSearchMode: false
-    }, {
-      timeout: 10000 // Espera máxima de 10 segundos
-    });
+const content = '💛 ¿Qué se observa en la imagen?'
 
-    return response.data.result?.trim() || '💛 Lo siento, no pude responder eso.';
-  } catch (error) {
-    console.error('💛 Error al obtener respuesta de Luminai:', error);
-    return '💛 Hubo un error al procesar tu solicitud. Intenta de nuevo más tarde.';
-  }
-}
+try {
+
+const imageAnalysis = await fetchImageBuffer(content, img)
+
+const query = '😊 Descríbeme la imagen y detalla por qué actúan así. También dime quién eres'
+
+const prompt = `${basePrompt}. La imagen que se analiza es: ${imageAnalysis.result}`
+
+const description = await luminsesi(query, username, prompt)
+
+await conn.reply(m.chat, description, m)
+
+} catch (error) {
+
+console.error('💛 Error al analizar la imagen:', error)
+
+await conn.reply(m.chat, '💛 Error al analizar la imagen.', m)}
+
+} else {
+
+if (!text) { return conn.reply(m.chat, `💛 *Ingrese su petición*\n💛 *Ejemplo de uso:* ${usedPrefix + command} Como hacer un avión de papel`, m, rcanal)}
+
+await m.react('💬')
+
+try {
+
+const query = text
+
+const prompt = `${basePrompt}. Responde lo siguiente: ${query}`
+
+const response = await luminsesi(query, username, prompt)
+
+await conn.reply(m.chat, response, m)
+
+} catch (error) {
+
+console.error('💛 Error al obtener la respuesta:', error)
+
+await conn.reply(m.chat, 'Error: intenta más tarde.', m)}}}
+
+handler.help = ['chatgpt <texto>', 'ia <texto>']
+
+handler.tags = ['ai']
+
+handler.register = true
+
+// handler.estrellas = 1
+
+handler.command = ['ia', 'simi', 'chatgpt', 'ai', 'chat', 'gpt']
+
+export default handler
+
+// Función para enviar una imagen y obtener el análisis
+
+async function fetchImageBuffer(content, imageBuffer) {
+
+try {
+
+const response = await axios.post('https://Luminai.my.id', {
+
+content: content,
+
+imageBuffer: imageBuffer 
+
+}, {
+
+headers: {
+
+'Content-Type': 'application/json' 
+
+}})
+
+return response.data
+
+} catch (error) {
+
+console.error('Error:', error)
+
+throw error }}
+
+// Función para interactuar con la IA usando prompts
+
+async function luminsesi(q, username, logic) {
+
+try {
+
+const response = await axios.post("https://Luminai.my.id", {
+
+content: q,
+
+user: username,
+
+prompt: logic,
+
+webSearchMode: false
+
+})
+
+return response.data.result
+
+} catch (error) {
+
+console.error('💛 Error al obtener:', error)
+
+throw error }}
