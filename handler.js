@@ -1439,49 +1439,6 @@ function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]
  * @param {import('@adiwajshing/baileys').BaileysEventMap<unknown>['group-participants.update']} groupsUpdate 
  */
 // copiar desde aqui para configurar despedida y bienvenida.
-export async function participantsUpdate({ id, participants, action }) {
-    if (opts['self'])
-        return
-    // if (id in conn.chats) return // First login will spam
-    if (this.isInit)
-        return
-    if (global.db.data == null)
-        await loadDatabase()
-    let chat = global.db.data.chats[id] || {}
-    let text = ''
-    switch (action) {
-        case 'add':
-case 'remove':
-if (chat.welcome) {
-let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
-for (let user of participants) {
-let pp = './src/sinfoto.jpg'
-try {
-pp = await this.profilePictureUrl(user, 'image')
-} catch (e) {
-} finally {
-let apii = await this.getFile(pp)                                      
-const botTt2 = groupMetadata.participants.find(u => this.decodeJid(u.id) == this.user.jid) || {} 
-const isBotAdminNn = botTt2?.admin === "admin" || false
-//text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!').replace('@subject', await this.getName(id)).replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ') :
-//(chat.sBye || this.bye || conn.bye || 'Bye, @user!')).replace('@user', '@' + user.split('@')[0])
-text = (action === 'add'
-  ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!')
-  : (chat.sBye || this.bye || conn.bye || 'Bye, @user!'))
-  .replace('@subject', await this.getName(id))
-  .replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ')
-  .replace('@user', '@' + user.split('@')[0]);
-
-if (action === 'add' && chat.sWelcomeImage) {
-  await this.sendMessage(id, { image: chat.sWelcomeImage, caption: text, mentions: [user] });
-} else {
-  let pp = './src/sinfoto.jpg';
-  try {
-    pp = await this.profilePictureUrl(user, 'image');
-  } catch (e) {}
-  await this.sendMessage(id, { image: { url: pp }, caption: text, mentions: [user] });
-}
-
 
 
 
@@ -1515,7 +1472,40 @@ let fkontak2 = { "key": { "participants":"0@s.whatsapp.net", "remoteJid": "statu
 conn.sendMessage(id, { image: apii.data, caption: text, mentions: [user]}, { quoted: fkontak2 })  
 //this.sendFile(id, apii.data, 'pp.jpg', text, null, false, { mentions: [user] }, { quoted: fkontak2 })
 }}}
-// copiar hasta aqui para configurar despedida y bienvenida.	    
+// copiar hasta aqui para configurar despedida y bienvenida.	
+export async function participantsUpdate({ id, participants, action }) {
+    if (opts['self']) return
+    if (this.isInit) return
+    if (global.db.data == null) await loadDatabase()
+
+    let chat = global.db.data.chats[id] || {}
+    if (!chat.welcome) return
+
+    let groupMetadata = await this.groupMetadata(id) || {}
+    for (let user of participants) {
+        let text = (action === 'add'
+            ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!')
+            : (chat.sBye || this.bye || conn.bye || 'Bye, @user!'))
+            .replace('@subject', await this.getName(id))
+            .replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ')
+            .replace('@user', '@' + user.split('@')[0]);
+
+        if (action === 'add' && chat.sWelcomeImage) {
+            await this.sendMessage(id, { image: chat.sWelcomeImage, caption: text, mentions: [user] });
+        } else {
+            let pp = './src/sinfoto.jpg'
+            try {
+                pp = await this.profilePictureUrl(user, 'image')
+            } catch (e) {}
+            await this.sendMessage(id, { image: { url: pp }, caption: text, mentions: [user] });
+        }
+    }
+}
+
+
+
+
+    
 break
 case 'promote':
 case 'daradmin':
