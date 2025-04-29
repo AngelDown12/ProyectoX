@@ -10,8 +10,8 @@ handler.before = async (m, { conn }) => {
   // Solo respondemos si el chat tiene SIMI activado
   if (chat.simi) {
 
-    // Si el mensaje comienza con un comando (por ejemplo, !, false, off, 0, etc.), no respondemos
-    if (/^.*false|disable|(turn)?off|0|!/.test(m.text)) return;
+    // Si el mensaje es un comando (por ejemplo, comienza con "!" o algo similar), no respondemos
+    if (/^[!]/.test(m.text)) return;
 
     let textodem = m.text;
 
