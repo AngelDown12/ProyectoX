@@ -4,34 +4,33 @@ import path from 'path'
 let user = a => '@' + a.split('@')[0]
 
 function handler(m, { groupMetadata, command, conn, text, usedPrefix }) {
-    if (!text) return m.reply(`🎮 *Uso correcto:*\n${usedPrefix}top <texto>`)
-    
+    if (!text) return m.reply(`🎮 *Uso:*\n${usedPrefix}top <texto>\nEjemplo: ${usedPrefix}top feos`)
+
     let ps = groupMetadata.participants.map(v => v.id)
-    let winners = Array.from({length: 10}, () => ps.getRandom())
+    let winners = Array.from({ length: 10 }, () => ps.getRandom())
+    let groupName = groupMetadata.subject || "este grupo"
     
-    // Elementos gaming
-    const gameEmojis = ['🎮', '🕹️', '👾', '🎯', '🏆', '⚔️', '🛡️', '💣', '🔫', '🧩', '🎲', '👑', '💎', '🔥', '⭐']
-    const gameThemes = [
-        'RANKING DE JUGADORES', 
-        'TABLA DE PUNTUACIONES', 
-        'CLASIFICACIÓN ÉPICA', 
-        'TOP GAMERS', 
-        'LEADERBOARD'
-    ]
+    // Emojis aleatorios según el contexto
+    let emoji = pickRandom(['🏆', '🔥', '💀', '👀', '🤡', '🎮', '👑', '💩', '🍑', '😂'])
     
-    let k = Math.floor(Math.random() * 70)
-    let x = pickRandom(gameEmojis)
-    let theme = pickRandom(gameThemes)
-    let vn = `https://hansxd.nasihosting.com/sound/sound${k}.mp3`
+    // Frases personalizadas para los primeros puestos (puedes agregar más)
+    const frasesTop = {
+        1: ["¡El/La nº1 indiscutible! 👑", "¡Insuperable! 😎", "¡Leyenda viviente! 🏆"],
+        2: ["¡Por poco le gana al primero! 😅", "¡Seguro el próximo mes es suyo! 🥈", "¡Merecido segundo lugar! 🔥"],
+        3: ["¡No está mal para ser bronce! 🥉", "¡Casi, casi! 😂", "¡Top 3, felicidades! 🎉"]
+    }
     
-    // Diseño estilo gaming
+    // Título personalizado con el nombre del grupo
+    let title = `TOP 10 ${text.toUpperCase()} DE ${groupName.toUpperCase()}`
+    
+    // Mensaje con diseño mejorado + frases aleatorias para los top 3
     let top = `
-╔═══════════════════════
-║ 🎮 *${theme}: ${text.toUpperCase()}* 🎮
-╠═══════════⋆★⋆═════════
-║ 🥇 ${user(winners[0])}
-║ 🥈 ${user(winners[1])}
-║ 🥉 ${user(winners[2])}
+╔═══════════════════════════
+║ ${emoji} *${title}* ${emoji}
+╠═══════════⋆★⋆════════
+║ 🥇 ${user(winners[0])} - ${pickRandom(frasesTop[1])}
+║ 🥈 ${user(winners[1])} - ${pickRandom(frasesTop[2])}
+║ 🥉 ${user(winners[2])} - ${pickRandom(frasesTop[3])}
 ║ 4. ${user(winners[3])}
 ║ 5. ${user(winners[4])}
 ║ 6. ${user(winners[5])}
@@ -39,28 +38,25 @@ function handler(m, { groupMetadata, command, conn, text, usedPrefix }) {
 ║ 8. ${user(winners[7])}
 ║ 9. ${user(winners[8])}
 ║ 10. ${user(winners[9])}
-╚═══════════════════════
-🎮 *Felicidades a los top players!* 🎮`.trim()
+╚═══════════════════════════
+*¡Ranking oficial del grupo!* 🎮`.trim()
 
-    // Enviar con mención y posiblemente el audio
+    // Enviar el mensaje con menciones
     conn.sendMessage(m.chat, { 
         text: top, 
         mentions: winners,
         contextInfo: {
             externalAdReply: {
-                title: `🏆 TOP 10 ${text.toUpperCase()} 🏆`,
-                body: "Ranking oficial del grupo",
-                thumbnailUrl: "https://i.imgur.com/7XVY7lJ.png" // Puedes cambiar por una imagen gaming
+                title: title,
+                body: `Top 10 ${text} de ${groupName}`,
+                thumbnailUrl: "https://i.imgur.com/JQH8ZnA.png" // Imagen de trofeo o algo gracioso
             }
         }
     })
-    
-    // Opcional: enviar sonido gaming
-    // conn.sendMessage(m.chat, { audio: { url: vn }, mimetype: 'audio/mp4' }, { quoted: m })
 }
 
-handler.help = handler.command = ['topp', 'ranking', 'leaderboard']
-handler.tags = ['games', 'fun']
+handler.help = handler.command = ['topp']
+handler.tags = ['fun', 'games']
 handler.group = true
 export default handler
 
