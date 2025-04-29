@@ -1,15 +1,13 @@
-import translate from '@vitalets/google-translate-api';
 import axios from 'axios';
-import fetch from 'node-fetch';
 
 const handler = (m) => m;
 
 handler.before = async (m, { conn }) => {
   const chat = global.db.data.chats[m.chat];
-  
+
   // Si SIMI está activado para este chat
   if (chat.simi) {
-    
+
     // Aquí evitamos que SIMI responda a comandos específicos
     if (/^.*false|disable|(turn)?off|0|!/.test(m.text)) return;  // Evitar comandos como !, off, 0, etc.
 
@@ -46,6 +44,13 @@ export default handler;
 // Función para interactuar con tu API
 async function callBarbozaAPI(query, username, prompt) {
   try {
+    console.log('Datos enviados a la API:', {
+      content: query,
+      user: username,
+      prompt: prompt,
+      webSearchMode: false
+    });
+
     const response = await axios.post("https://Luminai.my.id", {
       content: query,
       user: username,
@@ -53,9 +58,16 @@ async function callBarbozaAPI(query, username, prompt) {
       webSearchMode: false
     });
 
-    return response.data.result?.trim() || '💛 Lo siento, no pude responder eso.';
+    // Verificar la respuesta de la API
+    if (response.status === 200 && response.data.result) {
+      return response.data.result.trim() || '💛 Lo siento, no pude responder eso.';
+    } else {
+      console.error('Respuesta inesperada de la API:', response);
+      return '💛 Lo siento, hubo un problema con la respuesta de la API.';
+    }
   } catch (error) {
     console.error('💛 Error al obtener respuesta de Luminai:', error);
+    console.error('Detalles del error:', error.response?.data); // Imprimir más detalles del error si están disponibles
     return '💛 Hubo un error al procesar tu solicitud. Intenta de nuevo más tarde.';
   }
 }
