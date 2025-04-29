@@ -13,10 +13,9 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) 
         groupMetadata = await conn.groupMetadata(m.chat),
         groupName = groupMetadata.subject;
 
-  const countryFlags = { // <<<< ESTO NO LO BORRES
+  const countryFlags = { 
     '1': '🇺🇸', '7': '🇷🇺', '20': '🇪🇬', '27': '🇿🇦', '30': '🇬🇷', '31': '🇳🇱', '32': '🇧🇪', '33': '🇫🇷',
     '34': '🇪🇸', '36': '🇭🇺', '39': '🇮🇹', '40': '🇷🇴', '41': '🇨🇭', '43': '🇦🇹', '44': '🇬🇧', '45': '🇩🇰',
-    // ... (todo tu objeto de códigos que pasaste)
     '998': '🇺🇿'
   };
 
@@ -29,17 +28,24 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args }) 
     return '🏳️‍🌈'; // Default si no se encuentra
   };
 
+  // Limitamos a los primeros 10 participantes
+  const limitedParticipants = participants.slice(0, 10);
   let teks = `*╭━* 𝘼𝘾𝙏𝙄𝙑𝙀𝙉𝙎𝙀𝙉 乂\n\n*${groupName}*\n👤 𝙄𝙉𝙏𝙀𝙂𝙍𝘼𝙉𝙏𝙀𝙎: *${participants.length}*\n${pesan}\n${invis}`;
 
-  for (const mem of participants) {
+  for (const mem of limitedParticipants) {
     teks += `${emoji} ${getCountryFlag(mem.id)} @${mem.id.split('@')[0]}\n`;
   }
 
-  teks += `\n*╰━* 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝘖𝘽𝘼𝙇\n▌│█║▌║▌║║▌║▌║▌║█`;
+  // Si hay más de 10 participantes, agregamos una nota de que hay más
+  if (participants.length > 10) {
+    teks += `\n...y más participantes`;
+  }
+
+  teks += `\n*╰━* 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝘼𝘽𝙊𝙇\n▌│█║▌║▌║║▌║▌║▌║█`;
 
   await conn.sendMessage(m.chat, {
     text: teks,
-    mentions: participants.map((a) => a.id)
+    mentions: limitedParticipants.map((a) => a.id)
   });
 };
 
