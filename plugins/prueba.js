@@ -5,43 +5,50 @@ const handler = (m) => m;
 handler.before = async (m, { conn }) => {
   const chat = global.db.data.chats[m.chat];
 
-  // Si SIMI está activado para este chat
-  if (chat.simi) {
-    const textodem = m.text;
+  if (!chat.simi) return true;
 
-    // ⛔ Ignorar si es comando (empieza con . ! / etc.)
-    if (/^[.!/#]/.test(textodem)) return;
+  const textodem = m.text.toLowerCase();
 
-    // ⛔ Ignorar si contiene palabras clave que son comandos
-    const excludedWords = ['serbot', 'bots', 'jadibot', 'menu', 'play', 'play2', 'playdoc', 'tiktok', 'facebook', 'menu2', 'infobot', 'estado', 'ping', 'sc', 'sticker', 's', 'textbot', 'qc'];
-    const words = textodem.toLowerCase().split(/\s+/);
-    if (excludedWords.some(word => words.includes(word))) return;
+  // ⛔ Ignorar comandos
+  if (/^[.!/#]/.test(textodem)) return;
 
-    // ✅ Solo responde si mencionan al bot (opcional, puedes cambiar las palabras clave)
-    const activarPorMencion = /(barbozabot|barboza|bot)/i;
-    if (!activarPorMencion.test(textodem)) return;
+  // ⛔ Ignorar palabras clave de comandos
+  const excludedWords = ['serbot', 'bots', 'jadibot', 'menu', 'play', 'play2', 'playdoc', 'tiktok', 'facebook', 'menu2', 'infobot', 'estado', 'ping', 'sc', 'sticker', 's', 'textbot', 'qc'];
+  const words = textodem.split(/\s+/);
+  if (excludedWords.some(word => words.includes(word))) return;
 
-    try {
-      const username = `${conn.getName(m.sender)}`;
-      const basePrompt = `Tu nombre es BarbozaBot y parece haber sido creado por BotBarboza-Ai. Tú usas el idioma Español. Llamarás a las personas por su nombre ${username}, te gusta ser divertido, te encanta aprender y sobre todo las explosiones. Lo más importante es que debes ser amigable con la persona con la que estás hablando. ${username}`;
+  // ✅ Palabras o frases que indican emoción o conversación
+  const emocionesClave = [
+    'estoy triste', 'me siento solo', 'feliz', 'contento', 'enojado', 'molesto',
+    'emocionado', 'deprimido', 'aburrido', 'ansioso', 'preocupado', 'tengo miedo',
+    'me gusta', 'odio', 'me encantó', 'llorando', 'riendo', 'necesito hablar'
+  ];
 
-      const prompt = `${basePrompt}. Responde lo siguiente: ${textodem}`;
+  // ✅ Menciona al bot o transmite una emoción
+  const mencionBot = /(barbozabot|barboza|bot)/i.test(textodem);
+  const contieneEmocion = emocionesClave.some(palabra => textodem.includes(palabra));
 
-      const response = await callBarbozaAPI(textodem, username, prompt);
+  if (!mencionBot && !contieneEmocion) return;
 
-      await conn.reply(m.chat, response, m);
-    } catch (error) {
-      console.error('Error en handler Luminai:', error);
-      await conn.reply(m.chat, '❌ Ocurrió un error al procesar tu mensaje', m);
-    }
-    return !0;
+  try {
+    const username = `${conn.getName(m.sender)}`;
+    const basePrompt = `Tu nombre es BarbozaBot, creado por BotBarboza-Ai. Hablas español y eres amigable, curioso y divertido. Siempre respondes con empatía, especialmente cuando alguien expresa emociones como tristeza, felicidad o ansiedad. Llamas a las personas por su nombre: ${username}.`;
+
+    const prompt = `${basePrompt} Responde a este mensaje: ${m.text}`;
+
+    const response = await callBarbozaAPI(m.text, username, prompt);
+
+    await conn.reply(m.chat, response, m);
+  } catch (error) {
+    console.error('Error en handler Luminai:', error);
+    await conn.reply(m.chat, '❌ Ocurrió un error al procesar tu mensaje', m);
   }
-  return true;
+
+  return !0;
 };
 
 export default handler;
 
-// Función para interactuar con la API
 async function callBarbozaAPI(query, username, prompt) {
   try {
     const response = await axios.post("https://Luminai.my.id", {
