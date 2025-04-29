@@ -1473,18 +1473,15 @@ text = (action === 'add'
   .replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ')
   .replace('@user', '@' + user.split('@')[0]);
 
-if (image) {
-  // Solo enviar la imagen personalizada
+if (image && action === 'add') {
   await this.sendMessage(id, { image: image, caption: text, mentions: [user] });
 } else {
-  // Obtener foto de perfil solo si no hay imagen personalizada
   let pp = './src/sinfoto.jpg';
   try {
     pp = await this.profilePictureUrl(user, 'image');
   } catch (e) {}
   await this.sendMessage(id, { image: { url: pp }, caption: text, mentions: [user] });
 }
-
 
 
 
