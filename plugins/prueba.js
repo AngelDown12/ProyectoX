@@ -8,49 +8,48 @@ handler.before = async (m, { conn }) => {
   const chat = global.db.data.chats[m.chat];
 
   // Solo respondemos si el chat tiene SIMI activado
-  if (chat.simi) {
-
-    // Si el mensaje es un comando (por ejemplo, comienza con "!" o algo similar), no respondemos
+  if (chat?.simi) {
+    // Ignora comandos que comienzan con "!"
     if (/^[!]/.test(m.text)) return;
 
-    let textodem = m.text;
+    const textodem = m.text;
 
     try {
-      const username = `${conn.getName(m.sender)}`;
+      const username = await conn.getName(m.sender);
       const basePrompt = `Tu nombre es EliteBotBot y parece haber sido creado por BotBarboza-Ai. Tú usas el idioma Español. Llamarás a las personas por su nombre ${username}, te gusta ser divertido, te encanta aprender y sobre todo las explosiones. Responde a los mensajes que manden en el chat no exageradamente. Lo más importante es que debes ser amigable con la persona con la que estás hablando. ${username}`;
       const prompt = `${basePrompt}. Responde lo siguiente: ${textodem}`;
 
+      // Llama a la API Luminai
+      console.log('📡 Llamando a Luminai...');
       const response = await callBarbozaAPI(textodem, username, prompt);
+      console.log('✅ Respuesta Luminai:', response);
 
-      // Verifica que el socket esté activo antes de responder
-      if (!conn.user || conn.ws?.state !== 'open') {
-        console.error('Conexión de WhatsApp no disponible al intentar responder.');
+      // Verifica que el socket esté activo (forma más segura)
+      if (!conn.user || conn.socket?.readyState !== 1) {
+        console.error('❌ WhatsApp no está conectado.');
         return;
       }
 
-      try {
-        await conn.reply(m.chat, response, m);
-      } catch (e) {
-        console.error('❌ Error al responder con conn.reply:', e);
-      }
+      // Envía la respuesta al chat
+      await conn.reply(m.chat, response, m);
     } catch (error) {
-      console.error('Error en handler Luminai:', error);
+      console.error('❌ Error en handler Luminai:', error);
       try {
-        await conn.reply(m.chat, '❌ Ocurrió un error al procesar tu mensaje', m);
-      } catch (e) {
-        console.error('❌ Error al enviar mensaje de error:', e);
+        await conn.reply(m.chat, '❌ Ocurrió un error al procesar tu mensaje.', m);
+      } catch (err) {
+        console.error('❌ Error al enviar mensaje de error:', err);
       }
     }
 
-    return !0; // Evita que el bot siga procesando el mensaje
+    return !0; // No continuar con otros handlers
   }
 
-  return true; // Continúa con la ejecución normal si SIMI no está activo
+  return true; // Continuar si SIMI no está activo
 };
 
 export default handler;
 
-// Función para interactuar con tu API
+// 📡 Función que llama a tu API Luminai
 async function callBarbozaAPI(query, username, prompt) {
   try {
     const response = await axios.post("https://Luminai.my.id", {
@@ -59,7 +58,7 @@ async function callBarbozaAPI(query, username, prompt) {
       prompt: prompt,
       webSearchMode: false
     }, {
-      timeout: 10000 // Tiempo máximo de espera: 10 segundos
+      timeout: 10000 // Espera máxima de 10 segundos
     });
 
     return response.data.result?.trim() || '💛 Lo siento, no pude responder eso.';
