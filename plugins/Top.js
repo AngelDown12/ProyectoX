@@ -1,60 +1,40 @@
-import util from 'util'
-import path from 'path'
-
 async function handler(m, { groupMetadata, command, conn, text, usedPrefix }) {
     if (!text) return m.reply(`🎮 *Uso:*\n${usedPrefix}top <texto>\nEjemplo: ${usedPrefix}top feos`)
 
     let participants = groupMetadata.participants
-    let winners = Array.from({ length: 10 }, () => participants[Math.floor(Math.random() * participants.length)])
-    
-    // Obtenemos los nombres de los ganadores
-    let winnersInfo = await Promise.all(
-        winners.map(async (user) => {
-            let contact = await conn.getName(user.id) // Obtiene el nombre del usuario
-            return { id: user.id, name: contact || user.id.split('@')[0] } // Usa el nombre o el número si no hay nombre
-        })
-    )
+    if (participants.length < 10) return m.reply('🚫 No hay suficientes miembros para hacer un top 10.')
 
-    let groupName = groupMetadata.subject || "este grupo"
+    let shuffled = participants.sort(() => 0.5 - Math.random())
+    let winners = shuffled.slice(0, 10)
+
+    let user = id => '@' + id.split('@')[0] // Creamos la función user()
+
     let emoji = pickRandom(['🏆', '🔥', '💀', '👀', '🤡', '🎮', '👑', '💩', '🍑', '😂'])
-    
-    // Frases personalizadas para los top 3
+    let groupName = groupMetadata.subject || "este grupo"
+
     const frasesTop = {
         1: ["¡El/La nº1 indiscutible! 👑", "¡Insuperable! 😎", "¡Leyenda viviente! 🏆"],
         2: ["¡Por poco le gana al primero! 😅", "¡Seguro el próximo mes es suyo! 🥈", "¡Merecido segundo lugar! 🔥"],
         3: ["¡No está mal para ser bronce! 🥉", "¡Casi, casi! 😂", "¡Top 3, felicidades! 🎉"]
     }
-    
-    // Construimos el mensaje con nombres
-    let top = `
-╔═══════════════
-║ ${emoji} *TOP 10 ${text.toUpperCase()} DE ${groupName.toUpperCase()}* ${emoji}
-╠══════⋆★⋆═══════
-║ 🥇 ${winnersInfo[0].name} - ${pickRandom(frasesTop[1])}
-║ 🥈 ${winnersInfo[1].name} - ${pickRandom(frasesTop[2])}
-║ 🥉 ${winnersInfo[2].name} - ${pickRandom(frasesTop[3])}
-║ 4. ${winnersInfo[3].name}
-║ 5. ${winnersInfo[4].name}
-║ 6. ${winnersInfo[5].name}
-║ 7. ${winnersInfo[6].name}
-║ 8. ${winnersInfo[7].name}
-║ 9. ${winnersInfo[8].name}
-║ 10. ${winnersInfo[9].name}
-╚═════════════════
+
+    // Aquí usamos @user directamente
+    let top = `*${emoji} TOP 10 ${text.toUpperCase()} DE ${groupName.toUpperCase()} ${emoji}*
+
+*_1.- 👑 ${user(winners[0].id)}_* ${pickRandom(frasesTop[1])}
+*_2.- 🥈 ${user(winners[1].id)}_* ${pickRandom(frasesTop[2])}
+*_3.- 🥉 ${user(winners[2].id)}_* ${pickRandom(frasesTop[3])}
+*_4.- 🔥 ${user(winners[3].id)}_*
+*_5.- 🔥 ${user(winners[4].id)}_*
+*_6.- 🔥 ${user(winners[5].id)}_*
+*_7.- 🔥 ${user(winners[6].id)}_*
+*_8.- 🔥 ${user(winners[7].id)}_*
+*_9.- 🔥 ${user(winners[8].id)}_*
+*_10.- 🔥 ${user(winners[9].id)}_*
+
 *¡Ranking oficial del grupo!* 🎮`.trim()
 
-    // Enviamos el mensaje con menciones (opcional)
-    conn.sendMessage(m.chat, { 
-        text: top, 
-        mentions: winners.map(user => user.id), // Menciona a los usuarios
-        contextInfo: {
-            externalAdReply: {
-                title: `TOP 10 ${text.toUpperCase()} DE ${groupName}`,
-                body: "Ranking oficial del grupo",
-                thumbnailUrl: "https://i.imgur.com/JQH8ZnA.png"
-            }
-        }
-    })
+    await m.reply(top, null, { mentions: winners.map(u => u.id) })
 }
 
 handler.help = handler.command = ['topp']
