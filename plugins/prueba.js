@@ -18,19 +18,34 @@ handler.before = async (m, { conn }) => {
     try {
       const username = `${conn.getName(m.sender)}`;
       const basePrompt = `Tu nombre es EliteBotBot y parece haber sido creado por BotBarboza-Ai. Tú usas el idioma Español. Llamarás a las personas por su nombre ${username}, te gusta ser divertido, te encanta aprender y sobre todo las explosiones. Responde a los mensajes que manden en el chat no exageradamente. Lo más importante es que debes ser amigable con la persona con la que estás hablando. ${username}`;
-
       const prompt = `${basePrompt}. Responde lo siguiente: ${textodem}`;
 
       const response = await callBarbozaAPI(textodem, username, prompt);
 
-      await conn.reply(m.chat, response, m);
+      // Verifica que el socket esté activo antes de responder
+      if (!conn.user || conn.ws?.state !== 'open') {
+        console.error('Conexión de WhatsApp no disponible al intentar responder.');
+        return;
+      }
+
+      try {
+        await conn.reply(m.chat, response, m);
+      } catch (e) {
+        console.error('❌ Error al responder con conn.reply:', e);
+      }
     } catch (error) {
       console.error('Error en handler Luminai:', error);
-      await conn.reply(m.chat, '❌ Ocurrió un error al procesar tu mensaje', m);
+      try {
+        await conn.reply(m.chat, '❌ Ocurrió un error al procesar tu mensaje', m);
+      } catch (e) {
+        console.error('❌ Error al enviar mensaje de error:', e);
+      }
     }
-    return !0;  // Esto evita que el bot siga procesando el mensaje
+
+    return !0; // Evita que el bot siga procesando el mensaje
   }
-  return true;  // Continúa con la ejecución normal si SIMI no está activo
+
+  return true; // Continúa con la ejecución normal si SIMI no está activo
 };
 
 export default handler;
@@ -43,6 +58,8 @@ async function callBarbozaAPI(query, username, prompt) {
       user: username,
       prompt: prompt,
       webSearchMode: false
+    }, {
+      timeout: 10000 // Tiempo máximo de espera: 10 segundos
     });
 
     return response.data.result?.trim() || '💛 Lo siento, no pude responder eso.';
