@@ -981,7 +981,7 @@ if (!('sPromote' in chat)) chat.sPromote = ''
 if (!('sDemote' in chat)) chat.sDemote = '' 
 if (!('sCondition' in chat)) chat.sCondition = ''
 if (!('sAutorespond' in chat)) chat.sAutorespond = '' 
-if (!('delete' in chat)) chat.delete = false                  
+if (!('delete' in chat)) chat.delete = true                   
 if (!('modohorny' in chat)) chat.modohorny = true       
 if (!('stickers' in chat)) chat.stickers = false            
 if (!('autosticker' in chat)) chat.autosticker = false      
@@ -1029,7 +1029,7 @@ sPromote: '',
 sDemote: '', 
 sCondition: '', 
 sAutorespond: '', 
-delete: false,
+delete: true,
 modohorny: true,
 stickers: false,
 autosticker: false,
@@ -1114,13 +1114,8 @@ if (queque.indexOf(previousID) === -1) clearInterval(this)
 await delay(time)
 }, time)
 }
-if (m.id.startsWith('NJX-') ||
-m.id.startsWith('Lyru-') ||
-m.id.startsWith('EvoGlobalBot-') ||
-(m.id.startsWith('BAE5') && m.id.length === 16) ||
-m.id.startsWith('B24E') ||
-(m.id.startsWith('8SCO') && m.id.length === 20) ||
-m.id.startsWith('FizzxyTheGreat-')) return
+
+if(m.id.startsWith('NJX-') || m.id.startsWith('Lyru-') || m.id.startsWith('EvoGlobalBot-') || m.id.startsWith('BAE5') && m.id.length === 16 || m.id.startsWith('3EB0') && m.id.length === 12 || m.id.startsWith('3EB0') && (m.id.length === 20) || m.id.startsWith('B24E') || m.id.startsWith('8SCO') && m.id.length === 20 || m.id.startsWith('FizzxyTheGreat-')) return
 
 if (opts['nyimak']) return
 if (!isROwner && opts['self']) return 
@@ -1237,7 +1232,10 @@ user.antispam++
 return
 }
 
-//Antispam 2 (sin limitaciones)
+//Antispam 2		
+if (user.antispam2 && isROwner) return
+let time = global.db.data.users[m.sender].spam + 1000
+if (new Date - global.db.data.users[m.sender].spam < 1000) return console.log(`[ SPAM ]`) 
 global.db.data.users[m.sender].spam = new Date * 1
 }
 		
@@ -1439,76 +1437,32 @@ function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]
  * @param {import('@adiwajshing/baileys').BaileysEventMap<unknown>['group-participants.update']} groupsUpdate 
  */
 // copiar desde aqui para configurar despedida y bienvenida.
-
-
 export async function participantsUpdate({ id, participants, action }) {
-    if (opts['self']) return
-    if (this.isInit) return
-    if (global.db.data == null) await loadDatabase()
-
+    if (opts['self'])
+        return
+    // if (id in conn.chats) return // First login will spam
+    if (this.isInit)
+        return
+    if (global.db.data == null)
+        await loadDatabase()
     let chat = global.db.data.chats[id] || {}
     let text = ''
     switch (action) {
         case 'add':
-        case 'remove':
-            if (chat.welcome) {
-                let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
-                for (let user of participants) {
-                    let pp = './src/sinfoto.jpg'
-                    try {
-                        pp = await this.profilePictureUrl(user, 'image')
-                    } catch (e) {
-                        // Error al obtener la imagen, usar predeterminada
-                    }
-
-                    const userName = user.split('@')[0]
-                    const subject = groupMetadata.subject
-                    const descs = groupMetadata.desc || 'SIN DESCRIPCIÓN'
-
-                    if (action === 'add') {
-                        if (chat.sWelcomeImage) {
-                            // Si hay imagen personalizada de bienvenida
-                            const textWel = chat.sWelcome
-                                ? chat.sWelcome.replace(/@user/g, `@${userName}`).replace(/@group/g, subject).replace(/@desc/g, descs)
-                                : `Bienvenido/a @${userName} al grupo ${subject}.`
-
-                            await this.sendMessage(id, {
-                                image: chat.sWelcomeImage,
-                                caption: textWel,
-                                contextInfo: { mentionedJid: [user] }
-                            }, { quoted: null })
-                        } else {
-                            // Mensaje predeterminado si no hay imagen personalizada
-                            const defaultWelcome = `👋🏻 Hola, bienvenido/a @${userName} a *${subject}*.\n\n${descs}`
-                            await this.sendMessage(id, {
-                                text: defaultWelcome,
-                                contextInfo: { mentionedJid: [user] }
-                            }, { quoted: null })
-                        }
-                    } else if (action === 'remove') {
-                        const textBye = chat.sBye || `Adiós @${userName}, te echaremos de menos.`
-                        await this.sendMessage(id, {
-                            text: textBye,
-                            contextInfo: { mentionedJid: [user] }
-                        }, { quoted: null })
-                    }
-                }
-            }
-            break
-    }
-}
-
-
-
-	
-
-
-
-
-
-
-
-	
+case 'remove':
+if (chat.welcome) {
+let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
+for (let user of participants) {
+let pp = './src/sinfoto.jpg'
+try {
+pp = await this.profilePictureUrl(user, 'image')
+} catch (e) {
+} finally {
+let apii = await this.getFile(pp)                                      
+const botTt2 = groupMetadata.participants.find(u => this.decodeJid(u.id) == this.user.jid) || {} 
+const isBotAdminNn = botTt2?.admin === "admin" || false
+text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!').replace('@subject', await this.getName(id)).replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ') :
+(chat.sBye || this.bye || conn.bye || 'Bye, @user!')).replace('@user', '@' + user.split('@')[0])
 			    
 if (chat.antifake && isBotAdminNn && action === 'add') {
 const prefijosPredeterminados = [ 2, 4, 6, 7, 234, 9] // Puedes editar que usuarios deseas que se eliminen si empieza por algunos de los números
@@ -1537,6 +1491,7 @@ let fkontak2 = { "key": { "participants":"0@s.whatsapp.net", "remoteJid": "statu
 conn.sendMessage(id, { image: apii.data, caption: text, mentions: [user]}, { quoted: fkontak2 })  
 //this.sendFile(id, apii.data, 'pp.jpg', text, null, false, { mentions: [user] }, { quoted: fkontak2 })
 }}}
+// copiar hasta aqui para configurar despedida y bienvenida.	    
 break
 case 'promote':
 case 'daradmin':
