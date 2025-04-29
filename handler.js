@@ -1485,7 +1485,7 @@ export async function participantsUpdate({ id, participants, action }) {
                     }
                 }
             }
-            break
+        
     }
 }
 
