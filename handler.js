@@ -1440,49 +1440,32 @@ function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]
  */
 // copiar desde aqui para configurar despedida y bienvenida.
 export async function participantsUpdate({ id, participants, action }) {
-    if (opts['self']) return
-    if (this.isInit) return
-    if (global.db.data == null) await loadDatabase()
-
+    if (opts['self'])
+        return
+    // if (id in conn.chats) return // First login will spam
+    if (this.isInit)
+        return
+    if (global.db.data == null)
+        await loadDatabase()
     let chat = global.db.data.chats[id] || {}
     let text = ''
-
     switch (action) {
         case 'add':
-        case 'remove':
-            if (chat.welcome) {
-                let groupMetadata = await this.groupMetadata(id) || {}
-                for (let user of participants) {
-                    let pp = './src/sinfoto.jpg'
-                    try {
-                        pp = await this.profilePictureUrl(user, 'image')
-                    } catch (e) {
-                        pp = './src/sinfoto.jpg'
-                    }
-
-                    let textBase = action === 'add'
-                        ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!')
-                        : (chat.sBye || this.bye || conn.bye || 'Bye, @user!')
-
-                    text = textBase
-                        .replace('@user', '@' + user.split('@')[0])
-                        .replace('@subject', await this.getName(id))
-                        .replace('@desc', groupMetadata.desc || 'SIN DESCRIPCIÓN')
-
-                    const fs = require('fs')
-                    const path = require('path')
-                    const welcomeImgPath = path.resolve('./groupIcons', `${id}.jpg`)
-
-                    if (action === 'add' && fs.existsSync(welcomeImgPath)) {
-                        await this.sendFile(id, welcomeImgPath, 'welcome.jpg', text, null, false, { mentions: [user] })
-                    } else {
-                        await this.sendFile(id, pp, 'perfil.jpg', text, null, false, { mentions: [user] })
-                    }
-                }
-            }
-            break
-    }
-}
+case 'remove':
+if (chat.welcome) {
+let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
+for (let user of participants) {
+let pp = './src/sinfoto.jpg'
+try {
+pp = await this.profilePictureUrl(user, 'image')
+} catch (e) {
+} finally {
+let apii = await this.getFile(pp)                                      
+const botTt2 = groupMetadata.participants.find(u => this.decodeJid(u.id) == this.user.jid) || {} 
+const isBotAdminNn = botTt2?.admin === "admin" || false
+text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!').replace('@subject', await this.getName(id)).replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ') :
+(chat.sBye || this.bye || conn.bye || 'Bye, @user!')).replace('@user', '@' + user.split('@')[0])
+			    
 
 
 
