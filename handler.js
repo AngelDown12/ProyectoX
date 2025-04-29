@@ -1443,41 +1443,60 @@ function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]
 
 
 export async function participantsUpdate({ id, participants, action }) {
-if (opts['self'])
-return
-// if (id in conn.chats) return // First login will spam
-if (this.isInit)
-return
-if (global.db.data == null)
-await loadDatabase()
-let chat = global.db.data.chats[id] || {}
-let text = ''
-switch (action) {
-case 'add':
-case 'remove':
-if (chat.welcome) {
-let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
-for (let user of participants) {
-let pp = './src/sinfoto.jpg'
-try {
-pp = await this.profilePictureUrl(user, 'image')
-} catch (e) {
-} finally {
-let apii = await this.getFile(pp)
-const botTt2 = groupMetadata.participants.find(u => this.decodeJid(u.id) == this.user.jid) || {}
-const isBotAdminNn = botTt2?.admin === "admin" || false
-let image = chat.sWelcomeImage;
-text = (action === 'add' ? 
-  (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!') :
-  (chat.sBye || this.bye || conn.bye || 'Bye, @user!'))
-  .replace('@subject', await this.getName(id))
-  .replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝐿𝐵𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ')
-  .replace('@user', '@' + user.split('@')[0]);
+    if (opts['self']) return
+    if (this.isInit) return
+    if (global.db.data == null) await loadDatabase()
 
-if (image) {
-  await this.sendMessage(id, { image: image, caption: text, mentions: [user] });
-} else {
-  await this.sendMessage(id, { text: text, mentions: [user] });
+    let chat = global.db.data.chats[id] || {}
+    let text = ''
+    switch (action) {
+        case 'add':
+        case 'remove':
+            if (chat.welcome) {
+                let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
+                for (let user of participants) {
+                    let pp = './src/sinfoto.jpg'
+                    try {
+                        pp = await this.profilePictureUrl(user, 'image')
+                    } catch (e) {
+                        // Error al obtener la imagen, usar predeterminada
+                    }
+
+                    const userName = user.split('@')[0]
+                    const subject = groupMetadata.subject
+                    const descs = groupMetadata.desc || 'SIN DESCRIPCIÓN'
+
+                    if (action === 'add') {
+                        if (chat.sWelcomeImage) {
+                            // Si hay imagen personalizada de bienvenida
+                            const textWel = chat.sWelcome
+                                ? chat.sWelcome.replace(/@user/g, `@${userName}`).replace(/@group/g, subject).replace(/@desc/g, descs)
+                                : `Bienvenido/a @${userName} al grupo ${subject}.`
+
+                            await this.sendMessage(id, {
+                                image: chat.sWelcomeImage,
+                                caption: textWel,
+                                contextInfo: { mentionedJid: [user] }
+                            }, { quoted: null })
+                        } else {
+                            // Mensaje predeterminado si no hay imagen personalizada
+                            const defaultWelcome = `👋🏻 Hola, bienvenido/a @${userName} a *${subject}*.\n\n${descs}`
+                            await this.sendMessage(id, {
+                                text: defaultWelcome,
+                                contextInfo: { mentionedJid: [user] }
+                            }, { quoted: null })
+                        }
+                    } else if (action === 'remove') {
+                        const textBye = chat.sBye || `Adiós @${userName}, te echaremos de menos.`
+                        await this.sendMessage(id, {
+                            text: textBye,
+                            contextInfo: { mentionedJid: [user] }
+                        }, { quoted: null })
+                    }
+                }
+            }
+            break
+    }
 }
 
 
