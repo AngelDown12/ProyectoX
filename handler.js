@@ -1007,7 +1007,7 @@ if (!('autorespond' in chat)) chat.autorespond = true
 if (!('antitoxic' in chat)) chat.antitoxic = false
 if (!('game' in chat)) chat.game = true
 if (!('game2' in chat)) chat.game2 = true
-if (!('simi' in chat)) chat.simi = false
+if (!('simi' in chat)) chat.simi = true
 if (!('antiTraba' in chat)) chat.antiTraba = true
 if (!('primaryBot' in chat)) chat.primaryBot = null
 if (!('autolevelup' in chat))  chat.autolevelup = true
@@ -1055,7 +1055,7 @@ autorespond: true,
 antitoxic: false,
 game: true, 
 game2: true, 
-simi: false,
+simi: true,
 antiTraba: true,
 primaryBot: null,
 autolevelup: true,
