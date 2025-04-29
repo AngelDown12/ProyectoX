@@ -6,29 +6,26 @@ const handler = (m) => m;
 
 handler.before = async (m, { conn }) => {
   const chat = global.db.data.chats[m.chat];
-  if (chat?.simi) {
-    if (!m.text || m.text.startsWith('.') || m.text.startsWith('/') || m.isCommand) return;
+  if (chat.simi) {
+    if (/^.*false|disable|(turn)?off|0/i.test(m.text)) return;
 
     let textodem = m.text;
 
-    // Filtro de palabras excluidas
-    const excludedWords = ['serbot', 'bots', 'jadibot', 'menu', 'play', 'play2', 
-                         'playdoc', 'tiktok', 'facebook', 'menu2', 'infobot', 
-                         'estado', 'ping', 'sc', 'sticker', 's', 'textbot', 'qc'];
-
-    if (excludedWords.some(word => textodem.toLowerCase().includes(word))) return;
+    const excludedWords = ['serbot', 'bots', 'jadibot', 'menu', 'play', 'play2', 'playdoc', 'tiktok', 'facebook', 'menu2', 'infobot', 'estado', 'ping', 'sc', 'sticker', 's', 'textbot', 'qc'];
+    const words = textodem.toLowerCase().split(/\s+/);
+    if (excludedWords.some(word => words.includes(word))) return;
 
     try {
-      const ressimi = await simitalk(textodem);
+      const username = `${conn.getName(m.sender)}`;
+      const basePrompt = `Tu nombre es BarbozaBot y parece haber sido creado por BotBarboza-Ai. Tú usas el idioma Español. Llamarás a las personas por su nombre ${username}, te gusta ser divertido, te encanta aprender y sobre todo las explosiones. Lo más importante es que debes ser amigable con la persona con la que estás hablando. ${username}`;
 
-      if (!ressimi.status || !ressimi.resultado?.simsimi) {
-        const geminiResponse = await callGeminiAPI(textodem);
-        await conn.reply(m.chat, geminiResponse, m);
-      } else {
-        await conn.reply(m.chat, ressimi.resultado.simsimi, m);
-      }
+      const prompt = `${basePrompt}. Responde lo siguiente: ${textodem}`;
+
+      const response = await callBarbozaAPI(textodem, username, prompt);
+
+      await conn.reply(m.chat, response, m);
     } catch (error) {
-      console.error('Error en handler SIMI/Gemini:', error);
+      console.error('Error en handler Luminai:', error);
       await conn.reply(m.chat, '❌ Ocurrió un error al procesar tu mensaje', m);
     }
     return !0;
@@ -38,53 +35,19 @@ handler.before = async (m, { conn }) => {
 
 export default handler;
 
-// Función SIMI original mejorada
-async function simitalk(ask, apikeyyy = "i6FxuA9vxlvz5cKQCt3", language = "es") {
-    if (!ask) return { status: false, resultado: { msg: "Ingresa un texto para hablar con SIMI" }};
+// Función para interactuar con tu API
+async function callBarbozaAPI(query, username, prompt) {
+  try {
+    const response = await axios.post("https://Luminai.my.id", {
+      content: query,
+      user: username,
+      prompt: prompt,
+      webSearchMode: false
+    });
 
-    try {
-        const response1 = await axios.get(`https://deliriussapi-oficial.vercel.app/tools/simi?text=${encodeURIComponent(ask)}`);
-
-        if (!response1.data?.data?.message) throw new Error('Respuesta vacía de API SIMI 1');
-
-        const trad1 = await translate(response1.data.data.message, { to: language, autoCorrect: true });
-
-        if (!trad1.text || trad1.text.toLowerCase() === 'indefinida') {
-            throw new Error('Traducción inválida');
-        }
-
-        return { status: true, resultado: { simsimi: trad1.text }};
-    } catch (error1) {
-        console.error('Error con SIMI API 1:', error1);
-
-        try {
-            const response2 = await axios.get(`https://anbusec.xyz/api/v1/simitalk?apikey=${apikeyyy}&ask=${ask}&lc=${language}`);
-
-            if (!response2.data?.message) throw new Error('Respuesta vacía de API SIMI 2');
-
-            return { status: true, resultado: { simsimi: response2.data.message }};
-        } catch (error2) {
-            console.error('Error con SIMI API 2:', error2);
-            return { status: false };
-        }
-    }
-}
-
-// Nueva función para llamar a la API Gemini
-async function callGeminiAPI(query) {
-    try {
-        const apiUrl = `https://apis-starlights-team.koyeb.app/starlight/gemini?text=${encodeURIComponent(query)}`;
-        const res = await fetch(apiUrl);
-
-        if (!res.ok) throw new Error(`API Gemini responded with status ${res.status}`);
-
-        const data = await res.json();
-
-        if (!data?.result) throw new Error('Empty response from Gemini API');
-
-        return data.result.trim();
-    } catch (error) {
-        console.error('Error con API Gemini:', error);
-        return 'Lo siento, no pude procesar tu solicitud. Intenta nuevamente más tarde.';
-    }
+    return response.data.result?.trim() || '💛 Lo siento, no pude responder eso.';
+  } catch (error) {
+    console.error('💛 Error al obtener respuesta de Luminai:', error);
+    return '💛 Hubo un error al procesar tu solicitud. Intenta de nuevo más tarde.';
+  }
 }
