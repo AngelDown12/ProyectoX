@@ -6,22 +6,14 @@ const handler = (m) => m;
 
 handler.before = async (m, { conn }) => {
   const chat = global.db.data.chats[m.chat];
-  
-  // Si SIMI está activado para este chat
+
+  // Solo respondemos si el chat tiene SIMI activado
   if (chat.simi) {
-    
-    // Aquí evitamos que SIMI responda a comandos específicos
-    if (/^.*false|disable|(turn)?off|0|!/.test(m.text)) return;  // Evitar comandos como !, off, 0, etc.
+
+    // Si el mensaje comienza con un comando (por ejemplo, !, false, off, 0, etc.), no respondemos
+    if (/^.*false|disable|(turn)?off|0|!/.test(m.text)) return;
 
     let textodem = m.text;
-
-    // Lista de palabras excluidas para evitar que SIMI responda a ciertos comandos
-    const excludedWords = ['serbot', 'bots', 'jadibot', 'menu', 'play', 'play2', 'playdoc', 'tiktok', 'facebook', 'menu2', 'infobot', 'estado', 'ping', 'sc', 'sticker', 's', 'textbot', 'qc'];
-
-    const words = textodem.toLowerCase().split(/\s+/);
-
-    // Si la palabra está en la lista de excluidos, no responde
-    if (excludedWords.some(word => words.includes(word))) return;
 
     try {
       const username = `${conn.getName(m.sender)}`;
