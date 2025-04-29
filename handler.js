@@ -1475,10 +1475,14 @@ text = (action === 'add' ?
   .replace('@user', '@' + user.split('@')[0]);
 
 if (image) {
+  // Enviar mensaje con imagen personalizada
   await this.sendMessage(id, { image: image, caption: text, mentions: [user] });
 } else {
+  // Enviar mensaje solo con texto
   await this.sendMessage(id, { text: text, mentions: [user] });
 }
+
+// Eliminar cualquier bloque duplicado que envíe mensajes adicionales
 
 
 	
