@@ -1,60 +1,68 @@
-import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
 import * as fs from 'fs';
 
 const handler = async (m, { conn, text, participants }) => {
-  try {
-    const users = participants.map((u) => conn.decodeJid(u.id));
-    const quoted = m.quoted ? m.quoted : m;
-    const mime = (quoted.msg || quoted).mimetype || '';
-    const isMedia = /image|video|sticker|audio/.test(mime);
-    const options = { mentions: users, quoted: m };
+  const users = participants.map((u) => conn.decodeJid(u.id));
+  const quoted = m.quoted;
 
+  if (!quoted) {
+    // Si no se responde a nada, solo menciona con texto
+    return await conn.sendMessage(m.chat, {
+      text: text || '',
+      mentions: users
+    }, { quoted: m });
+  }
+
+  const mime = (quoted.msg || quoted).mimetype || '';
+  const isMedia = /image|video|sticker|audio/.test(mime);
+  const options = { mentions: users, quoted: m };
+
+  try {
     if (isMedia) {
-      const mediax = await quoted.download?.();
+      const media = await quoted.download();
 
       if (quoted.mtype === 'imageMessage') {
         await conn.sendMessage(m.chat, {
-          image: mediax,
+          image: media,
           caption: text || '',
           ...options
         });
       } else if (quoted.mtype === 'videoMessage') {
         await conn.sendMessage(m.chat, {
-          video: mediax,
+          video: media,
           caption: text || '',
           mimetype: 'video/mp4',
           ...options
         });
       } else if (quoted.mtype === 'audioMessage') {
         await conn.sendMessage(m.chat, {
-          audio: mediax,
+          audio: media,
           mimetype: 'audio/mpeg',
-          fileName: 'notify.mp3',
           ptt: true,
           ...options
         });
       } else if (quoted.mtype === 'stickerMessage') {
         await conn.sendMessage(m.chat, {
-          sticker: mediax,
+          sticker: media,
           ...options
         });
       }
     } else {
+      // Si no es multimedia, reenvía texto con menciones
       await conn.sendMessage(m.chat, {
-        text: text || (quoted.text || ''),
+        text: text || quoted.text || '',
         mentions: users
       }, { quoted: m });
     }
   } catch (e) {
-    console.error('Error en notify:', e);
+    console.error(e);
     await conn.sendMessage(m.chat, {
-      text: 'Ocurrió un error al ejecutar el comando.',
+      text: 'Error al procesar el comando.',
       quoted: m
     });
   }
 };
 
-handler.help = ['hidetag'];
+handler.help = ['notify'];
 handler.tags = ['group'];
 handler.command = /^(hidetag|notify|notificar|noti|n|hidetah|hidet)$/i;
 handler.group = true;
