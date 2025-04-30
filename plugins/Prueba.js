@@ -1,36 +1,44 @@
-import fetch from 'node-fetch'
-import { createCanvas, loadImage } from 'canvas'
-import fs from 'fs'
+const { createCanvas, loadImage } = require('canvas');
+const fs = require('fs');
+const path = require('path');
 
-let handler = async (m, { conn }) => {
-  let user = m.sender
-  let pp = './tmp/gay_' + user + '.png'
-
+const handler = async (msg, { conn }) => {
   try {
-    let img = await conn.profilePictureUrl(user, 'image').catch(_ => null)
-    if (!img) throw 'No pude obtener tu foto de perfil'
+    const chatId = msg.key.remoteJid;
+    const user = msg.sender;
 
-    let avatar = await loadImage(await (await fetch(img)).buffer())
-    let overlay = await loadImage('https://i.imgur.com/1VeywGJ.png') // bandera gay transparente
+    let avatar = 'https://telegra.ph/file/24fa902ead26340f3df2c.png';
+    try {
+      avatar = await conn.profilePictureUrl(user, 'image');
+    } catch {}
 
-    let canvas = createCanvas(avatar.width, avatar.height)
-    let ctx = canvas.getContext('2d')
+    const baseImage = await loadImage(avatar);
+    const overlay = await loadImage('https://files.catbox.moe/jtx5it.jpg');
 
-    ctx.drawImage(avatar, 0, 0)
-    ctx.drawImage(overlay, 0, 0, avatar.width, avatar.height)
+    const canvas = createCanvas(720, 720);
+    const ctx = canvas.getContext('2d');
 
-    fs.writeFileSync(pp, canvas.toBuffer())
+    ctx.drawImage(baseImage, 0, 0, 720, 720);
+    ctx.drawImage(overlay, 0, 0, 720, 720);
 
-    await conn.sendFile(m.chat, pp, 'gay.png', `Aquí tienes tu versión gay!`, m)
-    fs.unlinkSync(pp)
+    const fileName = `./tmp/gay-${Date.now()}.jpg`;
+    const out = fs.createWriteStream(fileName);
+    const stream = canvas.createJPEGStream();
+    stream.pipe(out);
+
+    out.on('finish', async () => {
+      await conn.sendMessage(chatId, {
+        image: { url: fileName },
+        caption: 'Gay mode activado!',
+      }, { quoted: msg });
+      fs.unlinkSync(fileName);
+    });
+
   } catch (e) {
-    console.error(e)
-    m.reply('Error al generar la imagen.')
+    console.error('Error en comando .gay:', e);
+    await conn.sendMessage(msg.key.remoteJid, { text: '❌ Error al generar la imagen.' }, { quoted: msg });
   }
-}
+};
 
-handler.command = /^gay3$/i
-handler.tags = ['fun']
-handler.help = ['gay3']
-
-export default handler
+handler.command = ['gay3'];
+module.exports = handler;
