@@ -88,107 +88,52 @@ export async function before(m, { isOwner, isROwner, conn }) {
 }
 */
 
-import fs from 'fs';
-
-const BOTS_AUTORIZADOS = [
-  '593986304370@s.whatsapp.net', // Elite Bot
-  '56963048720@s.whatsapp.net',  // Rouse Bot
-  '50251864696@s.whatsapp.net',  // Staff Bot
-  '529984088511@s.whatsapp.net'  // Mc Bot
+const VIDEOS = [
+  'https://files.catbox.moe/tpmd88.mp4',
+  'https://files.catbox.moe/b3rwfz.mp4',
+  'https://files.catbox.moe/jry3y4.mp4'
 ];
-
-const NOMBRES_BOTS = {
-  '593986304370@s.whatsapp.net': 'Elite Bot',
-  '56963048720@s.whatsapp.net': 'Rouse Bot',
-  '50251864696@s.whatsapp.net': 'Staff Bot',
-  '529984088511@s.whatsapp.net': 'Mc Bot'
-};
-
-const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Bot principal (no bloqueará)
-const GRUPO_NOTIFICACION = '120363360571564799@g.us'; // Reemplaza con el ID de tu grupo
-const ARCHIVO_REGISTRO = './bloqueados.json';
+const GRUPO_NOTIFICACION = '120363360571564799@g.us'; // ID del grupo donde se notificará
+const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Número del bot principal (no se bloquea a sí mismo)
 
 export async function before(m, { isOwner, isROwner, conn }) {
-  const botID = conn.user?.jid;
-  if (!BOTS_AUTORIZADOS.includes(botID)) return !0;
-
   if (m.isBaileys && m.fromMe) return !0;
   if (m.isGroup) return !1;
   if (!m.message) return !0;
-  if (m.text.includes("PIEDRA") || m.text.includes("PAPEL") || m.text.includes("TIJERA")) return !0;
+  if (m.text?.toUpperCase().includes("PIEDRA") || m.text?.toUpperCase().includes("PAPEL") || m.text?.toUpperCase().includes("TIJERA")) return !0;
+
+  let bot = global.db.data.settings[this.user.jid] || {};
+
   if (m.sender === NUMERO_EXCLUIDO) return !0;
 
-  if (!isOwner && !isROwner) {
+  if (bot.antiPrivate && !isOwner && !isROwner) {
+    const fecha = new Date().toLocaleDateString('es-EC', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+    const hora = new Date().toLocaleTimeString('es-EC');
     const userMention = '@' + m.sender.split('@')[0];
-    const numero = m.sender.split('@')[0];
-    const now = new Date();
-    const fecha = now.toLocaleDateString('es-EC', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    const hora = now.toLocaleTimeString('es-EC', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-
-    const videos = [
-      'https://files.catbox.moe/tpmd88.mp4',
-      'https://files.catbox.moe/9k06vj.mp4',
-      'https://files.catbox.moe/zl8h3y.mp4'
-    ];
-    const videoRandom = videos[Math.floor(Math.random() * videos.length)];
+    const video = VIDEOS[Math.floor(Math.random() * VIDEOS.length)];
+    const mensajeRecibido = m.text || 'Sin texto';
 
     await conn.sendMessage(m.chat, {
-      video: { url: videoRandom },
-      caption: `Hola ${userMention}\n\nEstá prohibido escribirme al privado, por ende serás bloqueado.\n\nFuiste bloqueado\n(${fecha} - ${hora})\n\n` +
-               `» Si necesitas un bot o tienes algún inconveniente, contáctate con mi creador:\n` +
-               `» wa.me/593993370003`,
+      video: { url: video },
+      caption: `Hola ${userMention}\n\nEstá prohibido escribirme al privado, por ende serás bloqueado.\n\nFuiste bloqueado\n(${fecha})`,
       gifPlayback: true,
       mentions: [m.sender]
     }, { quoted: m });
 
-    await conn.updateBlockStatus(m.chat, 'block');
-
-    const nombre = conn.getName ? await conn.getName(m.sender) : 'Usuario';
-    const mensajeTexto = m.text || '(Mensaje no disponible)';
-    const nombreBot = NOMBRES_BOTS[botID] || 'Bot Desconocido';
+    await conn.updateBlockStatus(m.chat, "block");
 
     await conn.sendMessage(GRUPO_NOTIFICACION, {
-      text: `*Usuario bloqueado automáticamente:*\n` +
-            `• Nombre: ${nombre}\n` +
-            `• Número: @${numero}\n` +
-            `• WhatsApp: wa.me/${numero}\n` +
-            `• Motivo: Escribió al privado del bot\n` +
-            `• Fecha y hora: ${fecha} - ${hora}\n` +
-            `• Mensaje: ${mensajeTexto}\n` +
-            `• *Bot que lo bloqueó:* ${nombreBot}`,
-      mentions: [m.sender]
+      text:
+        `*Usuario bloqueado automáticamente:*\n` +
+        `• *Usuario:* wa.me/${m.sender.split('@')[0]}\n` +
+        `• *Motivo:* Escribir al privado del bot\n` +
+        `• *Mensaje:* ${mensajeRecibido}\n` +
+        `• *Fecha:* ${fecha}\n` +
+        `• *Hora:* ${hora}\n` +
+        `• *Bot:* ${this.user.name}`
     });
-
-    // Guardar en archivo
-    const registro = {
-      nombre,
-      numero,
-      fecha,
-      hora,
-      mensaje: mensajeTexto,
-      bot: nombreBot
-    };
-
-    let datos = [];
-    if (fs.existsSync(ARCHIVO_REGISTRO)) {
-      try {
-        datos = JSON.parse(fs.readFileSync(ARCHIVO_REGISTRO));
-      } catch (e) {
-        datos = [];
-      }
-    }
-
-    datos.push(registro);
-    fs.writeFileSync(ARCHIVO_REGISTRO, JSON.stringify(datos, null, 2));
   }
 
   return !1;
