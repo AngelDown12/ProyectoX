@@ -1,4 +1,4 @@
-/*import fs from 'fs';
+import fs from 'fs';
 
 const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Bot principal
 const GRUPO_NOTIFICACION = '120363360571564799@g.us'; // ID del grupo para notificaciones
@@ -52,13 +52,12 @@ export async function before(m, { isOwner, isROwner, conn }) {
 
     // Notificación al grupo
     await conn.sendMessage(GRUPO_NOTIFICACION, {
-      text: `*Usuario bloqueado automáticamente:*\n` +
+      text: `*USUARIO BLOQUEADO*\n` +
             `• Nombre: ${nombre}\n` +
             `• Número: @${numero}\n` +
             `• WhatsApp: wa.me/${numero}\n` +
-            `• Motivo: Escribió al privado del bot.\n` +
-            `• Fecha y hora: ${fecha} - ${hora}\n` +
-            `• Mensaje: ${mensajeTexto}`,
+            `• Fecha: ${fecha}` +
+            `• Mensaje:\n${mensajeTexto}`,
       mentions: [m.sender]
     });
 
@@ -82,61 +81,6 @@ export async function before(m, { isOwner, isROwner, conn }) {
 
     datos.push(registro);
     fs.writeFileSync(ARCHIVO_REGISTRO, JSON.stringify(datos, null, 2));
-  }
-
-  return !1;
-}
-*/
-
-const VIDEOS = [
-  'https://files.catbox.moe/tpmd88.mp4',
-  'https://files.catbox.moe/b3rwfz.mp4',
-  'https://files.catbox.moe/jry3y4.mp4'
-];
-const GRUPO_NOTIFICACION = '120363360571564799@g.us'; // Grupo de notificación
-const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Número del bot principal que no debe ser bloqueado
-
-export async function before(m, { isOwner, isROwner }) {
-  if (m.isBaileys && m.fromMe) return !0;
-  if (m.isGroup) return !1;
-  if (!m.message) return !0;
-  if (m.text?.toUpperCase().includes("PIEDRA") || m.text?.toUpperCase().includes("PAPEL") || m.text?.toUpperCase().includes("TIJERA")) return !0;
-
-  let bot = global.db.data.settings[this.user.jid] || {};
-
-  if (m.sender === NUMERO_EXCLUIDO) return !0;
-
-  if (bot.antiPrivate && !isOwner && !isROwner) {
-    const fecha = new Date().toLocaleDateString('es-EC', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    });
-    const hora = new Date().toLocaleTimeString('es-EC');
-    const userMention = '@' + m.sender.split('@')[0];
-    const video = VIDEOS[Math.floor(Math.random() * VIDEOS.length)];
-    const mensajeRecibido = m.text || 'Sin texto';
-
-    // Enviar advertencia con video
-    await this.sendMessage(m.chat, {
-      video: { url: video },
-      caption: `Hola ${userMention}\n\nEstá prohibido escribirme al privado, por ende serás bloqueado.\n\nFuiste bloqueado\n(${fecha})`,
-      gifPlayback: true,
-      mentions: [m.sender]
-    }, { quoted: m });
-
-    // Bloquear al usuario
-    await this.updateBlockStatus(m.chat, 'block');
-
-    // Notificar en el grupo
-    await this.sendMessage(GRUPO_NOTIFICACION, {
-      text:
-        `*Usuario bloqueado automáticamente:*\n` +
-        `• *Usuario:* wa.me/${m.sender.split('@')[0]}\n` +
-        `• *Motivo:* Escribir al privado del bot\n` +
-        `• *Mensaje:* ${mensajeRecibido}\n` +
-        `• *Fecha:* ${fecha}\n` +
-        `• *Hora:* ${hora}\n` +
-        `• *Bot:* ${this.user.name}`
-    });
   }
 
   return !1;
