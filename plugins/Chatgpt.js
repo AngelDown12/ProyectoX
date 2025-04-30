@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 var handler = async (m, { text,  usedPrefix, command }) => {
-if (!text) return conn.reply(m.chat, `Ingrese una petición para que Gemini lo responda.`, m)
+if (!text) return conn.reply(m.chat, `Ingrese una petición para que lo responda.`, m)
 try {
 await m.react(rwait)
 conn.sendPresenceUpdate('composing', m.chat)
@@ -9,7 +9,7 @@ var res = await apii.json()
 await m.reply(res.result)
 } catch {
 await m.react('❌')
-await conn.reply(m.chat, `${msm} Gemini no puede responder a esa pregunta.`, m)
+await conn.reply(m.chat, ` no puede responder a esa pregunta.`, m)
 }}
 handler.command = ['chatgpt']
 handler.help = ['gemini']
