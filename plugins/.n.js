@@ -1,48 +1,49 @@
-const handler = async (m, { conn, text, participants }) => {
-  const users = participants.map(u => conn.decodeJid(u.id));
-  const watermark = '\nㅤㅤㅤㅤㅤㅤㅤㅤㅤᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
+import MessageType from '@whiskeysockets/baileys';
+import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
 
-  try {
-    if (!m.quoted || !m.quoted.message) throw 'Responde a un mensaje para enviarlo con oculto.';
+let handler = async (m, { conn, text, participants }) => {
+  let users = participants.map(u => conn.decodeJid(u.id));
+  let q = m.quoted ? m.quoted : m;
+  let c = m.quoted ? m.quoted : m.msg;
 
-    const quoted = m.quoted;
-    const mime = (quoted.msg || quoted).mimetype || '';
-    const isMedia = /image|video|sticker|audio/.test(mime);
-    const options = { mentions: users, quoted };
+  // Detectar si es multimedia
+  const mime = (q.msg || q).mimetype || '';
+  const isMedia = /image|video|audio|sticker/.test(mime);
 
-    if (isMedia) {
-      const media = await quoted.download?.();
-      if (!media) throw 'No se pudo descargar el archivo multimedia.';
+  if (isMedia) {
+    const media = await q.download?.();
+    const options = { mentions: users, quoted: m };
 
-      switch (quoted.mtype) {
-        case 'imageMessage':
-          await conn.sendMessage(m.chat, { image: media, caption: (text || '') + watermark, ...options });
-          break;
-        case 'videoMessage':
-          await conn.sendMessage(m.chat, { video: media, caption: (text || '') + watermark, mimetype: 'video/mp4', ...options });
-          break;
-        case 'audioMessage':
-          await conn.sendMessage(m.chat, { audio: media, mimetype: 'audio/mpeg', ptt: true, ...options });
-          break;
-        case 'stickerMessage':
-          await conn.sendMessage(m.chat, { sticker: media, ...options });
-          break;
-        default:
-          throw 'Tipo de archivo no compatible.';
-      }
-    } else {
-      await conn.sendMessage(m.chat, { text: (text || '') + watermark, mentions: users }, { quoted });
+    switch (q.mtype) {
+      case 'imageMessage':
+        return conn.sendMessage(m.chat, { image: media, caption: text || '', ...options });
+      case 'videoMessage':
+        return conn.sendMessage(m.chat, { video: media, caption: text || '', mimetype: 'video/mp4', ...options });
+      case 'audioMessage':
+        return conn.sendMessage(m.chat, { audio: media, mimetype: 'audio/mpeg', ptt: true, ...options });
+      case 'stickerMessage':
+        return conn.sendMessage(m.chat, { sticker: media, ...options });
     }
-
-  } catch (e) {
-    console.error(e);
-    m.reply(typeof e === 'string' ? e : 'Ocurrió un error al ejecutar el comando.');
   }
+
+  const msg = conn.cMod(m.chat,
+    generateWAMessageFromContent(m.chat, {
+      [c.toJSON ? q.mtype : 'extendedTextMessage']: c.toJSON ? c.toJSON() : {
+        text: c || ''
+      }
+    }, {
+      quoted: m,
+      userJid: conn.user.id
+    }),
+    text || q.text, conn.user.jid, { mentions: users }
+  );
+
+  await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id });
 };
 
-handler.help = ['nn', 'notify', 'notificar', 'notif'];
+handler.help = ['hidetag'];
 handler.tags = ['group'];
-handler.command = /^(nn|notify|notificar|notif)$/i;
+handler.command = ['hidetag', 'notify', 'nn', 'noti'];
 handler.group = true;
 handler.admin = true;
 
