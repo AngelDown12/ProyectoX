@@ -1,51 +1,38 @@
-import fs from 'fs';
+const handler = async (m, { conn, isOwner }) => {
+  if (!isOwner) throw 'Este comando solo lo puede usar el dueño del bot.';
 
-let handler = async (m, { conn, isOwner }) => {
-  if (!isOwner) return m.reply('Solo el dueño puede usar este comando.');
+  const bloqueados = (await conn.fetchBlocklist() || []).filter(jid =>
+    jid.endsWith('@s.whatsapp.net') && /^\d{5,}@s\.whatsapp\.net$/.test(jid)
+  );
 
-  try {
-    const bloqueados = await conn.fetchBlocklist() || [];
-
-    if (!bloqueados.length) {
-      return m.reply('No tienes usuarios bloqueados actualmente.');
-    }
-
-    let desbloqueados = 0;
-    let errores = [];
-
-    for (let jid of bloqueados) {
-      if (!jid.endsWith('@s.whatsapp.net')) {
-        errores.push(`Formato inválido: ${jid}`);
-        continue;
-      }
-
-      try {
-        await conn.updateBlockStatus(jid, 'unblock');
-        console.log(`Desbloqueado correctamente: ${jid}`);
-        desbloqueados++;
-        await new Promise(r => setTimeout(r, 300));
-      } catch (e) {
-        const errorMsg = `Error con ${jid}: ${e.message || e}`;
-        errores.push(errorMsg);
-        console.error(errorMsg);
-      }
-    }
-
-    const bloqueadosFinal = await conn.fetchBlocklist();
-
-    let respuesta = `✅ Proceso terminado.\n\nTotal desbloqueados: ${desbloqueados}\nAún bloqueados: ${bloqueadosFinal.length}`;
-    if (errores.length) {
-      respuesta += `\n\nErrores:\n- ` + errores.join('\n- ');
-    }
-
-    m.reply(respuesta);
-  } catch (e) {
-    console.error('Error global en el comando .desblock:', e);
-    m.reply('Ocurrió un error general en el desbloqueo.');
+  if (!bloqueados.length) {
+    return m.reply('No hay usuarios bloqueados actualmente.');
   }
+
+  let desbloqueados = 0;
+  let errores = [];
+
+  for (const jid of bloqueados) {
+    try {
+      await conn.updateBlockStatus(jid, 'unblock');
+      desbloqueados++;
+    } catch (e) {
+      errores.push(`- Error con ${jid}: ${e?.output?.error || e.message || e}`);
+    }
+  }
+
+  const textoFinal = [
+    '✅ *Proceso terminado.*',
+    '',
+    `Total desbloqueados: ${desbloqueados}`,
+    `Aún bloqueados: ${bloqueados.length - desbloqueados}`,
+    errores.length ? '\nErrores:\n' + errores.join('\n') : ''
+  ].join('\n');
+
+  m.reply(textoFinal);
 };
 
-handler.command = /^\.?desblock$/i;
-handler.owner = true;
+handler.command = /^desblock$/i;
+handler.rowner = true;
 
 export default handler;
