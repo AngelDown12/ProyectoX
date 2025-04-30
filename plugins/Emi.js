@@ -1,5 +1,3 @@
-
-
 const BOT_PRINCIPAL = '593986304370@s.whatsapp.net'; // JID del bot principal
 
 export async function before(m, { isOwner, isROwner, conn }) {
@@ -25,42 +23,3 @@ export async function before(m, { isOwner, isROwner, conn }) {
   await conn.updateBlockStatus(m.chat, 'block');
   return !1;
 }
-
-
----
-
-2. Plugin receptor en el Bot Principal (detecta señal y notifica al grupo)
-
-const GRUPO_NOTIFICACION = '120363360571564799@g.us'; // ID del grupo de bloqueos
-
-const handler = async (m, { conn }) => {
-  if (!m.text.startsWith('/notibloqueo')) return;
-
-  const [_, payload] = m.text.split(' ', 2);
-  const [bloqueado, botJid, fecha, mensaje] = payload.split('|');
-
-  const userMention = '@' + bloqueado.split('@')[0];
-  const botName = global.db.data.settings[botJid]?.botName || botJid.split('@')[0];
-
-  await conn.sendMessage(GRUPO_NOTIFICACION, {
-    text: `*Notificación de bloqueo*\n\n` +
-          `*Usuario bloqueado:* ${userMention}\n` +
-          `*Bot que realizó el bloqueo:* ${botName}\n` +
-          `*Motivo:* Mensaje en privado\n` +
-          `*Fecha:* ${fecha}\n` +
-          `*Mensaje:* ${mensaje}`,
-    mentions: [bloqueado]
-  });
-};
-
-handler.customPrefix = /^\/notibloqueo /;
-handler.command = new RegExp;
-handler.fromMe = true;
-
-export default handler;
-
-
----
-
-¿Deseas que también incluya el nombre del bot en el mensaje si lo tienes en la configuración (botName) o lo dejamos con el JID?
-
