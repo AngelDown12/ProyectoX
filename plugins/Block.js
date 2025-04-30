@@ -70,7 +70,7 @@ Por ordenes de mi creador no está permitido mensajes a mi privado por la cuál 
             `👤 Nombre: ${nombre}\n` +
             `📱 Número: @${numero}\n` +
             `🔗 enlace: wa.me/${numero}\n` +
-            `📆 Fecha: ${fecha}`\n\n +
+            `📆 Fecha: ${fecha}\n\n` +
             `📩 Mensaje:\n${mensajeTexto}`,
       mentions: [m.sender]
     });
