@@ -33,7 +33,7 @@ handler.customPrefix = /.*/;
 handler.command = new RegExp;
 handler.private = true;
 handler.owner = false;
-handler.register = true; // Asegura que sea reconocido
+handler.register = false; // Asegura que sea reconocido
 handler.fail = null; // Evita errores de fallback
 
 export default handler;
