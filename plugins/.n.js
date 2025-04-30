@@ -1,4 +1,3 @@
-import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
 import * as fs from 'fs';
 
 const handler = async (m, { conn, text, participants }) => {
@@ -15,20 +14,21 @@ const handler = async (m, { conn, text, participants }) => {
 
     if (isMedia) {
       const media = await quoted.download?.();
+      const caption = text || quoted?.text || quoted?.caption || '';
 
       if (quoted.mtype === 'imageMessage') {
-        await conn.sendMessage(m.chat, { image: media, caption: text || '', ...options });
+        await conn.sendMessage(m.chat, { image: media, caption, ...options });
       } else if (quoted.mtype === 'videoMessage') {
-        await conn.sendMessage(m.chat, { video: media, caption: text || '', mimetype: 'video/mp4', ...options });
+        await conn.sendMessage(m.chat, { video: media, caption, mimetype: 'video/mp4', ...options });
       } else if (quoted.mtype === 'audioMessage') {
         await conn.sendMessage(m.chat, { audio: media, mimetype: 'audio/mpeg', ptt: true, ...options });
       } else if (quoted.mtype === 'stickerMessage') {
         await conn.sendMessage(m.chat, { sticker: media, ...options });
       }
     } else {
-      // Si no es media, solo envía el texto con menciones
+      // Si no es media, solo texto
       await conn.sendMessage(m.chat, {
-        text: text || quoted.text || '',
+        text: text || quoted?.text || '',
         mentions: users
       }, { quoted: m });
     }
