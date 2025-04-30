@@ -23,7 +23,7 @@ await m.react(error)
 await conn.reply(m.chat, '✘ ChatGpT no pudo analizar la imagen.', m)}
 } else {
 if (!text) { return conn.reply(m.chat, `${emoji} Ingrese una petición para que el ChatGpT lo responda.`, m)}
-await m.react(rwait)
+await m.react(🗣️)
 try {
 const { key } = await conn.sendMessage(m.chat, {text: `${emoji2} ChatGPT está procesando tu petición, espera unos segundos.`}, {quoted: m})
 const query = text
