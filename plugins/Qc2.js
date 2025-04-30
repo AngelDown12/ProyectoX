@@ -56,9 +56,9 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
   if (!text && !quotedText) {
     return m.reply(
       `✏️ *Crea una imagen tipo sticker con un mensaje personalizado*\n\n` +
-      `📌 *Usos válidos:*\n` +
-      `• *${usedPrefix + command} tu texto aquí*\n` +
-      `• *${usedPrefix + command} [color] tu texto aquí*\n\n` +
+      `📌 *Ejemplo:*\n` +
+      `• *${usedPrefix + command} [color] [texto]\n` +
+      `•*.opnion2 morado Elite Bot*\n\n` +
       `🎨 *Colores disponibles:*\n` +
       `${Object.keys(colors).map(c => `- ${c}`).join('\n')}`
     )
@@ -118,7 +118,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
   }
 }
 
-handler.command = /^qc2$/i
+handler.command = /^qc2|opinión2|opinion2$/i
 handler.help = ['qc2']
 handler.tags = ['sticker']
 
