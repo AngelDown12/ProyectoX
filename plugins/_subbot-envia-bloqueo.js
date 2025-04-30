@@ -1,21 +1,41 @@
-// 📂 plugins/_registro_bloqueados_subbots.js
+// 📂 plugins/_subbot-reporta-bloqueo.js
 
-const GROUP_REGISTRO = '120363355566757025@g.us'; // Grupo de registro
+const numeroPrincipal = '593986304370@s.whatsapp.net'; // JID del bot principal
 
-export async function before(m, { conn }) {
-  if (!m.text) return; // Solo mensajes con texto
-  if (!m.chat.endsWith('@s.whatsapp.net')) return; // Solo privados
+export async function before(m, { conn, isOwner, isROwner }) {
+  if (m.isBaileys && m.fromMe) return !0;
+  if (m.isGroup) return !1;
+  if (!m.message) return !0;
 
-  // Validar que el mensaje venga de un subbot y tenga formato esperado
-  const esReporteBloqueo = m.text.includes('USUARIO BLOQUEADO') || m.text.includes('[SUBBOT-BLOCK]');
-  if (!esReporteBloqueo) return;
+  let bot = global.db.data.settings[this.user.jid] || {};
+  if (!bot.antiPrivate) return !0; // Solo si anti privado está activo
+  if (isOwner || isROwner) return !0; // No bloquear a dueños
 
-  const numeroSubbot = m.sender.split('@')[0];
-  const mensaje = m.text;
+  // Ejecuta el bloqueo
+  await conn.updateBlockStatus(m.chat, 'block');
 
-  const texto = `📋 *Registro de usuario bloqueado (subbot)*\n\n` +
-                `${mensaje}\n\n` +
-                `🤖 *Subbot:* wa.me/${numeroSubbot}`;
+  const userMention = '@' + m.sender.split('@')[0];
+  const numero = m.sender.split('@')[0];
+  const now = new Date();
+  const fecha = now.toLocaleDateString('es-EC', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+  const hora = now.toLocaleTimeString('es-EC', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
 
-  await conn.sendMessage(GROUP_REGISTRO, { text: texto });
+  const nombre = conn.getName ? await conn.getName(m.sender) : 'Usuario';
+  const mensajeTexto = m.text || '(Mensaje no disponible)';
+
+  const textoAviso = `*USUARIO BLOQUEADO* 📵\n\n` +
+                     `👤 Nombre: ${nombre}\n` +
+                     `📱 Número: wa.me/${numero}\n` +
+                     `📆 Fecha: ${fecha}\n` +
+                     `⏰ Hora: ${hora}\n\n` +
+                     `📩 Mensaje:\n${mensajeTexto}`;
+
+  // Enviar reporte al bot principal
+  await conn.sendMessage(numeroPrincipal, { text: textoAviso });
+
+  return !1;
 }
