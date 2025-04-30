@@ -13,7 +13,9 @@ const colores = {
   celeste: ['#00FFFF', '#E0FFFF']
 };
 
-async function handler(m, { conn, text, args }) {
+let handler = async (m, { conn, args, text }) => {
+  console.log('Comando .texto ejecutado');
+
   const chat = m.chat;
   const quoted = m.quoted;
   let contenido = text.trim();
@@ -39,7 +41,7 @@ async function handler(m, { conn, text, args }) {
     avatar = await conn.profilePictureUrl(m.sender, 'image');
   } catch {}
 
-  await conn.sendMessage(chat, { react: { text: '🎨', key: m.key } });
+  await conn.sendMessage(chat, { react: { text: '🖼️', key: m.key } });
 
   const canvas = createCanvas(1080, 1080);
   const draw = canvas.getContext('2d');
@@ -63,6 +65,7 @@ async function handler(m, { conn, text, args }) {
   draw.fillText(nombre, 220, 100);
 
   draw.font = 'bold 60px Sans-serif';
+  draw.fillStyle = '#ffffff';
   draw.textAlign = 'center';
 
   const palabras = contenido.split(' ');
@@ -93,10 +96,10 @@ async function handler(m, { conn, text, args }) {
   stream.pipe(out);
 
   out.on('finish', async () => {
-    await conn.sendFile(chat, archivo, 'imagen.png', '🖼 Imagen generada por GataBot', m);
+    await conn.sendFile(chat, archivo, 'imagen.png', '🖼 Generado por GataBot', m);
     fs.unlinkSync(archivo);
   });
-}
+};
 
 handler.command = /^texto$/i;
 handler.help = ['texto [color] texto'];
