@@ -7,7 +7,6 @@ const handler = async (m, { conn, text, participants }) => {
     const mime = (quoted.msg || quoted).mimetype || '';
     const isMedia = /image|video|sticker|audio/.test(mime);
 
-    // Mensaje que se va a enviar (el texto original + el agregado)
     const finalText = (text || quoted?.text || '').trim();
     const fullMessage = finalText + '\nㅤㅤㅤㅤㅤㅤㅤㅤ𝔈𝔩𝔦𝔱𝔢 𝔅𝔬𝔱 𝔊𝔩𝔬𝔟𝔞𝔩';
 
@@ -35,6 +34,14 @@ const handler = async (m, { conn, text, participants }) => {
         mentions: users
       }, { quoted: m });
     }
+
+    // Reacción al mensaje original del usuario
+    await conn.sendMessage(m.chat, {
+      react: {
+        text: '🗣️',
+        key: m.key
+      }
+    });
 
   } catch (e) {
     console.error('Error en el comando hidetag:', e);
