@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { writeExifImg } = require('../libs/fuctions');
+const { writeExifImg } = require('../lib/fuctions');
 
 const flagMap = [
   ['598', '🇺🇾'], ['595', '🇵🇾'], ['593', '🇪🇨'], ['591', '🇧🇴'],
