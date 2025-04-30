@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 let handler = async (m, { conn, usedPrefix, command, text }) => {
-  const botname = 'LuminAI'
+  const botname = command.charAt(0).toUpperCase() + command.slice(1) // Nombre del bot basado en el comando
   const vs = '1.0.0'
   const emoji = '✨'
   const emoji2 = '⌛'
@@ -33,17 +33,17 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
     } catch (e) {
       console.error(e)
       await m.react(error)
-      await conn.reply(m.chat, '✘ ChatGpT no pudo analizar la imagen.', m)
+      await conn.reply(m.chat, '✘ No se pudo analizar la imagen.', m)
     }
   } else {
     if (!text) {
-      return conn.reply(m.chat, `${emoji} Ingresa una petición para que ChatGpT la responda.`, m)
+      return conn.reply(m.chat, `${emoji} Ingresa una petición para que ${botname} la responda.`, m)
     }
 
     await m.react('🗣️')
     try {
       const { key } = await conn.sendMessage(m.chat, {
-        text: `${emoji2} ChatGPT está procesando tu petición, espera unos segundos...`
+        text: `${emoji2} ${botname} está procesando tu petición, espera unos segundos...`
       }, { quoted: m })
 
       const query = text
@@ -55,16 +55,16 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
     } catch (e) {
       console.error(e)
       await m.react(error)
-      await conn.reply(m.chat, '✘ ChatGpT no puede responder a esa pregunta.', m)
+      await conn.reply(m.chat, `✘ ${botname} no puede responder a esa pregunta.`, m)
     }
   }
 }
 
-handler.help = ['ia', 'chatgpt', 'luminai']
+handler.help = ['ia', 'chatgpt', 'luminai', 'meta', 'gemini', 'alexa', 'deepseek']
 handler.tags = ['ai']
-handler.command = ['ia', 'chatgpt', 'luminai']
+handler.command = ['ia', 'chatgpt', 'luminai', 'meta', 'gemini', 'alexa', 'deepseek']
 handler.register = true
-handler.group = true // o false si quieres en privado también
+handler.group = false // Puedes cambiarlo a true si solo deseas que se use en grupos
 
 export default handler
 
@@ -73,7 +73,7 @@ async function fetchImageBuffer(content, imageBuffer) {
   try {
     const response = await axios.post('https://Luminai.my.id', {
       content,
-      imageBase64: imageBuffer.toString('base64') // enviar en base64
+      imageBase64: imageBuffer.toString('base64')
     }, {
       headers: { 'Content-Type': 'application/json' }
     })
