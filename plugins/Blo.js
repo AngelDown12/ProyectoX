@@ -25,6 +25,6 @@ const handler = async (m, { conn, args, command, isOwner, isROwner }) => {
 handler.command = ['blo', 'unblo'];
 handler.owner = true;
 handler.group = false;
-handler.private = true;
+handler.private = false;
 
 export default handler;
