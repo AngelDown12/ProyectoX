@@ -1,69 +1,168 @@
-/* 
-- Flux Ai Imagen By Angel-OFC 
-- https://whatsapp.com/channel/0029VaJxgcB0bIdvuOwKTM2Y
-*/
-import axios from "axios";
+import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
+import axios from 'axios';
+import translate from '@vitalets/google-translate-api';
+import { perplexity } from '../lib/scraper.js';
+import { Configuration, OpenAIApi } from "openai";
 
-let handler = async (m, { conn, text, usedPrefix, command }) => {
-  if (!text) return conn.reply(m.chat,`🌸 Ejemplo: ${usedPrefix}${command} paisaje hermoso`, m, fake)
-  await m.react('🕓')
+const apikey_base64 = "c2stcHJvai1tUzN4bGZueXo0UjBPWV8zbm1DVDlMQmlmYXhYbVdaa0ptUVFJMDVKR2FxdHZCbk9ncWZjRXdCbEJmMU5WN0lYa0pncVJuM3BNc1QzQmxia0ZKMVJ5aEJzUl93NzRXbll5LWdjdkowT0NQUXliWTBOcENCcDZIOTlCVVVtcWxuTjVraEZxMk43TGlMU0RsU0s1cXA5Tm1kWVZXc0E=";
 
-  try {
-    const result = await fluximg.create(text);
-    if (result && result.imageLink) {
-      await m.react('✅')
-      await conn.sendMessage(
-        m.chat,
-        {
-          image: { url: result.imageLink },
-          caption: `*\`Resultados De:\`* ${text}`,
-        },
-        { quoted: m }
-      );
-    } else {
-      throw new Error("No se pudo crear la imagen. Intentar otra vez.");
-    }
-  } catch (error) {
-    console.error(error);
-    conn.reply(
-      m.chat,
-      "Se produjo un error al crear la imagen.",
-      m
-    );
+const apikey = Buffer.from(apikey_base64, 'base64').toString('utf-8');
+const configuration = new Configuration({apiKey: apikey, 
+});
+const openai = new OpenAIApi(configuration);
+
+const handler = async (m, {conn, text, usedPrefix, command}) => {
+let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
+let pp = await conn.profilePictureUrl(who, 'image').catch(_ => 'https://telegra.ph/file/9d38415096b6c46bf03f8.jpg')
+if (!text) return m.reply(await tr(`*Hola cómo esta 😊, El que te puedo ayudar?*, ingrese una petición o orden para usar la función de chagpt\n*Ejemplo:*\n${usedPrefix + command} Recomienda un top 10 de películas de acción`)) 
+let syms1 = await fetch('https://raw.githubusercontent.com/crxsmods/text3/refs/heads/main/text-chatgpt').then(v => v.text());
+
+if (command == 'ia' || command == 'chatgpt') {
+await conn.sendPresenceUpdate('composing', m.chat)
+try {
+  // Usar la nueva API solicitada
+  const encodedPrompt = encodeURIComponent(syms1);
+  const encodedContent = encodeURIComponent(text);
+  let gpt = await fetch(`https://api.siputzx.my.id/api/ai/gpt3?prompt=${encodedPrompt}&content=${encodedContent}`);
+  let res = await gpt.json();
+  
+  if (res.status) {
+    await m.reply(res.data);
+  } else {
+    // Si falla, intentar con los respaldos originales
+    throw new Error("API principal falló");
   }
-};
+} catch {
+  try {     
+    const messages = [{ role: 'system', content: syms1 },
+    { role: 'user', content: text }];
 
-handler.help = ["flux *<texto>*"];
-handler.tags = ["tools"];
-handler.command = ["flux"];
+    const chooseModel = (query) => {
+    const lowerText = query.toLowerCase();
 
+    if (lowerText.includes('código') || lowerText.includes('programación') || lowerText.includes('code') || lowerText.includes('script')) {
+      return 'codellama-70b-instruct';
+    } else if (lowerText.includes('noticias') || lowerText.includes('actual') || lowerText.includes('hoy') || lowerText.includes('último')) {
+      return 'sonar-medium-online';
+    } else if (lowerText.includes('explica') || lowerText.includes('por qué') || lowerText.includes('razona') || lowerText.includes('analiza')) {
+      return 'sonar-reasoning-pro';
+    } else if (lowerText.includes('cómo') || lowerText.includes('paso a paso') || lowerText.includes('instrucciones')) {
+      return 'mixtral-8x7b-instruct';
+    } else if (lowerText.includes('charla') || lowerText.includes('habla') || lowerText.includes('dime')) {
+      return 'sonar-medium-chat';
+    } else {
+      return 'sonar-pro';
+    }};
+
+    const selectedModel = chooseModel(text);
+    const fallbackModels = Object.keys(perplexity.api.models).filter(m => m !== selectedModel);
+    let response = await perplexity.chat(messages, selectedModel);
+
+    if (!response.status) {
+      for (const fallback of fallbackModels) {
+        try {
+          response = await perplexity.chat(messages, fallback);
+          if (response.status) {
+            break;
+          }
+        } catch (e) {
+          console.error(`Falló ${fallback}: ${e.message}`);
+        }
+      }
+    }
+
+    if (response.status) {
+      await m.reply(response.result.response);
+    } else {
+      throw new Error("Perplexity falló");
+    }
+  } catch {
+    try {     
+      async function getResponse(prompt) {
+        try {
+          await delay(1000); 
+          const response = await axios.post('https://api.openai.com/v1/chat/completions', 
+          { model: 'gpt-4o-mini', 
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 300,
+          }, { headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apikey}`, 
+          }});
+          return response.data.choices[0].message.content;
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      const respuesta = await getResponse(text);
+      m.reply(respuesta);
+    } catch {
+      try { 
+        let gpt = await fetch(`${apis}/ia/gptprompt?text=${text}?&prompt=${syms1}`);
+        let res = await gpt.json();
+        await m.reply(res.data);
+      } catch {
+        try {
+          let gpt = await fetch(`${apis}/ia/gptweb?text=${text}`);
+          let res = await gpt.json();
+          await m.reply(res.gpt);
+        } catch {
+          m.reply("Lo siento, todos los servicios de IA están fallando en este momento. Inténtalo más tarde.");
+        }
+      }
+    }
+  }
+}}
+
+if (command == 'openai' || command == 'ia2' || command == 'chatgpt2') {
+conn.sendPresenceUpdate('composing', m.chat);
+let gpt = await fetch(`${apis}/api/ia2?text=${text}`)
+let res = await gpt.json()
+await m.reply(res.gpt)
+}
+
+if (command == 'gemini') {
+await conn.sendPresenceUpdate('composing', m.chat)
+try {
+let gpt = await fetch(`https://api.dorratz.com/ai/gemini?prompt=${text}`)
+let res = await gpt.json()
+await m.reply(res.message)
+} catch {
+try {
+let gpt = await fetch(`${apis}/ia/gemini?query=${text}`)
+let res = await gpt.json()
+await m.reply(res.message)
+} catch {
+}}}
+
+if (command == 'copilot' || command == 'bing') {
+await conn.sendPresenceUpdate('composing', m.chat)
+try {
+let gpt = await fetch(`https://api.dorratz.com/ai/bing?prompt=${text}`)
+let res = await gpt.json()
+await conn.sendMessage(m.chat, { text: res.result.ai_response, contextInfo: {
+externalAdReply: {
+title: "[ IA COPILOT ]",
+body: wm,
+thumbnailUrl: "https://qu.ax/nTDgf.jpg", 
+sourceUrl: [nna, nna2, nn, md, yt, tiktok].getRandom(),
+mediaType: 1,
+showAdAttribution: false,
+renderLargerThumbnail: false
+}}}, { quoted: m })
+} catch {
+try {
+let gpt = await fetch(`${apis}/ia/bingia?query=${text}`)
+let res = await gpt.json()
+await m.reply(res.message)
+} catch {
+}}}}
+handler.help = ["chagpt", "ia", "openai", "gemini", "copilot"]
+handler.tags = ["buscadores"]
+handler.command = /^(openai|chatgpt|ia|ai|openai2|chatgpt2|ia2|gemini|copilot|bing)$/i;
 export default handler;
 
-const fluximg = {
-  defaultRatio: "2:3", 
-
-  create: async (query) => {
-    const config = {
-      headers: {
-        accept: "*/*",
-        authority: "1yjs1yldj7.execute-api.us-east-1.amazonaws.com",
-        "user-agent": "Postify/1.0.0",
-      },
-    };
-
-    try {
-      const response = await axios.get(
-        `https://1yjs1yldj7.execute-api.us-east-1.amazonaws.com/default/ai_image?prompt=${encodeURIComponent(
-          query
-        )}&aspect_ratio=${fluximg.defaultRatio}`,
-        config
-      );
-      return {
-        imageLink: response.data.image_link,
-      };
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  },
-};
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
