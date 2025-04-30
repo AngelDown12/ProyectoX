@@ -1,42 +1,20 @@
-const BOTS_PRINCIPALES = [
-  '593986304370@s.whatsapp.net', // Elite Bot (Principal)
-  '56963048720@s.whatsapp.net',  // Rouse Bot
-  '50251864696@s.whatsapp.net',  // Staff Bot
-  '529984088511@s.whatsapp.net'  // Mc Bot
-];
+export async function before(m, {isOwner, isROwner}) {
+  if (m.isBaileys && m.fromMe) return !0;
+  if (m.isGroup) return !1;
+  if (!m.message) return !0;
+  if (m.text.includes("PIEDRA") || m.text.includes("PAPEL") || m.text.includes("TIJERA")) return !0;
+  let bot = global.db.data.settings[this.user.jid] || {};
 
-export async function before(m, { isOwner, isROwner, conn }) {
-  const botNumber = conn?.user?.jid || '';
-
-  // Solo bots principales/subbots ejecutan este código
-  if (!BOTS_PRINCIPALES.includes(botNumber)) return;
-
-  if (m.isGroup || m.fromMe || !m.message) return;
-  if (isOwner || isROwner) return;
-
-  // Mensajes que se deben permitir (como comandos de juegos)
-  if (/PIEDRA|PAPEL|TIJERA/i.test(m.text || '')) return;
-
-  // Enviar video y bloquear
-  const userMention = '@' + m.sender.split('@')[0];
-  const fecha = new Date().toLocaleDateString('es-EC', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-
-  await conn.sendMessage(m.chat, {
-    video: { url: 'https://files.catbox.moe/tpmd88.mp4' }, // Tu video estilo gif
-    caption: `Hola ${userMention}\n\nEstá prohibido escribirme al privado, por ende serás bloqueado.\n\n` +
-             `Fuiste bloqueado\n(${fecha})\n\n` +
-             `» Si necesitas un bot o tienes algún inconveniente, contáctate con mi creador:\n` +
-             `» wa.me/593993370003`,
-    gifPlayback: true,
-    mentions: [m.sender]
-  }, { quoted: m });
-
-  // Bloquear directamente al usuario
-  await conn.updateBlockStatus(m.chat, 'block');
+  if (bot.antiPrivate && !isOwner && !isROwner) {
+    await m.reply(
+      `» 𝗘𝗦𝗧𝗔 𝗣𝗥𝗢𝗛𝗜𝗕𝗜𝗗𝗢 𝗘𝗦𝗖𝗥𝗜𝗕𝗜𝗥𝗟𝗘 𝗔𝗟 𝗕𝗢𝗧 𝗔𝗟 𝗣𝗥𝗜𝗩𝗔𝗗𝗢, 𝗦𝗘𝗥𝗔́𝗦 𝗕𝗟𝗢𝗤𝗨𝗘𝗔𝗗𝗢/𝗔 .
+﹘﹘﹘﹘﹘﹘﹘﹘﹘﹘﹘﹘
+» 𝗦𝗜 𝗡𝗘𝗖𝗘𝗦𝗜𝗧𝗔𝗦 𝗨𝗡 𝗕𝗢𝗧 𝗢 𝗧𝗜𝗘𝗡𝗘𝗦 𝗔𝗟𝗚𝗨́𝗡 𝗜𝗡𝗖𝗢𝗡𝗩𝗘𝗡𝗜𝗘𝗡𝗧𝗘 𝗖𝗢𝗡𝗧𝗔́𝗖𝗧𝗔𝗧𝗘 𝗖𝗢𝗡 𝗠𝗜 𝗖𝗥𝗘𝗔𝗗𝗢𝗥.
+» Wa.me/593993370003 ${md}`,
+      false,
+      {mentions: [m.sender]}
+    );
+    await this.updateBlockStatus(m.chat, "block");
+  }
   return !1;
 }
