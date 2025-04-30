@@ -1,64 +1,69 @@
+/* 
+- Flux Ai Imagen By Angel-OFC 
+- https://whatsapp.com/channel/0029VaJxgcB0bIdvuOwKTM2Y
+*/
+import axios from "axios";
 
-import { randomBytes } from "crypto"
-import axios from "axios"
+let handler = async (m, { conn, text, usedPrefix, command }) => {
+  if (!text) return conn.reply(m.chat,`🌸 Ejemplo: ${usedPrefix}${command} paisaje hermoso`, m, fake)
+  await m.react('🕓')
 
-let handler = async (m, { conn, text }) => {
-    if (!text) throw '¿Como puedo ayudarte hoy?';
-    try {
-        conn.reply(m.chat, m);
-        let data = await chatGpt(text)
-await conn.sendMessage(m.chat, { text: data,
-contextInfo:{
-forwardingScore: 9999999,
-isForwarded: false, 
-"externalAdReply": {
-"showAdAttribution": true,
-"containsAutoReply": true,
-title: `[ Barboza -By|Bot Barboza ]`,
-body: ``,
-"previewType": "PHOTO",
-thumbnailUrl: 'https://tinyurl.com/2awg2bch', 
-sourceUrl: 'https://whatsapp.com/channel/0029VapSIvR5EjxsD1B7hU3T'}}},
-{ quoted: m})
-    } catch (err) {
-        m.reply('error cik:/ ' + err);
+  try {
+    const result = await fluximg.create(text);
+    if (result && result.imageLink) {
+      await m.react('✅')
+      await conn.sendMessage(
+        m.chat,
+        {
+          image: { url: result.imageLink },
+          caption: `*\`Resultados De:\`* ${text}`,
+        },
+        { quoted: m }
+      );
+    } else {
+      throw new Error("No se pudo crear la imagen. Intentar otra vez.");
     }
-}
+  } catch (error) {
+    console.error(error);
+    conn.reply(
+      m.chat,
+      "Se produjo un error al crear la imagen.",
+      m
+    );
+  }
+};
 
-handler.command = handler.help = ['demo'];
-handler.estrellas = 3;
-handler.tags = ['tools'];
+handler.help = ["flux *<texto>*"];
+handler.tags = ["tools"];
+handler.command = ["flux"];
 
 export default handler;
 
-async function chatGpt(query){
-try {
+const fluximg = {
+  defaultRatio: "2:3", 
 
-const { id_ }= (await axios.post("https://chat.chatgptdemo.net/new_chat",{user_id: "crqryjoto2h3nlzsg"},{headers:{
-"Content-Type": "application/json",
+  create: async (query) => {
+    const config = {
+      headers: {
+        accept: "*/*",
+        authority: "1yjs1yldj7.execute-api.us-east-1.amazonaws.com",
+        "user-agent": "Postify/1.0.0",
+      },
+    };
 
-}})).data
-
-const json = {"question":query,"chat_id": id_,"timestamp":new Date().getTime()}
-
-
-const { data } = await axios.post("https://chat.chatgptdemo.net/chat_api_stream",json,{headers:{
-"Content-Type": "application/json",
-
-}})
-const cek = data.split("data: ")
-
-let res = []
-
-for (let i=1; i < cek.length; i++){
-if (cek[i].trim().length > 0){
-res.push(JSON.parse(cek[i].trim()))
-}}
-
-return res.map((a) => a.choices[0].delta.content).join("")
-
-} catch (error) {
-console.error("Error parsing JSON:",error)
-return 404
-}
-}
+    try {
+      const response = await axios.get(
+        `https://1yjs1yldj7.execute-api.us-east-1.amazonaws.com/default/ai_image?prompt=${encodeURIComponent(
+          query
+        )}&aspect_ratio=${fluximg.defaultRatio}`,
+        config
+      );
+      return {
+        imageLink: response.data.image_link,
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
+};
