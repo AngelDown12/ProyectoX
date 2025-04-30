@@ -17,6 +17,9 @@ handler.owner = false;
 export default handler;
 */
 
+
+
+//BLOQUEA EN EL NÚMERO PRINCIPAL. EN LOS SUBBOTS RESPONDE COMANDOS
 const BOT_PRINCIPAL = '593986304370@s.whatsapp.net'; // Cambia esto por el JID real
 
 const handler = async (m, { conn, isOwner }) => {
@@ -33,7 +36,7 @@ handler.customPrefix = /.*/;
 handler.command = new RegExp;
 handler.private = true;
 handler.owner = false;
-handler.register = false; // Asegura que sea reconocido
+handler.register = true; // Asegura que sea reconocido
 handler.fail = null; // Evita errores de fallback
 
 export default handler;
