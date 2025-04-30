@@ -6,9 +6,9 @@ let handler = async (m, { conn }) => {
   }), 'gay.png', `🏳️‍🌈  *Gay :* ${name}\n\n${mssg.gaytex}`, m)
 }
 
-handler.help = ['gay @user']
+handler.help = ['gay3 @user']
 handler.tags = ['fun']
-handler.command = ['gay'] 
+handler.command = ['gay3'] 
 handler.diamond = true
 
 export default handler
