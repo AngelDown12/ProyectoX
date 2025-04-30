@@ -1,82 +1,41 @@
-import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
-import * as fs from 'fs';
+let handler = async (m, { conn, text }) => {
+  let q = m.quoted ? m.quoted : m
+  let mime = (q.msg || q).mimetype || ''
+  let c = (text || q.text || '').trim()
+  let users = m.mentionedJid ? m.mentionedJid : [m.sender]
+  let watermark = '\n\n©EliteBotGlobal'
 
-const handler = async (m, { conn, text, participants }) => {
-  try {
-    const users = participants.map((u) => conn.decodeJid(u.id));
-    const watermark = '\nㅤㅤㅤㅤㅤㅤㅤㅤㅤᴱˡᶦᵗᵉᴮᵒᵗᴳˡᵒᵇᵃˡ';
+  if (mime) {
+    let media = await q.download()
+    if (!media) return m.reply('No se pudo descargar el medio.')
 
-    const q = m.quoted || m;
-    const c = m.quoted ? await m.getQuotedObj() : m;
-
-    if (m.quoted) {
-      const msg = conn.cMod(
-        m.chat,
-        generateWAMessageFromContent(
-          m.chat,
-          { [q.mtype]: c.message[q.mtype] },
-          { quoted: m, userJid: conn.user.id }
-        ),
-        (text || '') + watermark,
-        conn.user.jid,
-        { mentions: users }
-      );
-      await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id });
-    } else {
-      await conn.sendMessage(m.chat, {
-        text: (text || '') + watermark,
-        mentions: users
-      }, { quoted: m });
-    }
-
-  } catch {
-    const users = participants.map((u) => conn.decodeJid(u.id));
-    const quoted = m.quoted || m;
-    const mime = (quoted.msg || quoted).mimetype || '';
-    const isMedia = /image|video|sticker|audio/.test(mime);
-    const watermark = '\n©𝖤𝗅𝗂𝗍𝖾𝖡𝗈𝗍𝖦𝗅𝗈𝖻𝖺𝗅';
-
-    if (isMedia) {
-      const mediax = await quoted.download?.();
-      const options = { mentions: users, quoted: m };
-
-      if (quoted.mtype === 'imageMessage') {
-        conn.sendMessage(m.chat, { image: mediax, caption: (text || '') + watermark, ...options });
-      } else if (quoted.mtype === 'videoMessage') {
-        conn.sendMessage(m.chat, { video: mediax, caption: (text || '') + watermark, mimetype: 'video/mp4', ...options });
-      } else if (quoted.mtype === 'audioMessage') {
-        conn.sendMessage(m.chat, { audio: mediax, caption: watermark, mimetype: 'audio/mpeg', fileName: 'Hidetag.mp3', ...options });
-      } else if (quoted.mtype === 'stickerMessage') {
-        conn.sendMessage(m.chat, { sticker: mediax, ...options });
-      }
-    } else {
-      const more = String.fromCharCode(8206);
-      const masss = more.repeat(850) + watermark;
-
-      await conn.relayMessage(
+    await conn.sendFile(m.chat, media, 'media', (c ? c + watermark : watermark), m, false, { mentions: users })
+  } else if (c || q.text) {
+    const msg = conn.cMod(
+      m.chat,
+      generateWAMessageFromContent(
         m.chat,
         {
-          extendedTextMessage: {
-            text: `${masss}`,
+          [q.mtype ? q.mtype : 'extendedTextMessage']: {
+            text: c + watermark,
             contextInfo: {
               mentionedJid: users,
-              externalAdReply: {
-                thumbnail: 'https://telegra.ph/file/03d1e7fc24e1a72c60714.jpg',
-                sourceUrl: global.canal
-              }
+              externalAdReply: null // Elimina tarjetas o vistas previas
             }
           }
         },
-        {}
-      );
-    }
+        { quoted: m, userJid: conn.user.jid }
+      ),
+      m
+    )
+    await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id })
+  } else {
+    // No hay mensaje válido que citar o texto, no responder
+    return
   }
-};
+}
 
-handler.help = ['hidetag'];
-handler.tags = ['group'];
-handler.command = /^(hidetag|notify|notificar|noti|n|hidetah|hidet)$/i;
-handler.group = true;
-handler.admin = true;
-
-export default handler;
+handler.help = ['n']
+handler.tags = ['tools']
+handler.command = /^n$/i
+export default handler
