@@ -6,8 +6,9 @@ const handler = (m) => m;
 handler.before = async (m) => {
   const chat = global.db.data.chats[m.chat];
   if (chat.simi) {
-    // Verifica si el mensaje tiene menos de 10 letras y si es un comando
-    if (m.text.length < 10 || m.text.startsWith('/') || m.text.startsWith('!') || m.text.startsWith('.')) return;
+    // Verifica si el mensaje tiene menos de 20 palabras o si es un comando
+    const wordCount = m.text.split(/\s+/).length;
+    if (wordCount < 20 || m.text.startsWith('/') || m.text.startsWith('!') || m.text.startsWith('.')) return;
 
     let textodem = m.text;
     
