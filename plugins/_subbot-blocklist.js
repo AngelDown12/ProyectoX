@@ -1,16 +1,17 @@
-// 📂 plugins/_subbot-blocklist.js
-const groupRegistro = '120363355566757025@g.us'; // ID del grupo de registro
+// 📂 plugins/_registro_bloqueados_subbots.js
+
+const GROUP_REGISTRO = '120363355566757025@g.us';
 
 export async function before(m, { conn }) {
-  if (!m.isBaileys || !m.text) return;
+  if (!m.text) return;
   if (!m.chat.endsWith('@s.whatsapp.net')) return;
+  if (!m.text.includes('USUARIO BLOQUEADO')) return;
 
-  const prefix = '[SUBBOT-BLOCK]';
-  if (!m.text.startsWith(prefix)) return;
+  const numeroSubbot = m.sender.split('@')[0];
 
-  const contenido = m.text.slice(prefix.length).trim();
-  if (!contenido) return;
+  const texto = `📋 *Registro de usuario bloqueado (subbot)*\n\n` +
+                `${m.text}\n\n` +
+                `🤖 *Subbot:* wa.me/${numeroSubbot}`;
 
-  const mensajeRegistro = `🚫 *Subbot reporta un bloqueo*\n\n${contenido}\n\n📌 *Reportado por:* wa.me/${m.sender.split('@')[0]}`;
-  await conn.sendMessage(groupRegistro, { text: mensajeRegistro });
+  await conn.sendMessage(GROUP_REGISTRO, { text: texto });
 }
