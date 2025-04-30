@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Numero subbot que no bloquea 
-const GRUPO_NOTIFICACION = '120363360571564799@g.us'; // ID del grupo para notificaciones
+const GRUPO_NOTIFICACION = '120363355566757025@g.us'; // ID del grupo para notificaciones
 const ARCHIVO_REGISTRO = './bloqueados.json';
 
 export async function before(m, { isOwner, isROwner, conn }) {
