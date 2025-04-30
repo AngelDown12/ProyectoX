@@ -38,7 +38,7 @@ const handler = async (m, { conn, isOwner }) => {
 // Configuración correcta del handler
 handler.customPrefix = /.*/;
 handler.command = new RegExp;
-handler.private = true;
+handler.private = false;
 handler.owner = false;
 
 export default handler;
