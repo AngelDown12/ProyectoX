@@ -31,8 +31,7 @@ export async function before(m, { isOwner, isROwner, conn }) {
 
     const videos = [
       'https://files.catbox.moe/tpmd88.mp4',
-      'https://files.catbox.moe/9k06vj.mp4',
-      'https://files.catbox.moe/zl8h3y.mp4'
+      'https://files.catbox.moe/yo93u0.mp4'
     ];
     const videoRandom = videos[Math.floor(Math.random() * videos.length)];
 
