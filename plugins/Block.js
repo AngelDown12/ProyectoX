@@ -52,12 +52,12 @@ export async function before(m, { isOwner, isROwner, conn }) {
 
     // Notificación al grupo
     await conn.sendMessage(GRUPO_NOTIFICACION, {
-      text: `*USUARIO BLOQUEADO*\n` +
-            `• Nombre: ${nombre}\n` +
-            `• Número: @${numero}\n` +
-            `• WhatsApp: wa.me/${numero}\n` +
-            `• Fecha: ${fecha}` +
-            `• Mensaje:\n${mensajeTexto}`,
+      text: `*USUARIO BLOQUEADO* 📵\n\n` +
+            `👤 Nombre: ${nombre}\n` +
+            `📱 Número: @${numero}\n` +
+            `🔗 enlace: wa.me/${numero}\n` +
+            `📆 Fecha: ${fecha}`\n\n +
+            `📩 Mensaje:\n${mensajeTexto}`,
       mentions: [m.sender]
     });
 
