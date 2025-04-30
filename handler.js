@@ -1232,10 +1232,7 @@ user.antispam++
 return
 }
 
-//Antispam 2		
-if (user.antispam2 && isROwner) return
-let time = global.db.data.users[m.sender].spam + 1000
-if (new Date - global.db.data.users[m.sender].spam < 1000) return console.log(`[ SPAM ]`) 
+//Antispam 2 (sin limitaciones)
 global.db.data.users[m.sender].spam = new Date * 1
 }
 		
