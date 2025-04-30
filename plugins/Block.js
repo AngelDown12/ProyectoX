@@ -1,7 +1,8 @@
 const BOTS_PRINCIPALES = [
   '593986304370@s.whatsapp.net', // Elite Bot
-  '573243951424@s.whatsapp.net', // 
-  '593994445556@s.whatsapp.net' // 
+  '56963048720@s.whatsapp.net', // Rouse bot 
+  '50251864696@s.whatsapp.net', // Staff bot
+  '529984088511@s.whatsapp.net' // Mc bot
 ]; // Agrega los números que quieras
 
 export async function before(m, { isOwner, isROwner, conn }) {
