@@ -1,4 +1,3 @@
-👇🏾Codigo de hacer texto a imagen con tu foto del perfil nombre o numero aqui esta 👇🏾
 
 const { createCanvas, loadImage } = require('canvas');
 const fs = require('fs');
