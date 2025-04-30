@@ -38,9 +38,23 @@ export async function before(m, { isOwner, isROwner, conn }) {
 
     await conn.sendMessage(m.chat, {
       video: { url: videoRandom },
-      caption: `Hola ${userMention}\n\nEstá prohibido escribirme al privado, por ende serás bloqueado.\n\nFuiste bloqueado\n(${fecha} - ${hora})\n\n` +
-               `» Si necesitas un bot o tienes algún inconveniente, contáctate con mi creador:\n` +
-               `» wa.me/593993370003`,
+      caption: `*¡HOLA¡ 👋🏻* ${userMention}\n
+Por ordenes de mi creador no está permitido mensajes a mi privado por la cuál tendré que bloquearte. 
+
+*Si quieres adquir Elite Bot Global ingresa al siguiente link.*
+🎁 https://sites.google.com/view/elitebotglobal?usp=sharing
+
+*GRUPO OFC:*
+> https://chat.whatsapp.com/GzqYw7fK9CADEWEtfL6804
+
+*CHANNEL:*
+> https://whatsapp.com/channel/0029VasDCR97dmeWOvPNlY45
+••••••••••••••••••••••••••••••
+© 2023 EliteBotGlobal
+      
+      
+      
+      `,
       gifPlayback: true,
       mentions: [m.sender]
     }, { quoted: m });
