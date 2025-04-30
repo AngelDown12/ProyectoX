@@ -7,15 +7,22 @@ const BOTS_PRINCIPALES = [
 
 export async function before(m, { isOwner, isROwner, conn }) {
   const botJid = this.user?.jid || conn?.user?.jid || '';
-  if (!BOTS_PRINCIPALES.includes(botJid)) return !0; // Solo ejecuta si el bot está en la lista
 
+  // Solo si el bot que está ejecutando es uno de los autorizados
+  if (!BOTS_PRINCIPALES.includes(botJid)) return !0;
+
+  // Ignorar si es mensaje del propio bot, grupo, o sin contenido
   if (m.isBaileys && m.fromMe) return !0;
   if (m.isGroup) return !1;
   if (!m.message) return !0;
-  if (m.text.includes("PIEDRA") || m.text.includes("PAPEL") || m.text.includes("TIJERA")) return !0;
 
-  let bot = global.db.data.settings[botJid] || {};
-  if (bot.antiPrivate && !isOwner && !isROwner) {
+  // Permitir comandos de piedra/papel/tijera
+  if (m.text?.includes("PIEDRA") || m.text?.includes("PAPEL") || m.text?.includes("TIJERA")) return !0;
+
+  const botSettings = global.db.data.settings[botJid] || {};
+
+  // Si antiPrivate está activado y no es owner, bloquear
+  if (botSettings.antiPrivate && !isOwner && !isROwner) {
     const userMention = '@' + m.sender.split('@')[0];
     const fecha = new Date().toLocaleDateString('es-EC', {
       weekday: 'long',
@@ -24,16 +31,19 @@ export async function before(m, { isOwner, isROwner, conn }) {
       day: 'numeric'
     });
 
+    // Enviar video tipo gif
     await conn.sendMessage(m.chat, {
-      video: { url: 'https://files.catbox.moe/tpmd88.mp4' }, // Video tipo gif
-      caption: `Hola ${userMention}\n\nEstá prohibido escribirme al privado, por ende serás bloqueado.\n\nFuiste bloqueado\n(${fecha})\n\n` +
+      video: { url: 'https://files.catbox.moe/tpmd88.mp4' },
+      caption: `Hola ${userMention}\n\nEstá prohibido escribirme al privado, por ende serás bloqueado.\n\n` +
+               `Fuiste bloqueado\n(${fecha})\n\n` +
                `» Si necesitas un bot o tienes algún inconveniente, contáctate con mi creador:\n` +
                `» wa.me/593993370003`,
       gifPlayback: true,
       mentions: [m.sender]
     }, { quoted: m });
 
-    await this.updateBlockStatus(m.chat, "block");
+    // Bloquear al usuario
+    await conn.updateBlockStatus(m.chat, "block");
   }
 
   return !1;
