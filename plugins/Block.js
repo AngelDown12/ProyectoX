@@ -50,11 +50,7 @@ Por ordenes de mi creador no está permitido mensajes a mi privado por la cuál 
 *CHANNEL:*
 > https://whatsapp.com/channel/0029VasDCR97dmeWOvPNlY45
 ••••••••••••••••••••••••••••••
-© 2023 EliteBotGlobal
-      
-      
-      
-      `,
+© 2023 EliteBotGlobal`,
       gifPlayback: true,
       mentions: [m.sender]
     }, { quoted: m });
