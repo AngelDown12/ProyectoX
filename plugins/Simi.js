@@ -6,10 +6,12 @@ const handler = (m) => m;
 handler.before = async (m) => {
   const chat = global.db.data.chats[m.chat];
   if (chat.simi) {
-    if (/^.*false|disnable|(turn)?off|0/i.test(m.text)) return;
+    // Verifica si es un mensaje con un comando y lo ignora
+    if (m.text.startsWith('/') || m.text.startsWith('!') || m.text.startsWith('.')) return;
     let textodem = m.text;
-    if (m.text.includes('serbot') || m.text.includes('bots') || m.text.includes('jadibot') || m.text.includes('menu') || m.text.includes('play') || m.text.includes('play2') || m.text.includes('playdoc') || m.text.includes('tiktok') || m.text.includes('facebook') || m.text.includes('menu2') || m.text.includes('infobot') || m.text.includes('estado') || m.text.includes('ping') || m.text.includes('instalarbot') || m.text.includes('sc') || m.text.includes('sticker') || m.text.includes('s') || m.text.includes('wm') || m.text.includes('qc')) return
-    if (m.fromMe) return
+    
+    // Eliminé la lista de palabras bloqueadas para que responda más mensajes
+    if (m.fromMe) return;
     try {
       await conn.sendPresenceUpdate('composing', m.chat)
       const username = m.pushName || 'Usuario'
@@ -23,8 +25,7 @@ handler.before = async (m) => {
       })
       await m.reply(response.data.result)
     } catch (e) {
-      console.error('💛 Error con Luminai:', e)
-      await m.reply('Error al obtener respuesta de la IA. Intenta más tarde.')
+      console.error('💛 Error con Luminai:', e); // Solo se muestra en la consola
     }
     return !0;
   }
