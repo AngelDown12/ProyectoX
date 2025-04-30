@@ -6,8 +6,9 @@ const handler = (m) => m;
 handler.before = async (m) => {
   const chat = global.db.data.chats[m.chat];
   if (chat.simi) {
-    // Verifica si es un mensaje con un comando y lo ignora
-    if (m.text.startsWith('/') || m.text.startsWith('!') || m.text.startsWith('.')) return;
+    // Verifica si el mensaje tiene menos de 10 letras y si es un comando
+    if (m.text.length < 10 || m.text.startsWith('/') || m.text.startsWith('!') || m.text.startsWith('.')) return;
+
     let textodem = m.text;
     
     // Eliminé la lista de palabras bloqueadas para que responda más mensajes
