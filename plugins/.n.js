@@ -9,7 +9,7 @@ const handler = async (m, { conn, text, participants }) => {
 
     // Mensaje que se va a enviar (el texto original + el agregado)
     const finalText = (text || quoted?.text || '').trim();
-    const fullMessage = finalText + '\nㅤㅤㅤㅤㅤㅤㅤㅤㅤ𝔈𝔩𝔦𝔱𝔢 𝔅𝔬𝔱 𝔊𝔩𝔬𝔟𝔞𝔩';
+    const fullMessage = finalText + '\nㅤㅤㅤㅤㅤㅤㅤ𝔈𝔩𝔦𝔱𝔢 𝔅𝔬𝔱 𝔊𝔩𝔬𝔟𝔞𝔩';
 
     const options = {
       mentions: users,
@@ -40,7 +40,7 @@ const handler = async (m, { conn, text, participants }) => {
     console.error('Error en el comando hidetag:', e);
     const usersFallback = participants.map(u => conn.decodeJid(u.id));
     await conn.sendMessage(m.chat, {
-      text: (text || '') + '\nㅤㅤㅤㅤㅤㅤㅤㅤㅤ𝔈𝔩𝔦𝔱𝔢 𝔅𝔬𝔱 𝔊𝔩𝔬𝔟𝔞𝔩',
+      text: (text || '') + '\nㅤㅤㅤㅤㅤㅤㅤ𝔈𝔩𝔦𝔱𝔢 𝔅𝔬𝔱 𝔊𝔩𝔬𝔟𝔞𝔩',
       mentions: usersFallback
     }, { quoted: m });
   }
