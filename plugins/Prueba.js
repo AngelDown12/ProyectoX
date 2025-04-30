@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let handler = async (m, { conn, usedPrefix, command }) => {
-  const carpeta = path.join(__dirname, '../media/gay');
+  const carpeta = path.join(__dirname, '../media/sinfoto3');
   let archivos = fs.readdirSync(carpeta);
   let elegido = archivos[Math.floor(Math.random() * archivos.length)];
   let ruta = path.join(carpeta, elegido);
