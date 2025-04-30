@@ -57,8 +57,8 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     return m.reply(
       `✏️ *Crea una imagen tipo sticker con un mensaje personalizado*\n\n` +
       `📌 *Ejemplo:*\n` +
-      `• *${usedPrefix + command} [color] [texto]\n` +
-      `•*.opnion2 morado Elite Bot*\n\n` +
+      `• ${usedPrefix + command} [color] [texto]\n` +
+      `• .opnion2 morado Elite Bot\n\n` +
       `🎨 *Colores disponibles:*\n` +
       `${Object.keys(colors).map(c => `- ${c}`).join('\n')}`
     )
