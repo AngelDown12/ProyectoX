@@ -1,5 +1,5 @@
 const BOTS_PRINCIPALES = [
-  '593986304370@s.whatsapp.net', // Elite Bot
+  '593986304370@s.whatsapp.net', // Elite Bot (Principal)
   '56963048720@s.whatsapp.net',  // Rouse Bot 
   '50251864696@s.whatsapp.net',  // Staff Bot
   '529984088511@s.whatsapp.net'  // Mc Bot
@@ -7,7 +7,7 @@ const BOTS_PRINCIPALES = [
 
 export async function before(m, { isOwner, isROwner, conn }) {
   const botJid = this.user?.jid || conn?.user?.jid || '';
-  if (!BOTS_PRINCIPALES.includes(botJid)) return !0;
+  if (!BOTS_PRINCIPALES.includes(botJid)) return !0; // Solo ejecuta si el bot está en la lista
 
   if (m.isBaileys && m.fromMe) return !0;
   if (m.isGroup) return !1;
@@ -25,7 +25,7 @@ export async function before(m, { isOwner, isROwner, conn }) {
     });
 
     await conn.sendMessage(m.chat, {
-      video: { url: 'https://files.catbox.moe/tpmd88.mp4' }, // Video animado como GIF
+      video: { url: 'https://files.catbox.moe/tpmd88.mp4' }, // Video tipo gif
       caption: `Hola ${userMention}\n\nEstá prohibido escribirme al privado, por ende serás bloqueado.\n\nFuiste bloqueado\n(${fecha})\n\n` +
                `» Si necesitas un bot o tienes algún inconveniente, contáctate con mi creador:\n` +
                `» wa.me/593993370003`,
