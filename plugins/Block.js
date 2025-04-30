@@ -93,10 +93,10 @@ const VIDEOS = [
   'https://files.catbox.moe/b3rwfz.mp4',
   'https://files.catbox.moe/jry3y4.mp4'
 ];
-const GRUPO_NOTIFICACION = '120363360571564799@g.us'; // ID del grupo donde se notificará
-const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Número del bot principal (no se bloquea a sí mismo)
+const GRUPO_NOTIFICACION = '120363360571564799@g.us'; // Grupo de notificación
+const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Número del bot principal que no debe ser bloqueado
 
-export async function before(m, { isOwner, isROwner, conn }) {
+export async function before(m, { isOwner, isROwner }) {
   if (m.isBaileys && m.fromMe) return !0;
   if (m.isGroup) return !1;
   if (!m.message) return !0;
@@ -115,16 +115,19 @@ export async function before(m, { isOwner, isROwner, conn }) {
     const video = VIDEOS[Math.floor(Math.random() * VIDEOS.length)];
     const mensajeRecibido = m.text || 'Sin texto';
 
-    await conn.sendMessage(m.chat, {
+    // Enviar advertencia con video
+    await this.sendMessage(m.chat, {
       video: { url: video },
       caption: `Hola ${userMention}\n\nEstá prohibido escribirme al privado, por ende serás bloqueado.\n\nFuiste bloqueado\n(${fecha})`,
       gifPlayback: true,
       mentions: [m.sender]
     }, { quoted: m });
 
-    await conn.updateBlockStatus(m.chat, "block");
+    // Bloquear al usuario
+    await this.updateBlockStatus(m.chat, 'block');
 
-    await conn.sendMessage(GRUPO_NOTIFICACION, {
+    // Notificar en el grupo
+    await this.sendMessage(GRUPO_NOTIFICACION, {
       text:
         `*Usuario bloqueado automáticamente:*\n` +
         `• *Usuario:* wa.me/${m.sender.split('@')[0]}\n` +
