@@ -1,41 +1,47 @@
-let handler = async (m, { conn, isROwner }) => {
-  if (!isROwner) return m.reply('Este comando solo puede usarlo el dueño principal.');
+import fs from 'fs';
 
-  if (typeof conn.fetchBlocklist !== 'function') {
-    return m.reply('Tu cliente no soporta `fetchBlocklist()`.');
+let handler = async (m, { conn, isOwner }) => {
+  if (!isOwner) {
+    return m.reply('Solo el dueño puede usar este comando.');
   }
 
   try {
-    let bloqueados = await conn.fetchBlocklist();
+    const bloqueados = await conn.fetchBlocklist() || [];
 
-    if (!Array.isArray(bloqueados) || bloqueados.length === 0) {
-      return m.reply('No hay usuarios bloqueados actualmente.');
+    if (!bloqueados.length) {
+      return m.reply('No tienes usuarios bloqueados actualmente.');
     }
 
     let desbloqueados = 0;
 
     for (let jid of bloqueados) {
-      if (!jid.endsWith('@s.whatsapp.net')) continue;
+      if (!jid.endsWith('@s.whatsapp.net')) {
+        console.log(`JID inválido ignorado: ${jid}`);
+        continue;
+      }
 
       try {
         await conn.updateBlockStatus(jid, 'unblock');
+        console.log(`Desbloqueado: ${jid}`);
         desbloqueados++;
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise(resolve => setTimeout(resolve, 300)); // Pequeña pausa entre cada desbloqueo
       } catch (e) {
-        console.log(`No se pudo desbloquear a ${jid}:`, e.message);
+        console.error(`Error al desbloquear ${jid}:`, e.message || e);
       }
     }
 
-    m.reply(`Se desbloquearon correctamente ${desbloqueados} usuario(s).`);
+    // Esperamos un poco y volvemos a comprobar
+    await new Promise(r => setTimeout(r, 2000));
+    const bloqueadosFinal = await conn.fetchBlocklist();
+
+    m.reply(`Proceso finalizado.\n\nTotal desbloqueados: ${desbloqueados}\nAún bloqueados: ${bloqueadosFinal.length}`);
   } catch (err) {
-    console.error('Error general:', err);
-    m.reply('Ocurrió un error al intentar desbloquear usuarios.');
+    console.error('Error general en el comando .desblock:', err);
+    m.reply('Ocurrió un error inesperado al intentar desbloquear.');
   }
 };
 
 handler.command = /^\.?desblock$/i;
-handler.rowner = true;
-handler.tags = ['owner'];
-handler.help = ['desblock'];
+handler.owner = true;
 
 export default handler;
