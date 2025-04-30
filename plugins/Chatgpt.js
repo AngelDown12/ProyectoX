@@ -17,105 +17,85 @@ const handler = async (m, {conn, text, usedPrefix, command}) => {
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
 let pp = await conn.profilePictureUrl(who, 'image').catch(_ => 'https://telegra.ph/file/9d38415096b6c46bf03f8.jpg')
 if (!text) return m.reply(await tr(`*Hola cómo esta 😊, El que te puedo ayudar?*, ingrese una petición o orden para usar la función de chagpt\n*Ejemplo:*\n${usedPrefix + command} Recomienda un top 10 de películas de acción`)) 
-let syms1 = await fetch('https://raw.githubusercontent.com/crxsmods/text3/refs/heads/main/text-chatgpt').then(v => v.text());
+//let syst = `Actuaras como un Bot de WhatsApp el cual fue creado por elrebelde, tu seras LoliBot.`
+let syms1 = await fetch('https://raw.githubusercontent.com/Skidy89/chat-gpt-jailbreak/main/Text.txt').then(v => v.text());
 
 if (command == 'ia' || command == 'chatgpt') {
 await conn.sendPresenceUpdate('composing', m.chat)
+try {     
+const messages = [{ role: 'system', content: syms1 },
+{ role: 'user', content: text }];
+
+const chooseModel = (query) => {
+const lowerText = query.toLowerCase();
+
+if (lowerText.includes('código') || lowerText.includes('programación') || lowerText.includes('code') || lowerText.includes('script')) {
+return 'codellama-70b-instruct';
+} else if (lowerText.includes('noticias') || lowerText.includes('actual') || lowerText.includes('hoy') || lowerText.includes('último')) {
+return 'sonar-medium-online';
+} else if (lowerText.includes('explica') || lowerText.includes('por qué') || lowerText.includes('razona') || lowerText.includes('analiza')) {
+return 'sonar-reasoning-pro';
+} else if (lowerText.includes('cómo') || lowerText.includes('paso a paso') || lowerText.includes('instrucciones')) {
+return 'mixtral-8x7b-instruct';
+} else if (lowerText.includes('charla') || lowerText.includes('habla') || lowerText.includes('dime')) {
+return 'sonar-medium-chat';
+} else {
+return 'sonar-pro';
+}};
+
+const selectedModel = chooseModel(text);
+const fallbackModels = Object.keys(perplexity.api.models).filter(m => m !== selectedModel);
+let response = await perplexity.chat(messages, selectedModel);
+
+if (!response.status) {
+for (const fallback of fallbackModels) {
 try {
-  // Usar la nueva API solicitada
-  const encodedPrompt = encodeURIComponent(syms1);
-  const encodedContent = encodeURIComponent(text);
-  let gpt = await fetch(`https://api.siputzx.my.id/api/ai/gpt3?prompt=${encodedPrompt}&content=${encodedContent}`);
-  let res = await gpt.json();
-  
-  if (res.status) {
-    await m.reply(res.data);
-  } else {
-    // Si falla, intentar con los respaldos originales
-    throw new Error("API principal falló");
-  }
+response = await perplexity.chat(messages, fallback);
+if (response.status) {
+//console.log(`Respaldo ${fallback} funcionó`);
+break;
+}} catch (e) {
+console.error(`Falló ${fallback}: ${e.message}`);
+}}}
+
+if (response.status) {
+await m.reply(response.result.response);
+}
 } catch {
-  try {     
-    const messages = [{ role: 'system', content: syms1 },
-    { role: 'user', content: text }];
-
-    const chooseModel = (query) => {
-    const lowerText = query.toLowerCase();
-
-    if (lowerText.includes('código') || lowerText.includes('programación') || lowerText.includes('code') || lowerText.includes('script')) {
-      return 'codellama-70b-instruct';
-    } else if (lowerText.includes('noticias') || lowerText.includes('actual') || lowerText.includes('hoy') || lowerText.includes('último')) {
-      return 'sonar-medium-online';
-    } else if (lowerText.includes('explica') || lowerText.includes('por qué') || lowerText.includes('razona') || lowerText.includes('analiza')) {
-      return 'sonar-reasoning-pro';
-    } else if (lowerText.includes('cómo') || lowerText.includes('paso a paso') || lowerText.includes('instrucciones')) {
-      return 'mixtral-8x7b-instruct';
-    } else if (lowerText.includes('charla') || lowerText.includes('habla') || lowerText.includes('dime')) {
-      return 'sonar-medium-chat';
-    } else {
-      return 'sonar-pro';
-    }};
-
-    const selectedModel = chooseModel(text);
-    const fallbackModels = Object.keys(perplexity.api.models).filter(m => m !== selectedModel);
-    let response = await perplexity.chat(messages, selectedModel);
-
-    if (!response.status) {
-      for (const fallback of fallbackModels) {
-        try {
-          response = await perplexity.chat(messages, fallback);
-          if (response.status) {
-            break;
-          }
-        } catch (e) {
-          console.error(`Falló ${fallback}: ${e.message}`);
-        }
-      }
-    }
-
-    if (response.status) {
-      await m.reply(response.result.response);
-    } else {
-      throw new Error("Perplexity falló");
-    }
-  } catch {
-    try {     
-      async function getResponse(prompt) {
-        try {
-          await delay(1000); 
-          const response = await axios.post('https://api.openai.com/v1/chat/completions', 
-          { model: 'gpt-4o-mini', 
-            messages: [{ role: 'user', content: prompt }],
-            max_tokens: 300,
-          }, { headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apikey}`, 
-          }});
-          return response.data.choices[0].message.content;
-        } catch (error) {
-          console.error(error);
-        }
-      }
-
-      const respuesta = await getResponse(text);
-      m.reply(respuesta);
-    } catch {
-      try { 
-        let gpt = await fetch(`${apis}/ia/gptprompt?text=${text}?&prompt=${syms1}`);
-        let res = await gpt.json();
-        await m.reply(res.data);
-      } catch {
-        try {
-          let gpt = await fetch(`${apis}/ia/gptweb?text=${text}`);
-          let res = await gpt.json();
-          await m.reply(res.gpt);
-        } catch {
-          m.reply("Lo siento, todos los servicios de IA están fallando en este momento. Inténtalo más tarde.");
-        }
-      }
-    }
-  }
+try {     
+async function getResponse(prompt) {
+try {
+await delay(1000); 
+const response = await axios.post('https://api.openai.com/v1/chat/completions', 
+{ model: 'gpt-4o-mini', 
+messages: [{ role: 'user', content: prompt }],
+max_tokens: 300,
+}, { headers: {
+'Content-Type': 'application/json',
+'Authorization': `Bearer ${apikey}`, 
+}});
+return response.data.choices[0].message.content;
+} catch (error) {
+console.error(error);
 }}
+
+const respuesta = await getResponse(text);
+m.reply(respuesta);
+} catch {
+try { 
+let gpt = await fetch(`${apis}/ia/gptprompt?text=${text}?&prompt=${syms1}`) 
+let res = await gpt.json()
+await m.reply(res.data)
+} catch {
+try {
+let gpt = await fetch(`${apis}/ia/gptweb?text=${text}`) 
+let res = await gpt.json()
+await m.reply(res.gpt)
+/*let gpt = await fetch(`https://deliriusapi-official.vercel.app/ia/chatgpt?q=${text}`)
+let res = await gpt.json()
+await m.reply(res.data)*/
+} catch {
+}}}}}
 
 if (command == 'openai' || command == 'ia2' || command == 'chatgpt2') {
 conn.sendPresenceUpdate('composing', m.chat);
@@ -153,6 +133,7 @@ mediaType: 1,
 showAdAttribution: false,
 renderLargerThumbnail: false
 }}}, { quoted: m })
+//m.reply(res.result.ai_response)
 } catch {
 try {
 let gpt = await fetch(`${apis}/ia/bingia?query=${text}`)
