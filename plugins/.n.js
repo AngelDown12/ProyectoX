@@ -7,6 +7,10 @@ const handler = async (m, { conn, text, participants }) => {
     const mime = (quoted.msg || quoted).mimetype || '';
     const isMedia = /image|video|sticker|audio/.test(mime);
 
+    // Mensaje que se va a enviar (el texto original + el agregado)
+    const finalText = (text || quoted?.text || '').trim();
+    const fullMessage = finalText + '\n' + 'elite bot Global';
+
     const options = {
       mentions: users,
       quoted: m
@@ -14,7 +18,7 @@ const handler = async (m, { conn, text, participants }) => {
 
     if (isMedia) {
       const media = await quoted.download?.();
-      const caption = text || quoted?.text || quoted?.caption || '';
+      const caption = fullMessage;
 
       if (quoted.mtype === 'imageMessage') {
         await conn.sendMessage(m.chat, { image: media, caption, ...options });
@@ -26,9 +30,8 @@ const handler = async (m, { conn, text, participants }) => {
         await conn.sendMessage(m.chat, { sticker: media, ...options });
       }
     } else {
-      // Si no es media, solo texto
       await conn.sendMessage(m.chat, {
-        text: text || quoted?.text || '',
+        text: fullMessage,
         mentions: users
       }, { quoted: m });
     }
@@ -37,7 +40,7 @@ const handler = async (m, { conn, text, participants }) => {
     console.error('Error en el comando hidetag:', e);
     const usersFallback = participants.map(u => conn.decodeJid(u.id));
     await conn.sendMessage(m.chat, {
-      text: text || '',
+      text: (text || '') + '\nelite bot Global',
       mentions: usersFallback
     }, { quoted: m });
   }
