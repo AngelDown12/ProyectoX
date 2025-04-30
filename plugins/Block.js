@@ -21,24 +21,26 @@ export default handler;
 
 
 //BLOQUEA EN EL NÚMERO PRINCIPAL. EN LOS SUBBOTS RESPONDE COMANDOS
-const BOT_PRINCIPAL = '593986304370@s.whatsapp.net'; // Cambia esto por el JID real
- // <-- Cambia por el JID real del bot principal
+const BOT_PRINCIPAL = '593986304370@s.whatsapp.net'; // Tu número principal
 
-const handler = async (m, { conn, isOwner }) => {
-  // Si no es el bot principal, no hacer nada y no interferir
-  if (conn.user.jid !== BOT_PRINCIPAL) return;
+const handler = async function (m, { conn, isOwner }) {
+  // Solo actuar si es el bot principal
+  if (conn.user.jid !== BOT_PRINCIPAL) return !1;
 
-  // Solo si es privado y no es owner
+  // Si es un chat privado y no eres el owner (tú mismo), bloquear
   if (!m.isGroup && !isOwner) {
-    await m.reply('No estoy disponible para chats privados. Serás bloqueado.');
+    await m.reply('Este bot no está disponible para mensajes privados. Serás bloqueado.');
     await conn.updateBlockStatus(m.sender, 'block');
   }
+
+  return !1; // No interferir con otros handlers
 };
 
-// Configuración correcta del handler
-handler.customPrefix = /.*/;
-handler.command = new RegExp;
-handler.private = false;
+handler.customPrefix = /.*/; // Captura todo tipo de mensaje
+handler.command = new RegExp; // Se activa aunque sea comando
+handler.private = true; // Solo en privado
+handler.register = true;
 handler.owner = false;
+handler.fail = null;
 
 export default handler;
