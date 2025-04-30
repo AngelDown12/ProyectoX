@@ -1,4 +1,3 @@
-
 import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
 import * as fs from 'fs';
 
@@ -59,18 +58,3 @@ handler.group = true;
 handler.admin = true;
 
 export default handler;
-
-
----
-
-Este código:
-
-Mantiene la funcionalidad original de tu primer código.
-
-Ya no incluye el link ni marca de agua de EliteBotGlobal.
-
-Agrega correctamente el texto que escribes como caption si respondes a imagen/video.
-
-
-¿Quieres que le agregue una opción para que funcione sin necesidad de responder a un mensaje también?
-
