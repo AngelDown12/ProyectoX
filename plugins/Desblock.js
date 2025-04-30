@@ -1,38 +1,47 @@
-const handler = async (m, { conn, isOwner }) => {
-  if (!isOwner) throw 'Este comando solo lo puede usar el dueño del bot.';
+import fs from 'fs';
 
-  const bloqueados = (await conn.fetchBlocklist() || []).filter(jid =>
-    jid.endsWith('@s.whatsapp.net') && /^\d{5,}@s\.whatsapp\.net$/.test(jid)
-  );
-
-  if (!bloqueados.length) {
-    return m.reply('No hay usuarios bloqueados actualmente.');
+let handler = async (m, { conn, isOwner }) => {
+  if (!isOwner) {
+    return m.reply('Solo el dueño puede usar este comando.');
   }
 
-  let desbloqueados = 0;
-  let errores = [];
+  try {
+    const bloqueados = await conn.fetchBlocklist() || [];
 
-  for (const jid of bloqueados) {
-    try {
-      await conn.updateBlockStatus(jid, 'unblock');
-      desbloqueados++;
-    } catch (e) {
-      errores.push(`- Error con ${jid}: ${e?.output?.error || e.message || e}`);
+    if (!bloqueados.length) {
+      return m.reply('No tienes usuarios bloqueados actualmente.');
     }
+
+    let desbloqueados = 0;
+
+    for (let jid of bloqueados) {
+      if (!jid.endsWith('@s.whatsapp.net')) {
+        console.log(`JID inválido ignorado: ${jid}`);
+        continue;
+      }
+
+      try {
+        await conn.updateBlockStatus(jid, 'unblock');
+        console.log(`Desbloqueado: ${jid}`);
+        desbloqueados++;
+        await new Promise(resolve => setTimeout(resolve, 300)); // Pequeña pausa entre cada desbloqueo
+      } catch (e) {
+        console.error(`Error al desbloquear ${jid}:`, e.message || e);
+      }
+    }
+
+    // Esperamos un poco y volvemos a comprobar
+    await new Promise(r => setTimeout(r, 2000));
+    const bloqueadosFinal = await conn.fetchBlocklist();
+
+    m.reply(`Proceso finalizado.\n\nTotal desbloqueados: ${desbloqueados}\nAún bloqueados: ${bloqueadosFinal.length}`);
+  } catch (err) {
+    console.error('Error general en el comando .desblock:', err);
+    m.reply('Ocurrió un error inesperado al intentar desbloquear.');
   }
-
-  const textoFinal = [
-    '✅ *Proceso terminado.*',
-    '',
-    `Total desbloqueados: ${desbloqueados}`,
-    `Aún bloqueados: ${bloqueados.length - desbloqueados}`,
-    errores.length ? '\nErrores:\n' + errores.join('\n') : ''
-  ].join('\n');
-
-  m.reply(textoFinal);
 };
 
-handler.command = /^desblock$/i;
-handler.rowner = true;
+handler.command = /^\.?desblock$/i;
+handler.owner = true;
 
 export default handler;
