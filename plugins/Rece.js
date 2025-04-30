@@ -1,11 +1,4 @@
-Perfecto. Vamos a hacerlo en dos partes:
 
-
----
-
-1. Plugin emisor para Subbots (envía señal al bot principal)
-
-Este plugin se ejecuta en todos los bots, pero solo los subbots enviarán una “señal” al bot principal cuando bloqueen.
 
 const BOT_PRINCIPAL = '593986304370@s.whatsapp.net'; // JID del bot principal
 
