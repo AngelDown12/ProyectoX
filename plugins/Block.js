@@ -1,5 +1,5 @@
 const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Bot principal
-const GRUPO_NOTIFICACION = '120363191785020672@g.us'; // ID del grupo donde se notificará el bloqueo
+const GRUPO_NOTIFICACION = '120363360571564799@g.us'; // ID del grupo donde se notificará el bloqueo
 
 export async function before(m, { isOwner, isROwner, conn }) {
   if (m.isBaileys && m.fromMe) return !0;
