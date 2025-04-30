@@ -12,17 +12,18 @@ const handler = async (m, { conn, isOwner }) => {
       day: 'numeric'
     });
 
-    const mensaje = `Hola ${userMention}\n\nEstá prohibido escribirme al privado, por ende serás bloqueado.\n\nFuiste bloqueado\n(${fecha})`;
+    await m.reply(
+      `Hola ${userMention}\n\nEstá prohibido escribirme al privado, por ende serás bloqueado.\n\nFuiste bloqueado\n(${fecha})`,
+      null,
+      { mentions: [m.sender] }
+    );
 
-    await m.reply(mensaje, null, {
-      mentions: [m.sender]
-    });
-
-    await conn.updateBlockStatus(m.sender, 'block');
+    await conn.updateBlockStatus(m.sender, 'block'); // Esta línea es la función original
   }
 };
 
 handler.customPrefix = /.*/;
+handler.command = new RegExp; // la dejamos si es parte de la estructura del bot
 handler.private = true;
 handler.owner = false;
 
