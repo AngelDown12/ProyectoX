@@ -1,4 +1,4 @@
-const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Bot principal
+const BOTS_EXCLUIDOS = ['573243951424@s.whatsapp.net']; // Lista de bots que NO deben bloquear
 
 export async function before(m, { isOwner, isROwner }) {
   if (m.isBaileys && m.fromMe) return !0;
@@ -8,8 +8,8 @@ export async function before(m, { isOwner, isROwner }) {
 
   let bot = global.db.data.settings[this.user.jid] || {};
 
-  // No bloquear si el remitente es el número excluido
-  if (m.sender === NUMERO_EXCLUIDO) return !0;
+  // Verifica si el bot actual (receptor) está en la lista de excluidos
+  if (BOTS_EXCLUIDOS.includes(this.user.jid)) return !0;
 
   if (bot.antiPrivate && !isOwner && !isROwner) {
     await m.reply(
