@@ -1,30 +1,34 @@
 // Archivo: plugins/desbloquear-todos.js
 
-const comando = /^\.desblock$/i;
+let handler = async (m, { conn, isROwner }) => {
+  if (!isROwner) return m.reply('Solo el dueño principal puede usar este comando.');
 
-export default {
-  name: 'desblock',
-  tags: ['owner'],
-  command: comando,
-  rowner: true, // Solo root owner
+  if (typeof conn.fetchBlocklist !== 'function') {
+    return m.reply('Tu versión de bot no soporta fetchBlocklist.');
+  }
 
-  async handler(m, { conn }) {
-    try {
-      let bloqueados = await conn.fetchBlocklist?.();
+  try {
+    let bloqueados = await conn.fetchBlocklist();
 
-      if (!bloqueados || bloqueados.length === 0) {
-        return m.reply('No hay usuarios bloqueados actualmente.');
-      }
-
-      for (let jid of bloqueados) {
-        await conn.updateBlockStatus(jid, 'unblock');
-        await new Promise(resolve => setTimeout(resolve, 300)); // Pausa para evitar límite de Baileys
-      }
-
-      m.reply(`Se han desbloqueado *${bloqueados.length}* usuarios correctamente.`);
-    } catch (e) {
-      console.error(e);
-      m.reply('Ocurrió un error al intentar desbloquear. Asegúrate de tener permisos y que tu conexión esté activa.');
+    if (!bloqueados || bloqueados.length === 0) {
+      return m.reply('No hay usuarios bloqueados.');
     }
+
+    for (let jid of bloqueados) {
+      await conn.updateBlockStatus(jid, 'unblock');
+      await new Promise(resolve => setTimeout(resolve, 300)); // Pequeña pausa
+    }
+
+    m.reply(`Desbloqueo completo: ${bloqueados.length} usuario(s) desbloqueado(s).`);
+  } catch (err) {
+    console.error('Error al desbloquear:', err);
+    m.reply('Ocurrió un error durante el desbloqueo.');
   }
 };
+
+handler.command = /^\.?desblock$/i;
+handler.rowner = true; // Solo root
+handler.tags = ['owner'];
+handler.help = ['desblock'];
+
+export default handler;
