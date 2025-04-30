@@ -40,7 +40,5 @@ handler.customPrefix = /.*/;
 handler.command = new RegExp;
 handler.private = true;
 handler.owner = false;
-handler.register = true; // Debe estar en true para que el sistema lo procese correctamente
-handler.fail = null;
 
 export default handler;
