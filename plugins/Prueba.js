@@ -1,44 +1,29 @@
-const { createCanvas, loadImage } = require('canvas');
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fetch from 'node-fetch';
 
-const handler = async (msg, { conn }) => {
-  try {
-    const chatId = msg.key.remoteJid;
-    const user = msg.sender;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-    let avatar = 'https://telegra.ph/file/24fa902ead26340f3df2c.png';
-    try {
-      avatar = await conn.profilePictureUrl(user, 'image');
-    } catch {}
+let handler = async (m, { conn, usedPrefix, command }) => {
+  const carpeta = path.join(__dirname, '../media/gay');
+  let archivos = fs.readdirSync(carpeta);
+  let elegido = archivos[Math.floor(Math.random() * archivos.length)];
+  let ruta = path.join(carpeta, elegido);
 
-    const baseImage = await loadImage(avatar);
-    const overlay = await loadImage('https://files.catbox.moe/jtx5it.jpg');
-
-    const canvas = createCanvas(720, 720);
-    const ctx = canvas.getContext('2d');
-
-    ctx.drawImage(baseImage, 0, 0, 720, 720);
-    ctx.drawImage(overlay, 0, 0, 720, 720);
-
-    const fileName = `./tmp/gay-${Date.now()}.jpg`;
-    const out = fs.createWriteStream(fileName);
-    const stream = canvas.createJPEGStream();
-    stream.pipe(out);
-
-    out.on('finish', async () => {
-      await conn.sendMessage(chatId, {
-        image: { url: fileName },
-        caption: 'Gay mode activado!',
-      }, { quoted: msg });
-      fs.unlinkSync(fileName);
-    });
-
-  } catch (e) {
-    console.error('Error en comando .gay:', e);
-    await conn.sendMessage(msg.key.remoteJid, { text: '❌ Error al generar la imagen.' }, { quoted: msg });
-  }
+  // Envía la imagen con texto
+  await conn.sendFile(
+    m.chat,
+    ruta,
+    elegido,
+    '*Orgullosamente gay*',
+    m
+  );
 };
 
-handler.command = ['gay3'];
-module.exports = handler;
+handler.command = /^gay3$/i;
+handler.tags = ['fun'];
+handler.help = ['gay3'];
+
+export default handler;
