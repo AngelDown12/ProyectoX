@@ -1,33 +1,40 @@
-// Archivo: plugins/desbloquear-todos.js
-
 let handler = async (m, { conn, isROwner }) => {
-  if (!isROwner) return m.reply('Solo el dueño principal puede usar este comando.');
+  if (!isROwner) return m.reply('Este comando solo puede usarlo el dueño principal.');
 
   if (typeof conn.fetchBlocklist !== 'function') {
-    return m.reply('Tu versión de bot no soporta fetchBlocklist.');
+    return m.reply('Tu cliente no soporta `fetchBlocklist()`.');
   }
 
   try {
     let bloqueados = await conn.fetchBlocklist();
 
-    if (!bloqueados || bloqueados.length === 0) {
-      return m.reply('No hay usuarios bloqueados.');
+    if (!Array.isArray(bloqueados) || bloqueados.length === 0) {
+      return m.reply('No hay usuarios bloqueados actualmente.');
     }
+
+    let desbloqueados = 0;
 
     for (let jid of bloqueados) {
-      await conn.updateBlockStatus(jid, 'unblock');
-      await new Promise(resolve => setTimeout(resolve, 300)); // Pequeña pausa
+      if (!jid.endsWith('@s.whatsapp.net')) continue;
+
+      try {
+        await conn.updateBlockStatus(jid, 'unblock');
+        desbloqueados++;
+        await new Promise(r => setTimeout(r, 300));
+      } catch (e) {
+        console.log(`No se pudo desbloquear a ${jid}:`, e.message);
+      }
     }
 
-    m.reply(`Desbloqueo completo: ${bloqueados.length} usuario(s) desbloqueado(s).`);
+    m.reply(`Se desbloquearon correctamente ${desbloqueados} usuario(s).`);
   } catch (err) {
-    console.error('Error al desbloquear:', err);
-    m.reply('Ocurrió un error durante el desbloqueo.');
+    console.error('Error general:', err);
+    m.reply('Ocurrió un error al intentar desbloquear usuarios.');
   }
 };
 
 handler.command = /^\.?desblock$/i;
-handler.rowner = true; // Solo root
+handler.rowner = true;
 handler.tags = ['owner'];
 handler.help = ['desblock'];
 
