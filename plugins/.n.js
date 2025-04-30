@@ -1,21 +1,24 @@
 import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
-import * as fs from 'fs';
 
 const handler = async (m, { conn, text, participants }) => {
   try {
     const users = participants.map((u) => conn.decodeJid(u.id));
-    const watermark = text ? '\n' + text : '';
     const quoted = m.quoted ? await m.getQuotedObj() : m;
     const mime = (quoted.msg || quoted).mimetype || '';
     const isMedia = /image|video|sticker|audio/.test(mime);
 
+    const options = {
+      mentions: users,
+      quoted: m
+    };
+
     if (isMedia) {
       const mediax = await quoted.download?.();
-      const options = { 
-        mentions: users, 
-        caption: text || '', 
-        quoted: m 
-      };
+      
+      // Añadir texto como caption si existe
+      if (text) {
+        options.caption = text;
+      }
 
       switch (quoted.mtype) {
         case 'imageMessage':
@@ -32,11 +35,12 @@ const handler = async (m, { conn, text, participants }) => {
           break;
       }
     } else {
-      const msgText = (text || quoted.text || '') + watermark;
+      // Mensaje de texto normal
+      const messageText = text || quoted.text || '';
       await conn.sendMessage(
         m.chat, 
         { 
-          text: msgText, 
+          text: messageText, 
           mentions: users 
         }, 
         { quoted: m }
