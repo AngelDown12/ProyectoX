@@ -28,7 +28,15 @@ const colors = {
   naranja: '#FFA500',
   celeste: '#00FFFF',
   rosado: '#FFC0CB',
-  negro: '#000000'
+  negro: '#000000',
+  blanco: '#FFFFFF',
+  gris: '#808080',
+  marron: '#8B4513',
+  aqua: '#00CED1',
+  lima: '#32CD32',
+  coral: '#FF7F50',
+  dorado: '#FFD700',
+  plata: '#C0C0C0'
 }
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -46,7 +54,14 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
   let text = args.join(' ').trim();
   if (!text && !quotedText) {
-    return m.reply(`✏️ Usa *${usedPrefix + command}* así:\n\n• *${usedPrefix + command} [texto]*\n• *${usedPrefix + command} [color] [texto]*\n\nColores disponibles:\nrojo, azul, morado, verde, amarillo, naranja, celeste, rosado, negro`);
+    return m.reply(
+      `✏️ *Crea una imagen tipo sticker con un mensaje personalizado*\n\n` +
+      `📌 *Usos válidos:*\n` +
+      `• *${usedPrefix + command} tu texto aquí*\n` +
+      `• *${usedPrefix + command} [color] tu texto aquí*\n\n` +
+      `🎨 *Colores disponibles:*\n` +
+      `${Object.keys(colors).map(c => `- ${c}`).join('\n')}`
+    )
   }
 
   const firstWord = text.split(' ')[0].toLowerCase();
