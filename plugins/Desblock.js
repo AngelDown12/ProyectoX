@@ -1,9 +1,7 @@
 import fs from 'fs';
 
 let handler = async (m, { conn, isOwner }) => {
-  if (!isOwner) {
-    return m.reply('Solo el dueño puede usar este comando.');
-  }
+  if (!isOwner) return m.reply('Solo el dueño puede usar este comando.');
 
   try {
     const bloqueados = await conn.fetchBlocklist() || [];
@@ -13,31 +11,37 @@ let handler = async (m, { conn, isOwner }) => {
     }
 
     let desbloqueados = 0;
+    let errores = [];
 
     for (let jid of bloqueados) {
       if (!jid.endsWith('@s.whatsapp.net')) {
-        console.log(`JID inválido ignorado: ${jid}`);
+        errores.push(`Formato inválido: ${jid}`);
         continue;
       }
 
       try {
         await conn.updateBlockStatus(jid, 'unblock');
-        console.log(`Desbloqueado: ${jid}`);
+        console.log(`Desbloqueado correctamente: ${jid}`);
         desbloqueados++;
-        await new Promise(resolve => setTimeout(resolve, 300)); // Pequeña pausa entre cada desbloqueo
+        await new Promise(r => setTimeout(r, 300));
       } catch (e) {
-        console.error(`Error al desbloquear ${jid}:`, e.message || e);
+        const errorMsg = `Error con ${jid}: ${e.message || e}`;
+        errores.push(errorMsg);
+        console.error(errorMsg);
       }
     }
 
-    // Esperamos un poco y volvemos a comprobar
-    await new Promise(r => setTimeout(r, 2000));
     const bloqueadosFinal = await conn.fetchBlocklist();
 
-    m.reply(`Proceso finalizado.\n\nTotal desbloqueados: ${desbloqueados}\nAún bloqueados: ${bloqueadosFinal.length}`);
-  } catch (err) {
-    console.error('Error general en el comando .desblock:', err);
-    m.reply('Ocurrió un error inesperado al intentar desbloquear.');
+    let respuesta = `✅ Proceso terminado.\n\nTotal desbloqueados: ${desbloqueados}\nAún bloqueados: ${bloqueadosFinal.length}`;
+    if (errores.length) {
+      respuesta += `\n\nErrores:\n- ` + errores.join('\n- ');
+    }
+
+    m.reply(respuesta);
+  } catch (e) {
+    console.error('Error global en el comando .desblock:', e);
+    m.reply('Ocurrió un error general en el desbloqueo.');
   }
 };
 
