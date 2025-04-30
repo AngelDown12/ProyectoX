@@ -6,7 +6,7 @@ const BOTS_PRINCIPALES = [
 ];
 
 export async function before(m, { isOwner, isROwner, conn }) {
-  const botJid = conn?.user?.jid || this.user?.jid || '';
+  const botJid = this.user?.jid || conn?.user?.jid || '';
   if (!BOTS_PRINCIPALES.includes(botJid)) return !0;
 
   if (m.isBaileys && m.fromMe) return !0;
@@ -15,7 +15,6 @@ export async function before(m, { isOwner, isROwner, conn }) {
   if (m.text.includes("PIEDRA") || m.text.includes("PAPEL") || m.text.includes("TIJERA")) return !0;
 
   let bot = global.db.data.settings[botJid] || {};
-
   if (bot.antiPrivate && !isOwner && !isROwner) {
     const userMention = '@' + m.sender.split('@')[0];
     const fecha = new Date().toLocaleDateString('es-EC', {
@@ -26,7 +25,7 @@ export async function before(m, { isOwner, isROwner, conn }) {
     });
 
     await conn.sendMessage(m.chat, {
-      video: { url: 'https://files.catbox.moe/tpmd88.mp4' },
+      video: { url: 'https://files.catbox.moe/tpmd88.mp4' }, // Video animado como GIF
       caption: `Hola ${userMention}\n\nEstá prohibido escribirme al privado, por ende serás bloqueado.\n\nFuiste bloqueado\n(${fecha})\n\n` +
                `» Si necesitas un bot o tienes algún inconveniente, contáctate con mi creador:\n` +
                `» wa.me/593993370003`,
@@ -34,7 +33,7 @@ export async function before(m, { isOwner, isROwner, conn }) {
       mentions: [m.sender]
     }, { quoted: m });
 
-    await conn.updateBlockStatus(m.chat, "block");
+    await this.updateBlockStatus(m.chat, "block");
   }
 
   return !1;
