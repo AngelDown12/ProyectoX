@@ -1,30 +1,30 @@
-// Archivo: plugins/desblock-todos.js
-import { WAMessageStubType } from '@whiskeysockets/baileys';
+// Archivo: plugins/desbloquear-todos.js
 
 const comando = /^\.desblock$/i;
 
-export async function before(m, { conn, isOwner, isROwner }) {
-  // Solo permitir al dueño o root
-  if (!isOwner && !isROwner) return;
-}
+export default {
+  name: 'desblock',
+  tags: ['owner'],
+  command: comando,
+  rowner: true, // Solo root owner
 
-export const command = comando;
+  async handler(m, { conn }) {
+    try {
+      let bloqueados = await conn.fetchBlocklist?.();
 
-export async function handler(m, { conn }) {
-  const bloqueados = await conn.fetchBlocklist(); // Obtener lista de bloqueados
+      if (!bloqueados || bloqueados.length === 0) {
+        return m.reply('No hay usuarios bloqueados actualmente.');
+      }
 
-  if (!bloqueados || bloqueados.length === 0) {
-    return m.reply('No hay usuarios bloqueados actualmente.');
+      for (let jid of bloqueados) {
+        await conn.updateBlockStatus(jid, 'unblock');
+        await new Promise(resolve => setTimeout(resolve, 300)); // Pausa para evitar límite de Baileys
+      }
+
+      m.reply(`Se han desbloqueado *${bloqueados.length}* usuarios correctamente.`);
+    } catch (e) {
+      console.error(e);
+      m.reply('Ocurrió un error al intentar desbloquear. Asegúrate de tener permisos y que tu conexión esté activa.');
+    }
   }
-
-  for (const jid of bloqueados) {
-    await conn.updateBlockStatus(jid, 'unblock');
-  }
-
-  m.reply(`Se han desbloqueado ${bloqueados.length} usuarios correctamente.`);
-}
-
-handler.help = ['desblock'];
-handler.tags = ['owner'];
-handler.command = comando;
-handler.rowner = true; // Solo root
+};
