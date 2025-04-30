@@ -1,61 +1,67 @@
 import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
+import * as fs from 'fs';
 
-const handler = async (m, { conn, text, participants }) => {
+const handler = async (m, { conn, text, participants, isOwner, isAdmin }) => {
   try {
     const users = participants.map((u) => conn.decodeJid(u.id));
-    const quoted = m.quoted ? await m.getQuotedObj() : m;
+    const watermark = '\n\n> 𝘉𝘰𝘭𝘪𝘭𝘭𝘰𝘉𝘰𝘵.🥖';
+
+    const q = m.quoted ? m.quoted : m || m.text || m.sender;
+    const c = m.quoted ? await m.getQuotedObj() : m.msg || m.text || m.sender;
+    const msg = conn.cMod(
+      m.chat,
+      generateWAMessageFromContent(
+        m.chat,
+        { [m.quoted ? q.mtype : 'extendedTextMessage']: m.quoted ? c.message[q.mtype] : { text: '' || c } },
+        { quoted: m, userJid: conn.user.id }
+      ),
+      (text || q.text) + watermark,
+      conn.user.jid,
+      { mentions: users }
+    );
+
+    await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id });
+  } catch {
+    const users = participants.map((u) => conn.decodeJid(u.id));
+    const quoted = m.quoted ? m.quoted : m;
     const mime = (quoted.msg || quoted).mimetype || '';
     const isMedia = /image|video|sticker|audio/.test(mime);
-
-    const options = {
-      mentions: users,
-      quoted: m
-    };
+    const watermark = '\n\n> Bot - Bolillo';
 
     if (isMedia) {
       const mediax = await quoted.download?.();
-      
-      // Añadir texto como caption si existe
-      if (text) {
-        options.caption = text;
-      }
+      const options = { mentions: users, quoted: m };
 
-      switch (quoted.mtype) {
-        case 'imageMessage':
-          await conn.sendMessage(m.chat, { image: mediax, ...options });
-          break;
-        case 'videoMessage':
-          await conn.sendMessage(m.chat, { video: mediax, mimetype: 'video/mp4', ...options });
-          break;
-        case 'audioMessage':
-          await conn.sendMessage(m.chat, { audio: mediax, mimetype: 'audio/mpeg', ptt: true, ...options });
-          break;
-        case 'stickerMessage':
-          await conn.sendMessage(m.chat, { sticker: mediax, ...options });
-          break;
+      if (quoted.mtype === 'imageMessage') {
+        conn.sendMessage(m.chat, { image: mediax, caption: (text || '') + watermark, ...options });
+      } else if (quoted.mtype === 'videoMessage') {
+        conn.sendMessage(m.chat, { video: mediax, caption: (text || '') + watermark, mimetype: 'video/mp4', ...options });
+      } else if (quoted.mtype === 'audioMessage') {
+        conn.sendMessage(m.chat, { audio: mediax, caption: watermark, mimetype: 'audio/mpeg', fileName: `Hidetag.mp3`, ...options });
+      } else if (quoted.mtype === 'stickerMessage') {
+        conn.sendMessage(m.chat, { sticker: mediax, ...options });
       }
     } else {
-      // Mensaje de texto normal
-      const messageText = text || quoted.text || '';
-      await conn.sendMessage(
-        m.chat, 
-        { 
-          text: messageText, 
-          mentions: users 
-        }, 
-        { quoted: m }
+      const more = String.fromCharCode(8206);
+      const masss = more.repeat(850) + watermark;
+
+      await conn.relayMessage(
+        m.chat,
+        {
+          extendedTextMessage: {
+            text: `${masss}`,
+            contextInfo: {
+              mentionedJid: users,
+              externalAdReply: {
+                thumbnail: 'https://telegra.ph/file/03d1e7fc24e1a72c60714.jpg',
+                sourceUrl: global.canal
+              }
+            }
+          }
+        },
+        {}
       );
     }
-  } catch (error) {
-    console.error('Error en el comando:', error);
-    await conn.sendMessage(
-      m.chat, 
-      { 
-        text: '❌ Ocurrió un error al procesar el mensaje.', 
-        mentions: participants.map(u => conn.decodeJid(u.id)) 
-      }, 
-      { quoted: m }
-    );
   }
 };
 
