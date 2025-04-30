@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 var handler = async (m, { text,  usedPrefix, command }) => {
-if (!text) return conn.reply(m.chat, `${emoji} Ingrese una petición para que Gemini lo responda.`, m)
+if (!text) return conn.reply(m.chat, `Ingrese una petición para que Gemini lo responda.`, m)
 try {
 await m.react(rwait)
 conn.sendPresenceUpdate('composing', m.chat)
