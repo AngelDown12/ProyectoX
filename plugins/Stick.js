@@ -10,12 +10,11 @@ handler.before = async function (m, { conn }) {
   if (currentBotNumber !== MAIN_BOT_NUMBER) return
 
   const STICKER_URLS = [
-    'https://files.catbox.moe/g3hyc2.webp',
     'https://files.catbox.moe/0boonh.webp',
     'https://files.catbox.moe/o58tbw.webp'
   ]
 
-  const AUDIO_SALIDA_URL = 'https://files.catbox.moe/f8mqtf.opus'
+  const AUDIO_SALIDA_URL = 'https://files.catbox.moe/33f4o4.opus'
   const AUDIO_BIENVENIDA_URL = 'https://files.catbox.moe/8cm2hc.opus' // Puedes cambiarlo si tienes otro
 
   if (m.messageStubType === 28 || m.messageStubType === 32) {
