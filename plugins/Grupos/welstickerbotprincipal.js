@@ -1,5 +1,5 @@
 
-
+/*
 import fetch from 'node-fetch'
 
 let handler = m => m
@@ -33,3 +33,4 @@ handler.before = async function (m, { conn }) {
 
 export default handler
 
+*/
