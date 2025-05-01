@@ -1,4 +1,4 @@
-import fs from 'fs'
+/*import fs from 'fs'
 import fetch from 'node-fetch'
 
 let handler = m => m
@@ -114,3 +114,4 @@ ${descs}
 }
 
 export default handler
+*/
