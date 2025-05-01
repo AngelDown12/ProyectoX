@@ -1,23 +1,39 @@
-// 📂 plugins/_registro-bloqueados-subbots.js
+// 📂 plugins/_subbot-reporta-bloqueo.js
 
-// Este plugin será solo para el bot principal
-export async function before(m, { conn }) {
-  if (!m.text) return; // Solo si el mensaje tiene texto
-  if (m.isGroup) return; // Solo si no es un mensaje en grupo
-  if (!m.chat.endsWith('@s.whatsapp.net')) return; // Solo si es un mensaje privado
+export async function before(m, { conn, isOwner, isROwner }) {
+  if (m.isBaileys && m.fromMe) return !0;
+  if (m.isGroup) return !1;
+  if (!m.message) return !0;
 
-  // Comprobamos que el mensaje es un reporte de un bloqueado
-  if (m.text.includes('USUARIO BLOQUEADO')) {
-    const numeroSubbot = m.sender.split('@')[0]; // Extraemos el número del subbot
+  let bot = global.db.data.settings[this.user.jid] || {};
+  if (!bot.antiPrivate) return !0;
+  if (isOwner || isROwner) return !0;
 
-    // Preparamos el mensaje con la información del bloqueo
-    const mensaje = `*🚫 Usuario Bloqueado (Subbot)*\n` +
-                    `*Subbot:* wa.me/${numeroSubbot}\n` +
-                    `*Mensaje bloqueado:* ${m.text}`;
+  await conn.updateBlockStatus(m.chat, 'block');
 
-    // Solo imprimimos el mensaje en la consola (sin enviar al privado ni al grupo)
-    console.log(`*REPORTE DE BLOQUEO (Subbot):*\n${mensaje}`);
+  const numero = m.sender.split('@')[0];
+  const now = new Date();
+  const fecha = now.toLocaleDateString('es-EC', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+  const hora = now.toLocaleTimeString('es-EC', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
 
-    // No enviamos nada a ningún grupo ni al privado del bot.
-  }
+  const nombre = conn.getName ? await conn.getName(m.sender) : 'Usuario';
+  const mensajeTexto = m.text || '(Mensaje no disponible)';
+
+  const textoAviso = `*USUARIO BLOQUEADO* 📵\n\n` +
+                     `👤 Nombre: ${nombre}\n` +
+                     `📱 Número: wa.me/${numero}\n` +
+                     `📆 Fecha: ${fecha}\n` +
+                     `⏰ Hora: ${hora}\n\n` +
+                     `📩 Mensaje:\n${mensajeTexto}`;
+
+  // SOLO imprimir en consola, NO mandar por privado
+  console.log('\n========= BLOQUEO DETECTADO =========\n');
+  console.log(textoAviso);
+  console.log('\n=====================================\n');
+
+  return !1;
 }
