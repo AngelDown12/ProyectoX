@@ -7,12 +7,18 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
   if (!m.messageStubType || !m.isGroup) return
 
   const FOTO_PREDETERMINADA = './src/sinfoto2.jpg'
-  const STICKERS_DESPEDIDA = 
+  const STICKERS_DESPEDIDA = [
     'https://files.catbox.moe/0boonh.webp',
     'https://files.catbox.moe/o58tbw.webp'
   ]
-  const AUDIO_BIENVENIDA = 'https://files.catbox.moe/8cm2hc.opus'
-  const AUDIO_DESPEDIDA = 'https://files.catbox.moe/33f4o4.opus'
+  const AUDIOS_BIENVENIDA = [
+    'https://files.catbox.moe/8cm2hc.opus',
+    'https://files.catbox.moe/8cm2hc.opus' // Cambia por el que tú subas
+  ]
+  const AUDIOS_DESPEDIDA = [
+    'https://files.catbox.moe/33f4o4.opus',
+    'https://files.catbox.moe/mo22fl.opus'
+  ]
 
   let userId = m.messageStubParameters?.[0]
   if (!userId) return
@@ -52,7 +58,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
   let userName = `${userId.split`@`[0]}`
   let mentionUser = `@${userName}`
 
-  // Evento de bienvenida
+  // Bienvenida
   if (chat.welcome && m.messageStubType == 27 && this.user.jid != global.conn.user.jid) {
     let defaultWelcome = `*╔══════════════*
 *╟* 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔
@@ -80,10 +86,10 @@ ${descs}
       }
     }, { quoted: m })
 
-    // Enviar audio de bienvenida después de 2 segundos
     setTimeout(async () => {
       try {
-        let audio = await (await fetch(AUDIO_BIENVENIDA)).buffer()
+        let audioUrl = AUDIOS_BIENVENIDA[Math.floor(Math.random() * AUDIOS_BIENVENIDA.length)]
+        let audio = await (await fetch(audioUrl)).buffer()
         await conn.sendMessage(m.chat, { audio, mimetype: 'audio/ogg; codecs=opus', ptt: true })
       } catch (e) {
         console.error('Error enviando audio de bienvenida:', e)
@@ -91,7 +97,7 @@ ${descs}
     }, 2000)
   }
 
-  // Evento de despedida
+  // Despedida
   else if (chat.welcome && (m.messageStubType == 28 || m.messageStubType == 32) && this.user.jid != global.conn.user.jid) {
     let defaultBye = `*╔══════════════*
 *╟* *SE FUE UNA BASURA*
@@ -111,7 +117,6 @@ ${descs}
       }
     }, { quoted: m })
 
-    // Enviar audio o sticker aleatorio después de 2 segundos
     setTimeout(async () => {
       try {
         const isSticker = Math.random() < 0.5
@@ -120,7 +125,8 @@ ${descs}
           let sticker = await (await fetch(stickerUrl)).buffer()
           await conn.sendMessage(m.chat, { sticker })
         } else {
-          let audio = await (await fetch(AUDIO_DESPEDIDA)).buffer()
+          let audioUrl = AUDIOS_DESPEDIDA[Math.floor(Math.random() * AUDIOS_DESPEDIDA.length)]
+          let audio = await (await fetch(audioUrl)).buffer()
           await conn.sendMessage(m.chat, { audio, mimetype: 'audio/ogg; codecs=opus', ptt: true })
         }
       } catch (e) {
