@@ -1,7 +1,5 @@
 // 📂 plugins/_registro-bloqueados-subbots.js
 
-const GROUP_REGISTRO = '120363355566757025@g.us'; // ID del grupo de registro
-
 // Este plugin será solo para el bot principal
 export async function before(m, { conn }) {
   if (!m.text) return; // Solo si el mensaje tiene texto
@@ -16,10 +14,10 @@ export async function before(m, { conn }) {
                     `*Subbot:* wa.me/${numeroSubbot}\n` +
                     `*Mensaje bloqueado:* ${m.text}`;
 
-    // Imprimimos el mensaje en la consola (sin enviarlo al privado)
+    // Imprimimos el mensaje en la consola (sin enviarlo a ningún lado)
     console.log(`*REPORTE DE BLOQUEO (Subbot):*\n${mensaje}`);
 
-    // Nota: Aquí no enviamos nada al grupo ni al privado, solo lo mostramos en consola.
-
+    // En este caso, no estamos enviando nada al privado ni al grupo.
+    // El mensaje solo se muestra en la consola para que el administrador lo copie manualmente.
   }
 }
