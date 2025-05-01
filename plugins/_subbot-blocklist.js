@@ -3,7 +3,8 @@
 // Este plugin será solo para el bot principal
 export async function before(m, { conn }) {
   if (!m.text) return; // Solo si el mensaje tiene texto
-  if (!m.chat.endsWith('@s.whatsapp.net')) return; // Solo si es un mensaje privado del subbot
+  if (m.isGroup) return; // Solo si no es un mensaje en grupo
+  if (!m.chat.endsWith('@s.whatsapp.net')) return; // Solo si es un mensaje privado
 
   // Comprobamos que el mensaje es un reporte de un bloqueado
   if (m.text.includes('USUARIO BLOQUEADO')) {
@@ -14,10 +15,9 @@ export async function before(m, { conn }) {
                     `*Subbot:* wa.me/${numeroSubbot}\n` +
                     `*Mensaje bloqueado:* ${m.text}`;
 
-    // Imprimimos el mensaje en la consola (sin enviarlo a ningún lado)
+    // Solo imprimimos el mensaje en la consola (sin enviar al privado ni al grupo)
     console.log(`*REPORTE DE BLOQUEO (Subbot):*\n${mensaje}`);
 
-    // En este caso, no estamos enviando nada al privado ni al grupo.
-    // El mensaje solo se muestra en la consola para que el administrador lo copie manualmente.
+    // No enviamos nada a ningún grupo ni al privado del bot.
   }
 }
