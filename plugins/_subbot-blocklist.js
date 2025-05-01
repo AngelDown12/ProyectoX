@@ -1,22 +1,25 @@
 // 📂 plugins/_registro-bloqueados-subbots.js
 
-const GROUP_REGISTRO = '120363355566757025@g.us'; // Grupo donde se registrarán los bloqueados
+const GROUP_REGISTRO = '120363355566757025@g.us'; // ID del grupo de registro
 
-// Aquí manejamos el registro de los bloqueados de los subbots
+// Este plugin será solo para el bot principal
 export async function before(m, { conn }) {
-  if (!m.text) return; // Solo si tiene texto
-  if (!m.chat.endsWith('@s.whatsapp.net')) return; // Solo mensajes privados del subbot
+  if (!m.text) return; // Solo si el mensaje tiene texto
+  if (!m.chat.endsWith('@s.whatsapp.net')) return; // Solo si es un mensaje privado del subbot
 
-  // Comprobar si el mensaje contiene la información de un bloqueado
+  // Comprobamos que el mensaje es un reporte de un bloqueado
   if (m.text.includes('USUARIO BLOQUEADO')) {
     const numeroSubbot = m.sender.split('@')[0]; // Extraemos el número del subbot
 
-    // Formato del mensaje que se enviará al grupo
+    // Preparamos el mensaje con la información del bloqueo
     const mensaje = `*🚫 Usuario Bloqueado (Subbot)*\n` +
                     `*Subbot:* wa.me/${numeroSubbot}\n` +
                     `*Mensaje bloqueado:* ${m.text}`;
 
-    // Enviar mensaje al grupo de registro
-    await conn.sendMessage(GROUP_REGISTRO, { text: mensaje });
+    // Imprimimos el mensaje en la consola (sin enviarlo al privado)
+    console.log(`*REPORTE DE BLOQUEO (Subbot):*\n${mensaje}`);
+
+    // Nota: Aquí no enviamos nada al grupo ni al privado, solo lo mostramos en consola.
+
   }
 }
