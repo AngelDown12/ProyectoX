@@ -16,6 +16,7 @@ handler.before = async function (m, { conn }) {
 
   const AUDIO_SALIDA_URLS = [
     'https://files.catbox.moe/33f4o4.opus',
+    'https://files.catbox.moe/2q3vta.opus',
     'https://files.catbox.moe/mo22fl.opus'
   ]
   const AUDIO_BIENVENIDA_URL = 'https://files.catbox.moe/8cm2hc.opus'
