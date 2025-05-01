@@ -10,8 +10,8 @@ handler.before = async function (m, { conn }) {
   if (currentBotNumber !== MAIN_BOT_NUMBER) return
 
   const STICKER_URLS = [
-    'https://files.catbox.moe/0boonh.webp',
-    'https://files.catbox.moe/o58tbw.webp'
+    'https://files.catbox.moe/3t108h.opus',
+    'https://files.catbox.moe/3t108h.opus'
   ]
 
   const AUDIO_SALIDA_URLS = [
