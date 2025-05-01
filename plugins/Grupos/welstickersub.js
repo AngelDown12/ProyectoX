@@ -9,6 +9,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
   const FOTO_PREDETERMINADA = './src/sinfoto2.jpg'
   const STICKERS_DESPEDIDA = [
     'https://files.catbox.moe/g3hyc2.webp',
+    'https://files.catbox.moe/0boonh.webp',
     'https://files.catbox.moe/o58tbw.webp'
   ]
 
