@@ -14,9 +14,9 @@ handler.before = async function (m, { conn }) {
   // Lista de stickers aleatorios (puedes agregar más enlaces)
   const STICKER_URLS = [
     'https://files.catbox.moe/g3hyc2.webp',
-    'https://files.catbox.moe/abcd12.webp',
+    'https://files.catbox.moe/o58tbw.webp',
     'https://files.catbox.moe/g3hyc2.webp',
-    'https://files.catbox.moe/abcd12.webp'
+    'https://files.catbox.moe/o58tbw.webp'
   ]
 
   if (m.messageStubType === 28 || m.messageStubType === 32) {
