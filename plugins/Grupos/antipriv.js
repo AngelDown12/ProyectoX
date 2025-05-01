@@ -1,4 +1,4 @@
-import fs from 'fs';
+/*import fs from 'fs';
 
 const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Numero subbot que no bloquea 
 const GRUPO_NOTIFICACION = '120363355566757025@g.us'; // ID del grupo para notificaciones
@@ -94,3 +94,4 @@ Por ordenes de mi creador no está permitido mensajes a mi privado por la cuál 
 
   return !1;
 }
+*/
