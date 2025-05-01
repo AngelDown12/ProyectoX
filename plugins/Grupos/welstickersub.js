@@ -9,7 +9,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
   // Imagen predeterminada local
   const FOTO_PREDETERMINADA = './src/sinfoto2.jpg'
   // Sticker despedida
-  const STICKER_URL = ['https://files.catbox.moe/g3hyc2.webp','https://files.catbox.moe/abcd12.webp']
+  const STICKER_URL = ['https://files.catbox.moe/g3hyc2.webp','https://files.catbox.moe/o58tbw.webp']
 
   let pp
   try {
