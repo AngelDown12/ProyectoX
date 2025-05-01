@@ -12,8 +12,8 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
     'https://files.catbox.moe/o58tbw.webp'
   ]
   const AUDIOS_BIENVENIDA = [
-    'https://files.catbox.moe/8cm2hc.opus',
-    'https://files.catbox.moe/8cm2hc.opus' // Cambia por el que tú subas
+    'https://files.catbox.moe/3t108h.opus',
+    'https://files.catbox.moe/3t108h.opus' // Cambia por el que tú subas
   ]
   const AUDIOS_DESPEDIDA = [
     'https://files.catbox.moe/33f4o4.opus',
