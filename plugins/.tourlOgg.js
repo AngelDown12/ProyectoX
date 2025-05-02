@@ -1,72 +1,41 @@
-import { writeFileSync, unlinkSync, readFileSync } from "fs";
-import { execSync } from "child_process";
-import fetch from "node-fetch";
-import crypto from "crypto";
-import { FormData, Blob } from "formdata-node";
+import { promises as fs, existsSync } from 'fs'
+import path from 'path'
 
-let handler = async (m, { conn }) => {
-  let q = m.quoted ? m.quoted : m;
-  let mime = (q.msg || q).mimetype || '';
+const handler = async (m, { conn }) => {
+  if (!m.fromMe && !global.isCreator) throw 'Solo el Owner puede ejecutar esto.';
 
-  if (!mime.includes("audio")) {
-    return conn.reply(m.chat, `*[❗] Responde a un audio válido para convertir a .ogg*`, m);
-  }
-
-  await conn.sendMessage(m.chat, { react: { text: "🎧", key: m.key } });
-
+  const sessionPath = './GataBotSession/';
+  let filesDeleted = 0;
   try {
-    let media = await q.download();
-    let input = `./input_${Date.now()}.tmp`;
-    let output = `./output_${Date.now()}.ogg`;
+    // Limpieza de archivos de sesión (excepto creds.json)
+    if (existsSync(sessionPath)) {
+      const files = await fs.readdir(sessionPath);
+      for (const file of files) {
+        if (file !== 'creds.json') {
+          await fs.unlink(path.join(sessionPath, file));
+          filesDeleted++;
+        }
+      }
+    }
 
-    writeFileSync(input, Buffer.from(media));
-
-    // Conversión real a .ogg
-    execSync(`ffmpeg -i ${input} -c:a libopus -b:a 48k ${output}`);
-
-    let buffer = readFileSync(output);
-    let url = await uploadToCatbox(buffer);
-
-    // Limpieza
-    unlinkSync(input);
-    unlinkSync(output);
-
-    let mensaje = `*乂 C A T B O X - O G G 乂*\n\n`;
-    mensaje += `*» Enlace:* ${url}\n`;
-    mensaje += `*» Formato:* .ogg\n`;
-    mensaje += `*» Tamaño:* ${(buffer.length / 1024).toFixed(2)} KB`;
+    // Limpieza de claves internas de Baileys (SignalProtocol)
+    await conn.authState.keys.set('session', {})
 
     await conn.sendMessage(m.chat, {
-      text: mensaje,
+      text: `✅ Limpieza completada.\n\n» Archivos de sesión eliminados: *${filesDeleted}*\n» Claves internas de cifrado reiniciadas.`,
     }, { quoted: m });
 
-    await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key } });
-
-  } catch (e) {
-    console.error(e);
-    await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } });
-    conn.reply(m.chat, `*[❌] Hubo un error al convertir o subir el audio.*`, m);
+  } catch (err) {
+    console.error('Error durante la limpieza de sesión:', err);
+    await conn.sendMessage(m.chat, {
+      text: `⚠️ Ocurrió un error durante la limpieza:\n${err.message}`,
+    }, { quoted: m });
   }
 };
 
-handler.help = ['ogg'];
-handler.tags = ['herramientas'];
-handler.command = ['ogg'];
+handler.help = ['resetsession'];
+handler.tags = ['owner'];
+handler.command = /^(resetsession|limpiezatotal)$/i;
+handler.rowner = true;
 
 export default handler;
-
-// Función que sube a Catbox
-async function uploadToCatbox(contentBuffer) {
-  const blob = new Blob([contentBuffer], { type: 'audio/ogg' });
-  const form = new FormData();
-  form.append("reqtype", "fileupload");
-  form.append("fileToUpload", blob, `audio_${Date.now()}.ogg`);
-
-  const res = await fetch("https://catbox.moe/user/api.php", {
-    method: "POST",
-    body: form,
-  });
-
-  const url = await res.text();
-  return url;
-}
