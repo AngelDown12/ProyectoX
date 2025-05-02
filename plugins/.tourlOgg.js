@@ -1,30 +1,30 @@
 import fetch from "node-fetch";
 import crypto from "crypto";
 import { FormData, Blob } from "formdata-node";
-import { fileTypeFromBuffer } from "file-type";
 
 let handler = async (m, { conn }) => {
   let q = m.quoted ? m.quoted : m;
   let mime = (q.msg || q).mimetype || '';
-  if (!mime) return conn.reply(m.chat, `*[❗] Por favor, responde a un archivo válido (audio .ogg preferentemente).*`, m);
-  
+  if (!mime) return conn.reply(m.chat, `*[❗] Por favor, responde a un archivo válido (imagen, video, etc.).*`, m);
+
   await conn.sendMessage(m.chat, { react: { text: "🕒", key: m.key } });
-  
+
   try {
     let media = await q.download();
     let link = await catbox(media);
 
-    let txt = `*乂 C A T B O X - . O G G 乂*\n\n`;
+    let txt = `*乂 C A T B O X - U P L O A D E R (.ogg) 乂*\n\n`;
     txt += `*» Enlace* : ${link}\n`;
     txt += `*» Tamaño* : ${formatBytes(media.length)}\n`;
+    txt += `*» Formato forzado* : .ogg\n\n`;
     txt += `> *${wm}*`;
 
     await conn.sendMessage(m.chat, {
       text: txt,
       contextInfo: {
         externalAdReply: {
-          title: "Elite Bot - .OGG Uploader",
-          body: "¡Subida exitosa!",
+          title: "Elite Bot - Catbox OGG Uploader",
+          body: "¡Subida exitosa en formato .ogg!",
           thumbnailUrl: gataMenu,
           mediaType: 1,
           renderLargerThumbnail: true,
@@ -33,7 +33,7 @@ let handler = async (m, { conn }) => {
         }
       }
     }, { quoted: m });
-    
+
     await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key } });
   } catch (error) {
     console.error("Error:", error);
@@ -46,7 +46,7 @@ let handler = async (m, { conn }) => {
 
 handler.help = ['ogg'];
 handler.tags = ['herramientas'];
-handler.command = ['ogg'];
+handler.command = ['ogg', 'catogg'];
 
 export default handler;
 
@@ -62,7 +62,7 @@ async function catbox(content) {
   const formData = new FormData();
   const randomBytes = crypto.randomBytes(5).toString("hex");
   formData.append("reqtype", "fileupload");
-  formData.append("fileToUpload", blob, randomBytes + ".ogg");
+  formData.append("fileToUpload", blob, `${randomBytes}.ogg`);
 
   const response = await fetch("https://catbox.moe/user/api.php", {
     method: "POST",
