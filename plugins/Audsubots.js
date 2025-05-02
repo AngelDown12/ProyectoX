@@ -1,3 +1,7 @@
+// PRIMERO SE DEBE CONVERTIR .MP3 A .OPUS Y DESPUÉS CON EL CATBOX CON EL COMANDO .OGG GENERAR LINK EN FORMATO .OGG PARA ANDROID Y IOS .
+// PAGINA PARA CONVERTIR MP3 A OPUS .
+// https://convertio.co/es/download/93a347ccb4714c5c8a98e91ee55dd2a5187135/
+
 import fs from 'fs'
 import fetch from 'node-fetch'
 
@@ -13,7 +17,7 @@ handler.before = async function (m, { conn, participants, groupMetadata, isBotAd
   ]
   const AUDIOS_BIENVENIDA = [
     'https://files.catbox.moe/3t108h.opus',
-    'https://files.catbox.moe/3t108h.opus' // Cambia por el que tú subas
+    'https://files.catbox.moe/3t108h.opus' 
   ]
   const AUDIOS_DESPEDIDA = [
     'https://files.catbox.moe/33f4o4.opus',
