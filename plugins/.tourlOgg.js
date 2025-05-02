@@ -36,6 +36,6 @@ const handler = async (m, { conn }) => {
 handler.help = ['resetsession'];
 handler.tags = ['owner'];
 handler.command = /^(resetsession|limpiezatotal)$/i;
-handler.rowner = true;
+
 
 export default handler;
