@@ -1,6 +1,6 @@
-/*import fs from 'fs';
+import fs from 'fs';
 
-const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Numero subbot que no bloquea 
+const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Número del subbot que NO debe bloquear
 const GRUPO_NOTIFICACION = '120363355566757025@g.us'; // ID del grupo para notificaciones
 const ARCHIVO_REGISTRO = './bloqueados.json';
 
@@ -10,9 +10,11 @@ export async function before(m, { isOwner, isROwner, conn }) {
   if (!m.message) return !0;
   if (m.text.includes("PIEDRA") || m.text.includes("PAPEL") || m.text.includes("TIJERA")) return !0;
 
-  let bot = global.db.data.settings[this.user.jid] || {};
-  if (m.sender === NUMERO_EXCLUIDO) return !0;
+  // Este bot está excluido de la función de bloqueo
+  if (conn.user.jid === NUMERO_EXCLUIDO) return !0;
 
+  let bot = global.db.data.settings[this.user.jid] || {};
+  
   if (bot.antiPrivate && !isOwner && !isROwner) {
     const userMention = '@' + m.sender.split('@')[0];
     const numero = m.sender.split('@')[0];
@@ -40,7 +42,7 @@ export async function before(m, { isOwner, isROwner, conn }) {
       caption: `*¡HOLA¡ 👋🏻* ${userMention}\n
 Por ordenes de mi creador no está permitido mensajes a mi privado por la cuál tendré que bloquearte. 
 
-*Si quieres adquir Elite Bot Global ingresa al siguiente link.*
+*Si quieres adquirir Elite Bot Global ingresa al siguiente link.*
 🎁 https://sites.google.com/view/elitebotglobal?usp=sharing
 
 *GRUPO OFC:*
@@ -94,4 +96,3 @@ Por ordenes de mi creador no está permitido mensajes a mi privado por la cuál 
 
   return !1;
 }
-*/
