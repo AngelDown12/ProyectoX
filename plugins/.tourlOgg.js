@@ -2,12 +2,19 @@ import { promises as fs, existsSync } from 'fs'
 import path from 'path'
 
 const handler = async (m, { conn }) => {
-  if (!m.fromMe && !global.isCreator) throw 'Solo el Owner puede ejecutar esto.';
+  const ownerNumber = '593993370003@s.whatsapp.net'; // ← Cambia esto por tu número con @s.whatsapp.net
+
+  if (m.sender !== ownerNumber) {
+    return await conn.sendMessage(m.chat, {
+      text: 'Solo el Owner autorizado puede ejecutar este comando.',
+    }, { quoted: m });
+  }
 
   const sessionPath = './GataBotSession/';
   let filesDeleted = 0;
+
   try {
-    // Limpieza de archivos de sesión (excepto creds.json)
+    // Borra archivos de sesión excepto creds.json
     if (existsSync(sessionPath)) {
       const files = await fs.readdir(sessionPath);
       for (const file of files) {
@@ -18,17 +25,17 @@ const handler = async (m, { conn }) => {
       }
     }
 
-    // Limpieza de claves internas de Baileys (SignalProtocol)
+    // Limpia sesiones internas (SignalProtocol)
     await conn.authState.keys.set('session', {})
 
     await conn.sendMessage(m.chat, {
-      text: `✅ Limpieza completada.\n\n» Archivos de sesión eliminados: *${filesDeleted}*\n» Claves internas de cifrado reiniciadas.`,
+      text: `✅ Limpieza completada.\n\n» Archivos eliminados: *${filesDeleted}*\n» Claves internas reiniciadas.`,
     }, { quoted: m });
 
   } catch (err) {
     console.error('Error durante la limpieza de sesión:', err);
     await conn.sendMessage(m.chat, {
-      text: `⚠️ Ocurrió un error durante la limpieza:\n${err.message}`,
+      text: `⚠️ Error durante la limpieza:\n${err.message}`,
     }, { quoted: m });
   }
 };
@@ -36,6 +43,4 @@ const handler = async (m, { conn }) => {
 handler.help = ['resetsession'];
 handler.tags = ['owner'];
 handler.command = /^(resetsession|limpiezatotal)$/i;
-
-
 export default handler;
