@@ -27,6 +27,15 @@ import readline from 'readline'
 import NodeCache from 'node-cache' 
 import { gataJadiBot } from './plugins/jadibot-serbot.js';
 import pkg from 'google-libphonenumber'
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('⚠️ Rechazo no manejado:', reason);
+  if (reason?.message?.includes('No sessions')) {
+    console.warn('⚠️ Error de sesión detectado. Puede que el auth.json esté corrupto o falten claves.');
+    // Aquí puedes decidir reiniciar o eliminar el authInfo para forzar nuevo QR
+    // Por ejemplo: fs.unlinkSync('./session/auth_info.json') <-- con precaución
+  }
+});
+
 
 const { PhoneNumberUtil } = pkg
 const phoneUtil = PhoneNumberUtil.getInstance()
@@ -832,11 +841,3 @@ for (const channelId of Object.values(global.ch)) {
 await conn.newsletterFollow(channelId).catch(() => {})
 }}
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('⚠️ Rechazo no manejado:', reason);
-  if (reason?.message?.includes('No sessions')) {
-    console.warn('⚠️ Error de sesión detectado. Puede que el auth.json esté corrupto o falten claves.');
-    // Aquí puedes decidir reiniciar o eliminar el authInfo para forzar nuevo QR
-    // Por ejemplo: fs.unlinkSync('./session/auth_info.json') <-- con precaución
-  }
-});
