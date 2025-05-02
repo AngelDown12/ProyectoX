@@ -2,7 +2,7 @@ import { promises as fs, existsSync } from 'fs'
 import path from 'path'
 
 const handler = async (m, { conn }) => {
-  const ownerNumber = '593993370003@s.whatsapp.net'; // ← Cambia esto por tu número con @s.whatsapp.net
+  const ownerNumber = '593993370003@s.whatsapp.net'; // Tu número ya insertado
 
   if (m.sender !== ownerNumber) {
     return await conn.sendMessage(m.chat, {
@@ -14,19 +14,22 @@ const handler = async (m, { conn }) => {
   let filesDeleted = 0;
 
   try {
-    // Borra archivos de sesión excepto creds.json
     if (existsSync(sessionPath)) {
       const files = await fs.readdir(sessionPath);
+
       for (const file of files) {
-        if (file !== 'creds.json') {
-          await fs.unlink(path.join(sessionPath, file));
+        const fullPath = path.join(sessionPath, file);
+        if (file !== 'creds.json' && file.endsWith('.json') && existsSync(fullPath)) {
+          await fs.unlink(fullPath);
           filesDeleted++;
         }
       }
     }
 
-    // Limpia sesiones internas (SignalProtocol)
-    await conn.authState.keys.set('session', {})
+    // Limpieza de claves cifradas internas
+    if (conn?.authState?.keys?.set) {
+      await conn.authState.keys.set('session', {});
+    }
 
     await conn.sendMessage(m.chat, {
       text: `✅ Limpieza completada.\n\n» Archivos eliminados: *${filesDeleted}*\n» Claves internas reiniciadas.`,
