@@ -15,11 +15,11 @@ handler.before = async function (m, { conn }) {
   ]
 
   const AUDIO_SALIDA_URLS = [
-    'https://files.catbox.moe/33f4o4.opus',
-    'https://files.catbox.moe/2q3vta.opus',
-    'https://files.catbox.moe/mo22fl.opus'
+    'https://files.catbox.moe/2olqg1.ogg',
+    'https://files.catbox.moe/k8znal.ogg',
+    'https://files.catbox.moe/oj61hq.ogg'
   ]
-  const AUDIO_BIENVENIDA_URL = 'https://files.catbox.moe/ejot2u.ogg'
+  const AUDIO_BIENVENIDA_URL = 'https://files.catbox.moe/kgykxt.ogg'
 
   try {
     if ([28, 32].includes(m.messageStubType)) {
