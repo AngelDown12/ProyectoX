@@ -2,7 +2,7 @@ import { promises as fs, existsSync } from 'fs'
 import path from 'path'
 
 const handler = async (m, { conn }) => {
-  const ownerNumber = '593993370003@s.whatsapp.net'; // Tu número ya insertado
+  const ownerNumber = '593993370003@s.whatsapp.net';
 
   if (m.sender !== ownerNumber) {
     return await conn.sendMessage(m.chat, {
@@ -26,13 +26,13 @@ const handler = async (m, { conn }) => {
       }
     }
 
-    // Limpieza de claves cifradas internas
-    if (conn?.authState?.keys?.set) {
-      await conn.authState.keys.set('session', {});
+    // Limpia claves internas directamente desde el objeto
+    if (conn?.authState?.keys?.data?.session) {
+      delete conn.authState.keys.data.session;
     }
 
     await conn.sendMessage(m.chat, {
-      text: `✅ Limpieza completada.\n\n» Archivos eliminados: *${filesDeleted}*\n» Claves internas reiniciadas.`,
+      text: `✅ Limpieza completada.\n\n» Archivos eliminados: *${filesDeleted}*\n» Claves internas limpiadas.`,
     }, { quoted: m });
 
   } catch (err) {
