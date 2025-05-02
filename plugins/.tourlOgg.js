@@ -1,11 +1,12 @@
 import fetch from "node-fetch";
 import crypto from "crypto";
-import { FormData, Blob } from "formdata-node";
+import { FormData } from "formdata-node";
+import { fileFromBuffer } from "formdata-node/file-from-buffer";
 
 let handler = async (m, { conn }) => {
   let q = m.quoted ? m.quoted : m;
   let mime = (q.msg || q).mimetype || '';
-  if (!mime) return conn.reply(m.chat, `*[❗] Por favor, responde a un archivo válido (imagen, video, etc.).*`, m);
+  if (!mime) return conn.reply(m.chat, `*[❗] Responde a un archivo válido (nota de voz, audio, etc.).*`, m);
 
   await conn.sendMessage(m.chat, { react: { text: "🕒", key: m.key } });
 
@@ -13,10 +14,10 @@ let handler = async (m, { conn }) => {
     let media = await q.download();
     let link = await catbox(media);
 
-    let txt = `*乂 C A T B O X - U P L O A D E R (.ogg) 乂*\n\n`;
+    let txt = `*乂 C A T B O X - .O G G - U P L O A D E R 乂*\n\n`;
     txt += `*» Enlace* : ${link}\n`;
     txt += `*» Tamaño* : ${formatBytes(media.length)}\n`;
-    txt += `*» Formato forzado* : .ogg\n\n`;
+    txt += `*» Formato* : .ogg\n\n`;
     txt += `> *${wm}*`;
 
     await conn.sendMessage(m.chat, {
@@ -24,7 +25,7 @@ let handler = async (m, { conn }) => {
       contextInfo: {
         externalAdReply: {
           title: "Elite Bot - Catbox OGG Uploader",
-          body: "¡Subida exitosa en formato .ogg!",
+          body: "¡Subida exitosa como .ogg!",
           thumbnailUrl: gataMenu,
           mediaType: 1,
           renderLargerThumbnail: true,
@@ -58,20 +59,18 @@ function formatBytes(bytes) {
 }
 
 async function catbox(content) {
-  const blob = new Blob([content.toArrayBuffer()], { type: 'audio/ogg' });
+  const file = await fileFromBuffer(content, 'audio.ogg', 'audio/ogg');
   const formData = new FormData();
-  const randomBytes = crypto.randomBytes(5).toString("hex");
-  formData.append("reqtype", "fileupload");
-  formData.append("fileToUpload", blob, `${randomBytes}.ogg`);
+  formData.set('reqtype', 'fileupload');
+  formData.set('fileToUpload', file);
 
-  const response = await fetch("https://catbox.moe/user/api.php", {
+  const res = await fetch("https://catbox.moe/user/api.php", {
     method: "POST",
     body: formData,
     headers: {
-      "User-Agent":
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36",
-    },
+      "User-Agent": "Mozilla/5.0"
+    }
   });
 
-  return await response.text();
+  return await res.text();
 }
