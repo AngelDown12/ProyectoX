@@ -19,7 +19,7 @@ handler.before = async function (m, { conn }) {
     'https://files.catbox.moe/2q3vta.opus',
     'https://files.catbox.moe/mo22fl.opus'
   ]
-  const AUDIO_BIENVENIDA_URL = 'https://files.catbox.moe/o7q3wx.ogg'
+  const AUDIO_BIENVENIDA_URL = 'https://files.catbox.moe/ejot2u.ogg'
 
   try {
     if ([28, 32].includes(m.messageStubType)) {
