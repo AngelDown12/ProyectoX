@@ -1,7 +1,6 @@
 import fetch from "node-fetch";
 import yts from "yt-search";
 
-// Lista de APIs prioritarias (la de vreden primero)
 const APIS = [
   {
     name: "vreden",
@@ -23,32 +22,21 @@ const APIS = [
   }
 ];
 
-// Función para obtener audio
 const getAudioUrl = async (videoUrl) => {
   let lastError = null;
-  
   for (const api of APIS) {
     try {
-      console.log(`Probando API: ${api.name}`);
       const apiUrl = api.url(videoUrl);
       const response = await fetch(apiUrl, { timeout: 5000 });
-      
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      
       const data = await response.json();
       const audioUrl = await api.extract(data);
-      
-      if (audioUrl) {
-        console.log(`Éxito con API: ${api.name}`);
-        return audioUrl;
-      }
+      if (audioUrl) return audioUrl;
     } catch (error) {
-      console.error(`Error con API ${api.name}:`, error.message);
       lastError = error;
       continue;
     }
   }
-  
   throw lastError || new Error("Todas las APIs fallaron");
 };
 
@@ -114,14 +102,14 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
   } catch (error) {
     console.error("Error:", error);
     await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } });
-    
+
     const errorMsg = typeof error === 'string' ? error : 
       `❌ *Error:* ${error.message || 'Ocurrió un problema'}\n\n` +
       `🔸 *Posibles soluciones:*\n` +
       `• Verifica el nombre de la canción\n` +
       `• Intenta con otro tema\n` +
       `• Prueba más tarde`;
-      
+
     await conn.sendMessage(m.chat, { text: errorMsg }, { quoted: m });
   }
 };
