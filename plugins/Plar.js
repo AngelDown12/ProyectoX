@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 import yts from "yt-search";
 
+// Lista de APIs prioritarias
 const APIS = [
   {
     name: "vreden",
@@ -22,21 +23,26 @@ const APIS = [
   }
 ];
 
+// Función para obtener audio
 const getAudioUrl = async (videoUrl) => {
   let lastError = null;
+  
   for (const api of APIS) {
     try {
       const apiUrl = api.url(videoUrl);
       const response = await fetch(apiUrl, { timeout: 5000 });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
       const data = await response.json();
       const audioUrl = await api.extract(data);
+      
       if (audioUrl) return audioUrl;
     } catch (error) {
       lastError = error;
       continue;
     }
   }
+  
   throw lastError || new Error("Todas las APIs fallaron");
 };
 
@@ -57,7 +63,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     }
 
     await conn.sendMessage(m.chat, {
-      text: `01:27 ━━━━━⬤────── 05:48\n*⇄ㅤ      ◁        ❚❚        ▷        ↻*\n╴𝗘𝗹𝗶𝘁𝗲 𝗕𝗼𝘁 𝗚𝗹𝗼𝗯𝗮𝗹`,
+      text: `01:27 ━━━━━⬤────── 05:48\n*⇄ㅤ      ◁        ❚❚        ▷        ↻*\n- Elite Bot Global`,
       contextInfo: {
         externalAdReply: {
           title: video.title.slice(0, 60),
@@ -71,28 +77,21 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
       }
     }, { quoted: m });
 
-    let audioUrl;
-    try {
-      audioUrl = await getAudioUrl(video.url);
-    } catch (e) {
-      console.error("Error al obtener audio:", e);
-      throw "⚠️ Error al procesar el audio. Intenta con otra canción";
-    }
+    const audioUrl = await getAudioUrl(video.url);
 
     await conn.sendMessage(m.chat, {
-      audio: { url: audioUrl },
-      mimetype: "audio/mpeg",
+      document: { url: audioUrl },
+      mimetype: 'audio/mpeg',
       fileName: `${video.title.slice(0, 30)}.mp3`.replace(/[^\w\s.-]/gi, ''),
-      ptt: false,
       contextInfo: {
         externalAdReply: {
           title: video.title.slice(0, 60),
-          body: "Elite Bot Global",
+          body: 'Elite Bot Global',
           thumbnailUrl: video.thumbnail,
           mediaType: 1,
           renderLargerThumbnail: true,
-          showAdAttribution: true,
-          sourceUrl: video.url
+          sourceUrl: video.url,
+          showAdAttribution: true
         }
       }
     }, { quoted: m });
@@ -102,14 +101,14 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
   } catch (error) {
     console.error("Error:", error);
     await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } });
-
+    
     const errorMsg = typeof error === 'string' ? error : 
       `❌ *Error:* ${error.message || 'Ocurrió un problema'}\n\n` +
       `🔸 *Posibles soluciones:*\n` +
       `• Verifica el nombre de la canción\n` +
       `• Intenta con otro tema\n` +
       `• Prueba más tarde`;
-
+      
     await conn.sendMessage(m.chat, { text: errorMsg }, { quoted: m });
   }
 };
