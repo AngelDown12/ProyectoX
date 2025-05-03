@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+/*import fetch from "node-fetch";
 import yts from "yt-search";
 
 // Lista de APIs prioritarias (la de vreden primero)
@@ -123,3 +123,4 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
 handler.command = ['play', 'playaudio', 'ytmusic'];
 handler.exp = 0;
 export default handler;
+*/
