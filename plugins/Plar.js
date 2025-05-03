@@ -1,7 +1,6 @@
 import fetch from "node-fetch";
 import yts from "yt-search";
 
-// Lista de APIs prioritarias
 const APIS = [
   {
     name: "vreden",
@@ -23,32 +22,27 @@ const APIS = [
   }
 ];
 
-// Función para obtener audio
 const getAudioUrl = async (videoUrl) => {
   let lastError = null;
-  
   for (const api of APIS) {
     try {
       const apiUrl = api.url(videoUrl);
       const response = await fetch(apiUrl, { timeout: 5000 });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      
       const data = await response.json();
       const audioUrl = await api.extract(data);
-      
       if (audioUrl) return audioUrl;
     } catch (error) {
       lastError = error;
       continue;
     }
   }
-  
   throw lastError || new Error("Todas las APIs fallaron");
 };
 
 const handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text || !text.trim()) {
-    throw `⭐ 𝘌𝘯𝘷𝘪𝘢 𝘦𝘭 𝘯𝘰𝘮𝘣𝘳𝘦 𝘥𝘦 𝘭𝘢 𝘤𝘢𝘯𝘤𝘪ó𝘯\n\n» 𝘌𝘫𝘦𝘮𝘱𝘭𝘰: ${usedPrefix + command} Bad Bunny - Monaco`;
+    throw `⭐ Envía el nombre de la canción\n\nEjemplo: ${usedPrefix + command} Bad Bunny - Monaco`;
   }
 
   try {
@@ -57,13 +51,10 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     const searchResults = await yts({ query: text.trim(), hl: 'es', gl: 'ES' });
     const video = searchResults.videos[0];
     if (!video) throw new Error("No se encontró el video");
-
-    if (video.seconds > 600) {
-      throw "❌ El audio es muy largo (máximo 10 minutos)";
-    }
+    if (video.seconds > 600) throw "❌ El audio es muy largo (máximo 10 minutos)";
 
     await conn.sendMessage(m.chat, {
-      text: `01:27 ━━━━━⬤────── 05:48\n*⇄ㅤ      ◁        ❚❚        ▷        ↻*\n- Elite Bot Global`,
+      text: `01:27 ━━━━━⬤────── 05:48\n*⇄ㅤ      ◁        ❚❚        ▷        ↻*\n╴𝗘𝗹𝗶𝘁𝗲 𝗕𝗼𝘁 𝗚𝗹𝗼𝗯𝗮𝗹`,
       contextInfo: {
         externalAdReply: {
           title: video.title.slice(0, 60),
@@ -80,18 +71,19 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     const audioUrl = await getAudioUrl(video.url);
 
     await conn.sendMessage(m.chat, {
-      document: { url: audioUrl },
-      mimetype: 'audio/mpeg',
+      audio: { url: audioUrl },
+      mimetype: "audio/mpeg",
       fileName: `${video.title.slice(0, 30)}.mp3`.replace(/[^\w\s.-]/gi, ''),
+      ptt: false,
       contextInfo: {
         externalAdReply: {
           title: video.title.slice(0, 60),
-          body: 'Elite Bot Global',
+          body: "Elite Bot Global",
           thumbnailUrl: video.thumbnail,
           mediaType: 1,
           renderLargerThumbnail: true,
-          sourceUrl: video.url,
-          showAdAttribution: true
+          showAdAttribution: true,
+          sourceUrl: video.url
         }
       }
     }, { quoted: m });
@@ -99,17 +91,11 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key } });
 
   } catch (error) {
-    console.error("Error:", error);
     await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } });
-    
-    const errorMsg = typeof error === 'string' ? error : 
+    const msg = typeof error === 'string' ? error :
       `❌ *Error:* ${error.message || 'Ocurrió un problema'}\n\n` +
-      `🔸 *Posibles soluciones:*\n` +
-      `• Verifica el nombre de la canción\n` +
-      `• Intenta con otro tema\n` +
-      `• Prueba más tarde`;
-      
-    await conn.sendMessage(m.chat, { text: errorMsg }, { quoted: m });
+      `🔸 *Soluciones:*\n• Verifica el nombre\n• Intenta otra canción\n• Prueba más tarde`;
+    await conn.sendMessage(m.chat, { text: msg }, { quoted: m });
   }
 };
 
