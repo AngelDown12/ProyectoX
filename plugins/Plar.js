@@ -59,9 +59,8 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
         externalAdReply: {
           title: video.title.slice(0, 60),
           body: "",
-          thumbnailUrl: video.thumbnail,
           mediaType: 1,
-          renderLargerThumbnail: true,
+          renderLargerThumbnail: false,
           showAdAttribution: true,
           sourceUrl: video.url
         }
@@ -79,10 +78,9 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
         externalAdReply: {
           title: video.title.slice(0, 60),
           body: "Elite Bot Global",
-          thumbnailUrl: video.thumbnail,
           mediaType: 1,
-          renderLargerThumbnail: true,
           showAdAttribution: true,
+          renderLargerThumbnail: false,
           sourceUrl: video.url
         }
       }
