@@ -1,102 +1,77 @@
-import fetch from "node-fetch";
-import yts from "yt-search";
+import fetch from 'node-fetch'
+import yts from 'yt-search'
+import ytdl from 'ytdl-core'
+import { youtubedl, youtubedlv2, youtubedl2 } from '@bochilteam/scraper'
 
-const APIS = [
-  {
-    name: "vreden",
-    url: (videoUrl) => `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(videoUrl)}&quality=64`,
-    extract: (data) => data?.result?.download?.url
-  },
-  {
-    name: "zenkey",
-    url: (videoUrl) => `https://api.zenkey.my.id/api/download/ytmp3?apikey=zenkey&url=${encodeURIComponent(videoUrl)}&quality=64`,
-    extract: (data) => data?.result?.download?.url
-  },
-  {
-    name: "yt1s",
-    url: (videoUrl) => `https://yt1s.io/api/ajaxSearch?q=${encodeURIComponent(videoUrl)}`,
-    extract: async (data) => {
-      const k = data?.links?.mp3?.auto?.k;
-      return k ? `https://yt1s.io/api/ajaxConvert?vid=${data.vid}&k=${k}&quality=64` : null;
-    }
-  }
-];
+const limit = 200 * 1024 * 1024 // 200MB
+const handler = async (m, { conn, command, text, args, usedPrefix }) => {
+  if (!text) throw `Ejemplo de uso:\n${usedPrefix + command} calvin harris`
 
-const getAudioUrl = async (videoUrl) => {
-  let lastError = null;
-  for (const api of APIS) {
-    try {
-      const apiUrl = api.url(videoUrl);
-      const response = await fetch(apiUrl, { timeout: 5000 });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      const audioUrl = await api.extract(data);
-      if (audioUrl) return audioUrl;
-    } catch (error) {
-      lastError = error;
-      continue;
-    }
-  }
-  throw lastError || new Error("Todas las APIs fallaron");
-};
+  await m.reply(wait)
 
-const handler = async (m, { conn, text, usedPrefix, command }) => {
-  if (!text || !text.trim()) {
-    throw `⭐ Envía el nombre de la canción\n\nEjemplo: ${usedPrefix + command} Bad Bunny - Monaco`;
-  }
+  let vid, res, q = text
 
   try {
-    await conn.sendMessage(m.chat, { react: { text: "🕒", key: m.key } });
+    const results = await yts(q)
+    const list = results.videos
+    if (!list.length) throw 'No se encontraron resultados.'
 
-    const searchResults = await yts({ query: text.trim(), hl: 'es', gl: 'ES' });
-    const video = searchResults.videos[0];
-    if (!video) throw new Error("No se encontró el video");
-    if (video.seconds > 600) throw "❌ El audio es muy largo (máximo 10 minutos)";
+    // Obtener el primer resultado válido
+    vid = list.find(video => video.seconds < 3600) || list[0]
+    if (!vid) throw 'Video no válido o demasiado largo.'
 
-    await conn.sendMessage(m.chat, {
-      text: `01:27 ━━━━━⬤────── 05:48\n*⇄ㅤ      ◁        ❚❚        ▷        ↻*\n╴𝗘𝗹𝗶𝘁𝗲 𝗕𝗼𝘁 𝗚𝗹𝗼𝗯𝗮𝗹`,
-      contextInfo: {
-        externalAdReply: {
-          title: video.title.slice(0, 60),
-          body: "",
-          mediaType: 1,
-          renderLargerThumbnail: false,
-          showAdAttribution: true,
-          sourceUrl: video.url
+    const { title, url, duration, thumbnail } = vid
+    const caption = `
+*➤ Título:* ${title}
+*➤ Duración:* ${duration.timestamp}
+*➤ URL:* ${url}
+*➤ Tamaño máx:* ${limit / 1024 / 1024} MB
+`.trim()
+
+    // Elegir la fuente según el comando
+    let dl = null
+    switch (command) {
+      case 'play':
+        dl = await youtubedl(url).catch(() => null)
+        break
+      case 'play2':
+        dl = await youtubedlv2(url).catch(() => null)
+        break
+      case 'play3':
+        dl = await youtubedl2(url).catch(() => null)
+        break
+      case 'play4':
+        const info = await ytdl.getInfo(url)
+        const audio = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' })
+        dl = {
+          audio: { url: audio.url, size: audio.contentLength },
+          title: info.videoDetails.title
         }
-      }
-    }, { quoted: m });
+        break
+    }
 
-    const audioUrl = await getAudioUrl(video.url);
+    if (!dl?.audio?.url) throw 'Error al obtener el audio.'
 
+    // Enviar preview + botones
     await conn.sendMessage(m.chat, {
-      audio: { url: audioUrl },
-      mimetype: "audio/mpeg",
-      fileName: `${video.title.slice(0, 30)}.mp3`.replace(/[^\w\s.-]/gi, ''),
-      ptt: false,
-      contextInfo: {
-        externalAdReply: {
-          title: video.title.slice(0, 60),
-          body: "Elite Bot Global",
-          mediaType: 1,
-          showAdAttribution: true,
-          renderLargerThumbnail: false,
-          sourceUrl: video.url
-        }
-      }
-    }, { quoted: m });
+      image: { url: thumbnail },
+      caption: caption,
+      buttons: [
+        { buttonId: `${usedPrefix}playaudio ${url}`, buttonText: { displayText: 'Audio' }, type: 1 },
+        { buttonId: `${usedPrefix}playvideo ${url}`, buttonText: { displayText: 'Video' }, type: 1 }
+      ],
+      footer: 'Selecciona una opción',
+    }, { quoted: m })
 
-    await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key } });
-
-  } catch (error) {
-    await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } });
-    const msg = typeof error === 'string' ? error :
-      `❌ *Error:* ${error.message || 'Ocurrió un problema'}\n\n` +
-      `🔸 *Soluciones:*\n• Verifica el nombre\n• Intenta otra canción\n• Prueba más tarde`;
-    await conn.sendMessage(m.chat, { text: msg }, { quoted: m });
+  } catch (err) {
+    console.error(err)
+    throw 'Ocurrió un error al procesar tu solicitud.'
   }
-};
+}
 
-handler.command = ['play', 'playaudio', 'ytmusic'];
-handler.exp = 0;
-export default handler;
+handler.help = ['play', 'play2', 'play3', 'play4'].map(c => c + ' <texto>')
+handler.tags = ['downloader']
+handler.command = /^play4?|play3?|play2?$/i
+handler.limit = 1
+
+export default handler
