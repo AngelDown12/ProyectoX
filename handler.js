@@ -1447,7 +1447,7 @@ export async function participantsUpdate({ id, participants, action }) {
 case 'remove':
 
 		        
-if (chat.welcome) {
+/*if (chat.welcome) {
 let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
 for (let user of participants) {
 let pp = './src/sinfoto.jpg'
@@ -1460,9 +1460,39 @@ const botTt2 = groupMetadata.participants.find(u => this.decodeJid(u.id) == this
 const isBotAdminNn = botTt2?.admin === "admin" || false
 text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!').replace('@subject', await this.getName(id)).replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ') :
 (chat.sBye || this.bye || conn.bye || 'Bye, @user!')).replace('@user', '@' + user.split('@')[0])
+*/
 
 
-	    
+if (chat.welcome) {
+  let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
+  for (let user of participants) {
+    let pp = './src/sinfoto.jpg'
+    try {
+      pp = await this.profilePictureUrl(user, 'image')
+    } catch (e) {}
+
+    let apii = await this.getFile(pp)
+    const botTt2 = groupMetadata.participants.find(u => this.decodeJid(u.id) == this.user.jid) || {}
+    const isBotAdminNn = botTt2?.admin === "admin" || false
+
+    let date = new Date()
+    let fecha = date.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+    let hora = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+
+    let textoBase = (action === 'add' 
+      ? (chat.sWelcome || this.welcome || conn.welcome || 'Bienvenido/a, @user.')
+      : (chat.sBye || this.bye || conn.bye || 'Adiós, @user.'))
+
+    let texto = textoBase
+      .replace('@user', '@' + user.split('@')[0])
+      .concat(`\n\nGrupo: ${await this.getName(id)}\nDescripción: ${groupMetadata.desc?.toString() || 'Sin descripción'}\nFecha: ${fecha}\nHora: ${hora}`)
+
+    // aquí puedes enviar el mensaje, por ejemplo:
+    await this.sendMessage(id, { text: texto, mentions: [user] }, { quoted: m })
+  }
+}
+
+		    
 		    
 
 	
