@@ -1435,7 +1435,7 @@ function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]
 export async function participantsUpdate({ id, participants, action }) {
     if (opts['self'])
         return
-    
+}
   /*  if (this.isInit)
         return
     if (global.db.data == null)
