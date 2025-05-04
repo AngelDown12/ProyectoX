@@ -1474,7 +1474,9 @@ let apii = await this.getFile(pp)
 const botTt2 = groupMetadata.participants.find(u => this.decodeJid(u.id) == this.user.jid) || {} 
 const isBotAdminNn = botTt2?.admin === "admin" || false
 
-let fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+let fecha = new Date().toLocaleDateString('es-ES', {
+weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+})
 
 text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!')
 .replace('@subject', await this.getName(id))
@@ -1483,13 +1485,14 @@ text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'We
 .replace('@user', '@' + user.split('@')[0]) + `\n\nFecha: ${fecha}`
 
 await this.sendMessage(id, {
-text,
+image: { url: pp },
+caption: text,
 mentions: [user],
-buttons: [
-{ buttonId: '.ok', buttonText: { displayText: 'ADIOS POPO' }, type: 1 }
-],
-headerType: 1
- })
+templateButtons: [
+{ index: 1, quickReplyButton: { displayText: 'ADIOS POPO', id: '.ok' } }
+]
+})
+
 
 		    
 
