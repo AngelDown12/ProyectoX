@@ -1461,47 +1461,47 @@ const isBotAdminNn = botTt2?.admin === "admin" || false
 text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!').replace('@subject', await this.getName(id)).replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ') :
 (chat.sBye || this.bye || conn.bye || 'Bye, @user!')).replace('@user', '@' + user.split('@')[0])
 */
-
 if (chat.welcome) {
-  let groupMetadata = await conn.groupMetadata(id).catch(_ => null) || (conn.chats[id] || {}).metadata
+  let groupMetadata2 = await conn.groupMetadata(id).catch(_ => null) || (conn.chats[id] || {}).metadata
   for (let user of participants) {
-    let pp = 'src/sinfoto.jpg'
+    let pp = './src/sinfoto.jpg'
     try {
       pp = await conn.profilePictureUrl(user, 'image')
     } catch (e) {
-      // Se usa sinfoto.jpg si falla
+      // Usa sinfoto si falla
     }
 
     const buffer = await conn.getFile(pp).then(v => v.data).catch(_ => null)
-    const botInfo = groupMetadata?.participants?.find(u => conn.decodeJid(u.id) === conn.user.jid) || {}
-    const isBotAdmin = botInfo?.admin === "admin"
+    const botinfo = groupMetadata2.participants?.find(u => conn.decodeJid(u.id) == conn.user.jid) || {}
+    const isBotAdminN = botinfo?.admin === "admin"
 
     const tagUser = '@' + user.split('@')[0]
     const fecha = new Date().toLocaleString('es-VE', { timeZone: 'America/Caracas' })
-    const replaceText = {
+    const reemplazaTexto = {
       '@user': tagUser,
-      '@subject': groupMetadata?.subject || '',
-      '@desc': groupMetadata?.desc?.toString() || 'Sin descripción',
+      '@subject': groupMetadata2.subject || '',
+      '@desc': groupMetadata2.desc?.toString() || 'Sin descripción',
       '@fecha': fecha
     }
 
     let text = ''
     if (action === 'add') {
-      text = (chat.sWelcome || conn.welcome || 'Bienvenido(a) @user al grupo @subject!').replace(/@user|@subject|@desc|@fecha/gi, matched => replaceText[matched])
+      text = (chat.sWelcome || conn.welcome || 'Bienvenido(a) @user al grupo @subject').replace(/@user|@subject|@desc|@fecha/g, tag => reemplazaTexto[tag] || tag)
     } else if (action === 'remove') {
-      text = (chat.sBye || conn.bye || 'Adiós @user, esperamos verte pronto!').replace(/@user|@subject|@desc|@fecha/gi, matched => replaceText[matched])
-    } else {
-      continue
-    }
+      text = (chat.sBye || conn.bye || 'Adiós @user, esperamos verte pronto!').replace(/@user|@subject|@desc|@fecha/g, tag => reemplazaTexto[tag] || tag)
+    } else continue
 
     text += `\n\nFecha: ${fecha}`
 
     await conn.sendMessage(id, {
-      image: { url: buffer ? undefined : pp, jpegThumbnail: buffer, caption: text, mentions: [user] }
+      image: { url: buffer || pp },
+      jpegThumbnail: buffer,
+      caption: text,
+      mentions: [user]
     }).catch(console.error)
   }
 }
-		    
+	    
 		    
 
 	
