@@ -1429,13 +1429,10 @@ if (!m.fromMe) return this.sendMessage(m.chat, { react: { text: emot, key: m.key
 function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]}
 }}
 
-/**
- * Handle groups participants update
- * @param {import('@adiwajshing/baileys').BaileysEventMap<unknown>['group-participants.update']} groupsUpdate 
- */
+
 // copiar desde aqui para configurar despedida y bienvenida.
 
-/*export async function participantsUpdate({ id, participants, action }) {
+export async function participantsUpdate({ id, participants, action }) {
     if (opts['self'])
         return
     
@@ -1448,7 +1445,7 @@ function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]
     switch (action) {
         case 'add':
 case 'remove':
-if (chat.welcome) {
+/*if (chat.welcome) {
 let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
 for (let user of participants) {
 let pp = './src/sinfoto.jpg'
