@@ -1476,8 +1476,11 @@ const isBotAdminNn = botTt2?.admin === "admin" || false
 
 let fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
-text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!').replace('@subject', await this.getName(id)).replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ') :
-(chat.sBye || this.bye || conn.bye || 'Bye, @user!')).replace('@user', '@' + user.split('@')[0]) + `\n\nFecha: ${fecha}`
+text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!')
+.replace('@subject', await this.getName(id))
+.replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ') :
+(chat.sBye || this.bye || conn.bye || 'Bye, @user!'))
+.replace('@user', '@' + user.split('@')[0]) + `\n\nFecha: ${fecha}`
 
 await this.sendMessage(id, {
 text,
@@ -1487,9 +1490,6 @@ buttons: [
 ],
 headerType: 1
 }, { quoted: m })
-}
-}
-}
 
 		    
 
