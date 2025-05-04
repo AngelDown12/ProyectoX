@@ -1436,7 +1436,7 @@ export async function participantsUpdate({ id, participants, action }) {
     if (opts['self'])
         return
     
-    if (this.isInit)
+  /*  if (this.isInit)
         return
     if (global.db.data == null)
         await loadDatabase()
@@ -1445,8 +1445,8 @@ export async function participantsUpdate({ id, participants, action }) {
     switch (action) {
         case 'add':
 case 'remove':
-
-		    {{	    
+*/
+		        
 /*if (chat.welcome) {
 let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
 for (let user of participants) {
