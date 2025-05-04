@@ -1489,7 +1489,7 @@ buttons: [
 { buttonId: '.ok', buttonText: { displayText: 'ADIOS POPO' }, type: 1 }
 ],
 headerType: 1
-}, { quoted: m })
+ })
 
 		    
 
