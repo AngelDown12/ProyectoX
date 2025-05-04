@@ -1434,11 +1434,11 @@ function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]
  * @param {import('@adiwajshing/baileys').BaileysEventMap<unknown>['group-participants.update']} groupsUpdate 
  */
 // copiar desde aqui para configurar despedida y bienvenida.
-/*
-export async function participantsUpdate({ id, participants, action }) {
+
+/*export async function participantsUpdate({ id, participants, action }) {
     if (opts['self'])
         return
-    // if (id in conn.chats) return // First login will spam
+    
     if (this.isInit)
         return
     if (global.db.data == null)
@@ -1461,7 +1461,9 @@ const botTt2 = groupMetadata.participants.find(u => this.decodeJid(u.id) == this
 const isBotAdminNn = botTt2?.admin === "admin" || false
 text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!').replace('@subject', await this.getName(id)).replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ') :
 (chat.sBye || this.bye || conn.bye || 'Bye, @user!')).replace('@user', '@' + user.split('@')[0])
-			    
+	*/		    
+
+	
 if (chat.antifake && isBotAdminNn && action === 'add') {
 const prefijosPredeterminados = [ 2, 4, 6, 7, 234, 9] // Puedes editar que usuarios deseas que se eliminen si empieza por algunos de los números
 const rutaArchivo = './prefijos.json'
@@ -1489,7 +1491,7 @@ let fkontak2 = { "key": { "participants":"0@s.whatsapp.net", "remoteJid": "statu
 conn.sendMessage(id, { image: apii.data, caption: text, mentions: [user]}, { quoted: fkontak2 })  
 //this.sendFile(id, apii.data, 'pp.jpg', text, null, false, { mentions: [user] }, { quoted: fkontak2 })
 }}}
-*/
+
 		    
 // copiar hasta aqui para configurar despedida y bienvenida.	    
 break
