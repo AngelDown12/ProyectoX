@@ -1,5 +1,4 @@
 let handler = async (m, { conn, args }) => {
-  const pp = await conn.profilePictureUrl(m.chat, 'image').catch(_ => null) || './src/grupos.jpg';  
   let opcion = (args[0] || '').toLowerCase();
 
   let isClose = {
@@ -14,12 +13,6 @@ let handler = async (m, { conn, args }) => {
   if (!isClose) return;
 
   await conn.groupSettingUpdate(m.chat, isClose);
-
-  if (isClose === 'not_announcement') {
-    conn.sendButton(m.chat, '', '', pp, [['Menú', '/menu']], m);
-  } else {
-    conn.sendButton(m.chat, '', '', pp, [['Menú', '/menu']], m);
-  }
 };
 
 handler.help = ['grupo abrir', 'grupo cerrar'];
