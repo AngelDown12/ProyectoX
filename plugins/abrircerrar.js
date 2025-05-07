@@ -1,32 +1,16 @@
-let handler = async (m, { conn, args, usedPrefix, command }) => {
-  const pp = await conn.profilePictureUrl(m.chat, 'image').catch(_ => null) || './src/grupos.jpg';  
-  let opcion = (args[0] || '').toLowerCase();
 
-  let isClose = {
-    'abrir': 'not_announcement',
-    'abrirgrupo': 'not_announcement',
-    'grupoabrir': 'not_announcement',
-    'cerrar': 'announcement',
-    'cerrargrupo': 'announcement',
-    'grupocerrar': 'announcement'
-  }[opcion];
+var handler = async (m, {conn, args, usedPrefix, command}) => {
+const isClose = { 'open': 'not_announcement', 'close': 'announcement', 'abierto': 'not_announcement', 'cerrado': 'announcement', 'abrir': 'not_announcement', 'cerrar': 'announcement', 'desbloquear': 'unlocked', 'bloquear': 'locked' }[(args[0] || '')]
+if (isClose === undefined) { return conn.reply(m.chat, `*Elija una opción para configurar el grupo*\n\nEjemplo:\n*○ !${command} abrir*\n*○ !${command} cerrar*\n*○ !${command} bloquear*\n*○ !${command} desbloquear*`, m, rcanal, )}
+await conn.groupSettingUpdate(m.chat, isClose)
+{ 
+conn.reply(m.chat, '✅ *Configurado correctamente*', m, rcanal, )
+await m.react('✅')
+}}
+handler.help = ['group abrir / cerrar']
+handler.tags = ['grupo']
+handler.command = /^(group|grupo)$/i
+handler.admin = true
+handler.botAdmin = true
 
-  if (!isClose) return; // Silenciosamente ignora comandos inválidos
-
-  await conn.groupSettingUpdate(m.chat, isClose);
-
-  if (isClose === 'not_announcement') {
-    conn.sendButton(m.chat, `${lenguajeGB['smsAvisoEG']()}Ahora todos pueden escribir en este grupo.`, `GRUPO ABIERTO\n${wm}`, pp, [['Menú', '/menu']], m);
-  } else {
-    conn.sendButton(m.chat, `${lenguajeGB['smsAvisoEG']()}Solo los administradores pueden escribir en este grupo.`, `GRUPO CERRADO\n${wm}`, pp, [['Menú', '/menu']], m);
-  }
-};
-
-handler.help = ['grupo abrir', 'grupo cerrar'];
-handler.tags = ['grupo'];
-handler.command = /^(grupo|abrirgrupo|cerrargrupo|grupoabrir|grupocerrar)$/i;
-handler.admin = true;
-handler.botAdmin = true;
-handler.exp = 200;
-
-export default handler;
+export default handler
