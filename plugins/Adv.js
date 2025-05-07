@@ -24,7 +24,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
     if (user.warn >= warnLimit) {
       user.warn = 0;
       await m.reply(
-        `*ORDENES RECIBIDAS ☑️*\nEl usuario *@${who.split`@`[0]}* ha alcanzado el límite de advertencias y será eliminado del grupo.`,
+        `*@${who.split`@`[0]}* TE LO ADVERTÍ 3 VECES , FUERA DE AQUI. `,
         null, { mentions: [who] });
       await conn.groupParticipantsUpdate(m.chat, [who], 'remove');
     }
