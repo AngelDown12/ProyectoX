@@ -1,12 +1,13 @@
 import db from '../lib/database.js';
 
 const handler = async (m, { conn, command }) => {
+  // Inicializa db.data correctamente para evitar el error
   db.data ||= {};
   db.data.chats ||= {};
   db.data.advertencias ||= {};
   db.data.advertencias[m.chat] ||= {};
 
-  // Recolectar menciones y reply
+  // Recolecta menciones y replies
   const mentions = new Set(m.mentionedJid || []);
   if (m.quoted) mentions.add(m.quoted.sender);
 
@@ -15,7 +16,7 @@ const handler = async (m, { conn, command }) => {
   for (const jid of mentions) {
     if (!jid || typeof jid !== 'string') continue; // Validar JID
 
-    // Inicializar advertencia
+    // Inicializa advertencia para el usuario si no existe
     db.data.advertencias[m.chat][jid] ||= 0;
 
     switch (command) {
