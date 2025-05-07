@@ -1,33 +1,28 @@
-let handler = async (m, { conn, args }) => {
-  let opcion = (args[0] || '').toLowerCase();
-
+let handler = async (m, { conn, command }) => {
   let isClose = {
-    'abrir': 'not_announcement',
     'abrirgrupo': 'not_announcement',
     'grupoabrir': 'not_announcement',
-    'cerrar': 'announcement',
+    'abrir grupo': 'not_announcement',
+    'grupo abrir': 'not_announcement',
     'cerrargrupo': 'announcement',
-    'grupocerrar': 'announcement'
-  }[opcion];
+    'grupocerrar': 'announcement',
+    'cerrar grupo': 'announcement',
+    'grupo cerrar': 'announcement'
+  }[command.toLowerCase()];
 
   if (!isClose) return;
 
-  // Realizamos el cambio de configuración en el grupo
   await conn.groupSettingUpdate(m.chat, isClose);
 
-  // Opcionalmente puedes enviar un pequeño mensaje confirmando la acción
-  if (isClose === 'not_announcement') {
-    await m.reply('El grupo está ahora abierto para todos.');
-  } else {
-    await m.reply('El grupo está ahora cerrado solo para administradores.');
-  }
+  // Omitimos cualquier respuesta si quieres que no diga nada.
 };
 
-handler.help = ['grupo abrir', 'grupo cerrar'];
-handler.tags = ['grupo'];
-handler.command = /^(grupo|abrirgrupo|cerrargrupo|grupoabrir|grupocerrar)$/i;
+handler.command = [
+  /^abrirgrupo$/, /^grupoabrir$/, /^abrir grupo$/, /^grupo abrir$/,
+  /^cerrargrupo$/, /^grupocerrar$/, /^cerrar grupo$/, /^grupo cerrar$/
+];
 handler.admin = true;
 handler.botAdmin = true;
-handler.exp = 200;
+handler.group = true;
 
 export default handler;
