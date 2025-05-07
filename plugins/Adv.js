@@ -1,12 +1,12 @@
 import db from '../lib/database.js';
 
 const handler = async (m, { conn, command }) => {
-  // Inicializa db.data y db.data.chats para evitar el error de undefined
+  // Asegura que db.data y db.data.chats estén inicializados
   db.data ||= {};  // Si db.data no está definido, lo inicializa como un objeto vacío
   db.data.chats ||= {};  // Si db.data.chats no está definido, lo inicializa como un objeto vacío
   db.data.advertencias ||= {};  // Si db.data.advertencias no está definido, lo inicializa como un objeto vacío
   db.data.advertencias[m.chat] ||= {};  // Inicializa las advertencias del grupo en particular
-
+  
   // Recolecta menciones y replies
   const mentions = new Set(m.mentionedJid || []);
   if (m.quoted) mentions.add(m.quoted.sender);
