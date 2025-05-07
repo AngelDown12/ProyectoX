@@ -11,12 +11,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     'grupocerrar': 'announcement'
   }[opcion];
 
-  if (!isClose)
-    throw `
-${lenguajeGB['smsAvisoMG']()}
-*┃➥ ${usedPrefix}grupo abrir*
-*┃➥ ${usedPrefix}grupo cerrar*
-`.trim();
+  if (!isClose) return; // Silenciosamente ignora comandos inválidos
 
   await conn.groupSettingUpdate(m.chat, isClose);
 
