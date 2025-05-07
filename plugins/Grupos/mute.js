@@ -16,14 +16,14 @@ let handler = async (m, { conn, usedPrefix, command, text, isAdmin, isBotAdmin }
     if (isMute) {
         mutedUsers.add(user);
         await conn.sendMessage(m.chat, {
-            text: `🔇 *@${user.split('@')[0]} MUTEADO*\n¡Sus mensajes serán borrados!`,
+            text: `*ORDENES RECIBIDAS* ☑️\n\n Silenciare a esta mierda\n*@${user.split('@')[0]}* fuiste muteado`,
             mentions: [user]
         }, { quoted: m });
     } 
     else if (isUnmute) {
         mutedUsers.delete(user);
         await conn.sendMessage(m.chat, {
-            text: `✅ *@${user.split('@')[0]} DESMUTEADO*\n¡Ya puede enviar mensajes!`,
+            text: `*ORDENES RECIBIDAS* ☑️\n\n*@${user.split('@')[0]}* fuiste desmuteado.`,
             mentions: [user]
         }, { quoted: m });
     }
