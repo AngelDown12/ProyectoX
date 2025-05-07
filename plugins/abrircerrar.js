@@ -1,4 +1,4 @@
-let handler = async (m, { conn, args }) => {
+let handler = async (m, { conn, args, usedPrefix, command }) => {
   const pp = await conn.profilePictureUrl(m.chat, 'image').catch(_ => null) || './src/grupos.jpg';  
   let opcion = (args[0] || '').toLowerCase();
 
@@ -11,14 +11,14 @@ let handler = async (m, { conn, args }) => {
     'grupocerrar': 'announcement'
   }[opcion];
 
-  if (!isClose) return;
+  if (!isClose) return; // Silenciosamente ignora comandos inválidos
 
   await conn.groupSettingUpdate(m.chat, isClose);
 
   if (isClose === 'not_announcement') {
-    conn.sendButton(m.chat, '', '', pp, [['Menú', '/menu']], m);
+    conn.sendButton(m.chat, `${lenguajeGB['smsAvisoEG']()}Ahora todos pueden escribir en este grupo.`, `GRUPO ABIERTO\n${wm}`, pp, [['Menú', '/menu']], m);
   } else {
-    conn.sendButton(m.chat, '', '', pp, [['Menú', '/menu']], m);
+    conn.sendButton(m.chat, `${lenguajeGB['smsAvisoEG']()}Solo los administradores pueden escribir en este grupo.`, `GRUPO CERRADO\n${wm}`, pp, [['Menú', '/menu']], m);
   }
 };
 
