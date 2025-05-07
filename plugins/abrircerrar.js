@@ -1,28 +1,32 @@
-let handler = async (m, { conn, command }) => {
+let handler = async (m, { conn, args }) => {
+  const pp = await conn.profilePictureUrl(m.chat, 'image').catch(_ => null) || './src/grupos.jpg';  
+  let opcion = (args[0] || '').toLowerCase();
+
   let isClose = {
+    'abrir': 'not_announcement',
     'abrirgrupo': 'not_announcement',
     'grupoabrir': 'not_announcement',
-    'abrir grupo': 'not_announcement',
-    'grupo abrir': 'not_announcement',
+    'cerrar': 'announcement',
     'cerrargrupo': 'announcement',
-    'grupocerrar': 'announcement',
-    'cerrar grupo': 'announcement',
-    'grupo cerrar': 'announcement'
-  }[command.toLowerCase()];
+    'grupocerrar': 'announcement'
+  }[opcion];
 
   if (!isClose) return;
 
   await conn.groupSettingUpdate(m.chat, isClose);
 
-  // Omitimos cualquier respuesta si quieres que no diga nada.
+  if (isClose === 'not_announcement') {
+    conn.sendButton(m.chat, '', '', pp, [['Menú', '/menu']], m);
+  } else {
+    conn.sendButton(m.chat, '', '', pp, [['Menú', '/menu']], m);
+  }
 };
 
-handler.command = [
-  /^abrirgrupo$/, /^grupoabrir$/, /^abrir grupo$/, /^grupo abrir$/,
-  /^cerrargrupo$/, /^grupocerrar$/, /^cerrar grupo$/, /^grupo cerrar$/
-];
+handler.help = ['grupo abrir', 'grupo cerrar'];
+handler.tags = ['grupo'];
+handler.command = /^(grupo|abrirgrupo|cerrargrupo|grupoabrir|grupocerrar)$/i;
 handler.admin = true;
 handler.botAdmin = true;
-handler.group = true;
+handler.exp = 200;
 
 export default handler;
