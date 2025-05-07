@@ -1,12 +1,10 @@
 let handler = async (m, { conn, text, command, usedPrefix }) => {
   const warnLimit = 3;
   const img = 'https://i.imgur.com/DvHoMc3.jpg';
-  const chats = global.db.data.chats[m.chat] || {};
   const users = global.db.data.users;
   const isGroup = m.isGroup;
 
   if (!isGroup) return m.reply('Este comando solo funciona en grupos.');
-  if (!chats.antitoxic && command !== 'listaadv') return m.reply(`Debes activar el antitóxicos con *${usedPrefix}on antitoxicos*`);
 
   let who;
   if (command !== 'listaadv') {
