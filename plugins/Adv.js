@@ -1,54 +1,47 @@
-const handler = async (m, { conn, text, command, usedPrefix }) => {
-  // Asegura que db.data.users esté inicializado
-  global.db.data ||= {};  // Si no está definido, inicializa db.data como objeto vacío
-  global.db.data.users ||= {};  // Si no está definido, inicializa db.data.users como objeto vacío
+let handler = async (m, { conn, text, command, usedPrefix }) => {//prems 
+let lenGB = lenguajeGB.lenguaje() == 'en' ? usedPrefix + 'on antitoxic' : usedPrefix + 'on antitoxicos';
+if (!db.data.chats[m.chat].antitoxic && m.isGroup) return conn.reply(m.chat, lenguajeGB.smsAdveu1() + lenGB, fkontak, m) 
+//conn.sendButton(m.chat, wm, lenguajeGB.smsAdveu1() + lenGB, null, [[lenguajeGB.smsEncender(), lenGB]], fkontak, m)
 
-  // Recoge la persona mencionada o la respuesta a un mensaje
-  let who;
-  if (m.isGroup) { 
-    who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text; 
-  } else {
-    who = m.chat;
-  }
-
-  if (!who) return m.reply('Por favor, menciona o responde a un mensaje de un usuario para darle una advertencia.');
-
-  const user = global.db.data.users[who] || { warn: 0 };  // Inicializa el usuario con 0 advertencias si no existe
-  const msgtext = text || 'Sin motivo';
-  const sdms = msgtext.replace(/@\d+-?\d* /g, '');
-
-  // Si el usuario no es el bot ni un propietario
-  if (who === conn.user.jid) {
-    return m.reply('No puedo advertir al bot.');
-  }
-
-  // Aumenta las advertencias
-  user.warn += 1;
-
-  // Muestra el mensaje de advertencia
-  await m.reply(
-    `${user.warn == 1 ? `*@${who.split`@`[0]}*` : `*@${who.split`@`[0]}*`} Recibió una advertencia en este grupo!.\nMotivo: ${sdms}\n*Advertencias: ${user.warn}/3*`, 
-    null, 
-    { mentions: [who] }
-  );
-
-  // Si el usuario tiene 3 advertencias, lo expulsa
-  if (user.warn >= 3) {
-    user.warn = 0;
-    await m.reply(
-      `Te lo advertí varias veces!!!.\n*@${who.split`@`[0]}* Superaste las *3* advertencias, ahora serás eliminado/a.`, 
-      null, 
-      { mentions: [who] }
-    );
-    await conn.groupParticipantsUpdate(m.chat, [who], 'remove');
-  }
-
-  return true;
-};
-
-handler.command = ['adv', 'advertir', 'warn', 'warning'];
-handler.group = true;
-handler.admin = true;
-handler.botAdmin = true;
-
-export default handler;
+let who 
+let img = 'https://i.imgur.com/DvHoMc3.jpg'
+if (m.isGroup) who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text
+else who = m.chat
+let name = await conn.getName(m.sender)	
+	
+let user = global.db.data.users[who]
+if (!who) return conn.reply(m.chat, lenguajeGB.smsMalused3() + `*${usedPrefix + command} @${name} ${lenguajeGB['smsAdveu2']()}*`, fkontak, m)  	
+let txt = text.replace('@' + who.split`@`[0], '').trim()
+if (!txt) return conn.reply(m.chat, lenguajeGB.smsAdveu3() + `*${usedPrefix + command} @${name} ${lenguajeGB['smsAdveu2']()}*`, fkontak, m)  	
+try {
+user.warn += 1
+await m.reply(
+    `${
+      user.warn == 1 ? `*@${who.split`@`[0]}*` : `*@${who.split`@`[0]}*`
+    } ${lenguajeGB['smsAdveu4']()}\n\n🫵 *${text}*\n\n*${lenguajeGB['smsAdveu5']()}*\n⚠️ *${user.warn}/4*\n${wm}`,
+    null,
+    { mentions: [who] });
+/*await conn.sendButton(m.chat,`${user.warn == 1 ? `*@${who.split`@`[0]}*` : `*@${who.split`@`[0]}*`} ${lenguajeGB['smsAdveu4']()}\n\n🫵 *${text}*`, `*${lenguajeGB['smsAdveu5']()}*\n⚠️ *${user.warn}/4*\n\n${wm}`, img, [
+[lenguajeGB.smsToxic4(), '.ok'],
+[lenguajeGB.smsAdveu6(), lenguajeGB.lenguaje() == 'en' ? usedPrefix + 'inventory' : usedPrefix + 'inventario']], false, { mentions: [who] }) //[m.sender]*/
+	
+if (user.warn >= 4) {
+user.warn = 0
+await m.reply(`${lenguajeGB['smsAdveu7']()}\n*@${who.split`@`[0]}* ${lenguajeGB['smsAdveu8']()}`, false, { mentions: [who] })
+user.banned = true
+await conn.groupParticipantsUpdate(m.chat, [who], 'remove') //@${m.sender.split`@`[0]}
+//await this.updateBlockStatus(m.sender, 'block') 
+}	
+return !1
+} catch (e) {
+await conn.reply(m.chat, `${lenguajeGB['smsMalError3']()}#report ${lenguajeGB['smsMensError2']()} ${usedPrefix + command}\n\n${wm}`, fkontak, m)
+console.log(`❗❗ ${lenguajeGB['smsMensError2']()} ${usedPrefix + command} ❗❗`)
+console.log(e)
+}}
+handler.help = ['addprem <@user>']
+handler.tags = ['owner']
+handler.command = /^(advertir|advertencia|Advertencias|warn|warning)$/i
+handler.group = true
+handler.admin = true
+handler.botAdmin = true
+export default handler
