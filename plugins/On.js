@@ -53,6 +53,25 @@ let sections = Object.keys(titulo, nombre, descripción, comando).map((v, index)
 rows: [{ title: `${nombre[v]} : ${command} ${comando[v]}`, description: `${1 + index}. ${descripción[v]}`, rowId: usedPrefix + command + ' ' + comando[v], }], }))
 
 let name = await conn.getName(m.sender)
+/*const listMessage = {
+text: `${lenguajeGB.smsConfi10()}`,
+footer: `╭━━━✦ *${lenguajeGB.smsConfi1()}* ✦━━━━⬣
+┃
+┃🌟 ${lenguajeGB.smsConfi2()} *${name}*
+┃
+${lenguajeGB.smsConfi3()}
+${lenguajeGB.smsConfi4()}
+┃
+${lenguajeGB.smsConfi5()}
+${lenguajeGB.smsConfi6()}
+${lenguajeGB.smsConfi7()}
+${lenguajeGB.smsConfi8()}
+${m.isGroup ? `┃` : `┃\n${lenguajeGB.smsConfi9()}`}
+╰━━━━━✦ *${vs}* ✦━━━━⬣
+${wm}`,
+title: null,
+buttonText: `⚙️ ${lenguajeGB.smsConfi1()} ⚙️`,
+sections }*/
 
 let isEnable = /true|enable|(turn)?on|1/i.test(command)
 let type = (args[0] || '').toLowerCase()
@@ -428,17 +447,16 @@ usar los comandos :
 .guia2
 
 ${wm}`, fkontak, { mentions: [aa,] })
+//conn.sendMessage(m.chat, { text: texto }, { quoted: fkontak })
+//conn.sendMessage(m.chat, texto, {quoted: fkontak})	
 throw false
 }
-
-await conn.reply(m.chat, `
-❱❱ 𝙀𝙇𝙄𝙏𝙀 𝘽𝙊𝙏 𝙂𝙇𝙊𝘽𝘼𝙇 ❰❰
-
-⚙️ 𝙁𝙐𝙉𝘾𝙄𝙊́𝙉 | ${type} 
-⚙️ 𝙀𝙎𝙏𝘼𝘿𝙊 | ${isEnable ? '𝘼𝘾𝙏𝙄𝙑𝘼𝘿𝙊' : '𝘿𝙀𝙎𝘼𝘾𝙏𝙄𝙑𝘼𝘿𝙊'} 
-⚙️ 𝙀𝙉 𝙀𝙎𝙏𝙀 | ${isAll ? '𝙂𝙇𝙊𝘽𝘼𝙇' : m.isGroup ? '𝙂𝙍𝙐𝙋𝙊' : '𝙋𝙍𝙄𝙑𝘼𝘿𝙊'} 
-COMANDO : ${descripción[comando.indexOf(type)] || 'Sin descripción disponible.'}`, fkontak, m)
-}
+await conn.reply(m.chat, `${lenguajeGB['smsAvisoRG']()}⚙️ ${lenguajeGB['smsMens1']()} *|* ${type} 
+⚙️ ${lenguajeGB['smsMens2']()} *|* ${isEnable ? lenguajeGB.smsEncender() : lenguajeGB.smsApagar()} 
+⚙️ ${lenguajeGB['smsMens3']()} *|* ${isAll ? lenguajeGB.smsMens4() : isUser ? '' : lenguajeGB.smsMens5()}`, fkontak, m)}	
+/*await conn.sendButton(m.chat, `${lenguajeGB['smsAvisoRG']()}ღ *_${lenguajeGB['smsMens1']()}_* *|* ${type} 
+ღ *_${lenguajeGB['smsMens2']()}_* *|* ${isEnable ? lenguajeGB.smsEncender() : lenguajeGB.smsApagar()} 
+ღ *_${lenguajeGB['smsMens3']()}_* *|* ${isAll ? lenguajeGB.smsMens4() : isUser ? '' : lenguajeGB.smsMens5()}`, wm, null, [[`${isEnable ? lenguajeGB.smsApagar() : lenguajeGB.smsEncender()}`, `${isEnable ? `.off ${type}` : `.on ${type}`}`], [lenguajeGB.smsConMenu(), '.menu']], fkontak, m)}*/
 
 handler.help = ['en', 'dis'].map(v => v + 'able <option>')
 handler.tags = ['group', 'owner']
