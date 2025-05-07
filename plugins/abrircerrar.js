@@ -12,7 +12,15 @@ let handler = async (m, { conn, args }) => {
 
   if (!isClose) return;
 
+  // Realizamos el cambio de configuración en el grupo
   await conn.groupSettingUpdate(m.chat, isClose);
+
+  // Opcionalmente puedes enviar un pequeño mensaje confirmando la acción
+  if (isClose === 'not_announcement') {
+    await m.reply('El grupo está ahora abierto para todos.');
+  } else {
+    await m.reply('El grupo está ahora cerrado solo para administradores.');
+  }
 };
 
 handler.help = ['grupo abrir', 'grupo cerrar'];
