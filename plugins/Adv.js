@@ -1,17 +1,20 @@
 let handler = async (m, { conn, text, command, usedPrefix }) => {
-  const warnLimit = 3; // Cambia a 4 si prefieres
+  const warnLimit = 3;
   const img = 'https://i.imgur.com/DvHoMc3.jpg';
   const chats = global.db.data.chats[m.chat] || {};
   const users = global.db.data.users;
   const isGroup = m.isGroup;
 
   if (!isGroup) return m.reply('Este comando solo funciona en grupos.');
-  if (!chats.antitoxic) return m.reply(`Debes activar el antitóxicos con *${usedPrefix}on antitoxicos*`);
+  if (!chats.antitoxic && command !== 'listaadv') return m.reply(`Debes activar el antitóxicos con *${usedPrefix}on antitoxicos*`);
 
-  let who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted?.sender;
-  if (!who) return m.reply(`Etiqueta o responde a un usuario.`);
+  let who;
+  if (command !== 'listaadv') {
+    who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted?.sender;
+    if (!who) return m.reply(`Etiqueta o responde a un usuario.`);
+  }
 
-  const user = users[who] || (users[who] = { warn: 0 });
+  const user = who ? (users[who] || (users[who] = { warn: 0 })) : null;
 
   if (command == 'adv') {
     let motivo = text.replace(/@\d+/, '').trim() || 'Sin motivo';
