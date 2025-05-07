@@ -23,7 +23,6 @@ var handler = async (m, {conn, args, usedPrefix, command}) => {
   }
   
   await conn.groupSettingUpdate(m.chat, isClose)
-  conn.reply(m.chat, '✅ *Configurado correctamente*', m)
   await m.react('✅')
 }
 
