@@ -1,53 +1,29 @@
-import { promises } from 'fs'
-import { join } from 'path'
-import fetch from 'node-fetch'
-import { xpRange } from '../lib/levelling.js'
-
-let tags = {
-  'main': 'ACERCA DE',
-  'bebot': 'SUB BOTS',
-  'game': 'JUEGOS',
-  'econ': 'NIVEL & ECONOMIA',
-  'rg': 'REGISTRO',
-  'sticker': 'STICKER',
-  'img': 'IMAGEN',
-  'maker': 'MAKER',
-  'prem': 'PREMIUM',
-  'group': 'GRUPO',
-  'nable': 'EN/DISABLE OPCIONES', 
-  'nime': 'ANIME',
-  'rnime': 'ANIME REACCION',
-  'dl': 'DESCARGAS',
-  'tools': 'TOOLS',
-  'fun': 'FUN',
-  'cmd': 'DATABASE',
-  'nsfw': 'NSFW +18',
-  'ansfw': 'NSFW ANIME', 
-  'owner': 'OWNER', 
-  'advanced': 'AVANZADO',
-}
+const countryCodes = {
+  '1': { country: 'EE.UU.', flag: '🇺🇸', prefix: '+1' },
+  '34': { country: 'España', flag: '🇪🇸', prefix: '+34' },
+  '52': { country: 'México', flag: '🇲🇽', prefix: '+52' },
+  '44': { country: 'Reino Unido', flag: '🇬🇧', prefix: '+44' },
+  '55': { country: 'Brasil', flag: '🇧🇷', prefix: '+55' },
+  '57': { country: 'Colombia', flag: '🇨🇴', prefix: '+57' },
+  '91': { country: 'India', flag: '🇮🇳', prefix: '+91' },
+  // Añadir más países según sea necesario...
+};
 
 const defaultMenu = {
   before: `
-◈ ━━━━━ *DyLux ┃ ˢᵉⁿⁿᵃ* ━━━━━ ◈
-
-👋🏻 Hola! *%name*
-👥 Usuarios : %totalreg
-🟢 Tiempo activo : %muptime
+╭─〘 𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢/𝗔 〙
+│👋 Hola @user
+│🌍 País: [bandera] [país] [prefijo]
+│⏱ Activo: [tiempo en línea]
+│📅 Fecha: [fecha actual]
+╰───────────────
 %sbot
-▢ ADD
-• https://instagram.com/fg98_ff
-────────────
-%readmore
-  ≡ *LISTA DE MENUS*
-
-Ⓟ = Premium
-ⓓ = Diamantes
 `.trimStart(),
   header: '┌─⊷ *%category*',
   body: '▢ %cmd %isdiamond %isPremium',
   footer: '└───────────\n',
-  after: ``
+  after: `
+`,
 }
 
 let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
@@ -56,14 +32,24 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
     let { exp, diamond, level, role } = global.db.data.users[m.sender]
     let { min, xp, max } = xpRange(level, global.multiplier)
     let name = await conn.getName(m.sender)
+    let phoneNumber = m.sender.split('@')[0] // Extraemos el número de teléfono
+    let countryCode = phoneNumber.slice(0, 2) // Primeros 2 dígitos como código de país
+    let countryInfo = countryCodes[countryCode] || { country: 'Desconocido', flag: '🏳️', prefix: '+' + countryCode } // Si no hay código, pone 'Desconocido'
+
     let d = new Date(new Date + 3600000)
     let locale = 'es'
     let weton = ['Pahing', 'Pon', 'Wage', 'Kliwon', 'Legi'][Math.floor(d / 84600000) % 5]
     let week = d.toLocaleDateString(locale, { weekday: 'long' })
-    let date = d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
-    let dateIslamic = Intl.DateTimeFormat(locale + '-TN-u-ca-islamic', { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
-    let time = d.toLocaleTimeString(locale, { hour: 'numeric', minute: 'numeric', second: 'numeric' })
-
+    let date = d.toLocaleDateString(locale, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    })
+    let time = d.toLocaleTimeString(locale, {
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric'
+    })
     let _uptime = process.uptime() * 1000
     let _muptime
     if (process.send) {
@@ -77,7 +63,6 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
     let uptime = clockString(_uptime)
     let totalreg = Object.keys(global.db.data.users).length
     let rtotalreg = Object.values(global.db.data.users).filter(user => user.registered == true).length
-
     let help = Object.values(global.plugins).filter(plugin => !plugin.disabled).map(plugin => {
       return {
         help: Array.isArray(plugin.tags) ? plugin.help : [plugin.help],
@@ -92,14 +77,12 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
       if (plugin && 'tags' in plugin)
         for (let tag of plugin.tags)
           if (!(tag in tags) && tag) tags[tag] = tag
-
     conn.menu = conn.menu ? conn.menu : {}
     let before = conn.menu.before || defaultMenu.before
     let header = conn.menu.header || defaultMenu.header
     let body = conn.menu.body || defaultMenu.body
     let footer = conn.menu.footer || defaultMenu.footer
     let after = conn.menu.after || (conn.user.jid == conn.user.jid ? '' : `⭐ Powered by FG98 https://wa.me/${conn.user.jid.split`@`[0]}`) + defaultMenu.after
-
     let _text = [
       before,
       ...Object.keys(tags).map(tag => {
@@ -117,7 +100,6 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
       }),
       after
     ].join('\n')
-
     let text = typeof conn.menu == 'string' ? conn.menu : typeof conn.menu == 'object' ? _text : ''
     let replace = {
       '%': '%',
@@ -132,21 +114,29 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
       totalexp: exp,
       xp4levelup: max - exp,
       github: _package.homepage ? _package.homepage.url || _package.homepage : '[unknown github url]',
-      level, diamond, name, weton, week, date, dateIslamic, time, totalreg, rtotalreg, role,
+      level, diamond, name, weton, week, date, time, totalreg, rtotalreg, role,
+      country: countryInfo.country, 
+      flag: countryInfo.flag, 
+      prefix: countryInfo.prefix,
       readmore: readMore
     }
     text = text.replace(new RegExp(`%(${Object.keys(replace).sort((a, b) => b.length - a.length).join`|`})`, 'g'), (_, name) => '' + replace[name])
-    let pp = 'https://files.catbox.moe/hls6xf.jpg' // Cambia este link si deseas otra imagen
-    await conn.sendFile(m.chat, pp, 'menu.jpg', text.trim(), m)
+    
+    let pp = './src/fg_logo.jpg'
+
+    conn.sendFile(m.chat, pp, 'menu.jpg', text.trim(), m, null, fwc)
+  
     m.react('📚') 
+    
   } catch (e) {
     conn.reply(m.chat, '❎ Lo sentimos, el menú tiene un error', m)
     throw e
   }
 }
 
-handler.command = ['menu2', 'help', 'menú']
+handler.command = ['menu2', 'help', 'menú'] 
 handler.register = false
+
 export default handler
 
 const more = String.fromCharCode(8206)
@@ -157,5 +147,5 @@ function clockString(ms) {
   let h = isNaN(ms) ? '--' : Math.floor(ms / 3600000) % 24
   let m = isNaN(ms) ? '--' : Math.floor(ms / 60000) % 60
   let s = isNaN(ms) ? '--' : Math.floor(ms / 1000) % 60
-  return [d, h, m, s].map(v => v.toString().padStart(2, '0')).join(':')
-  }
+  return [d, 'd ', h, 'h ', m, 'm '].map(v => v.toString().padStart(2, 0)).join('')
+                                    }
