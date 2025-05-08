@@ -6,19 +6,18 @@ const handler = async (m, { conn, usedPrefix, command }) => {
   const name = await conn.getName(m.sender);
   const date = moment().tz('America/Guayaquil');
   const uptime = process.uptime() * 1000;
-  const muptime = performance.now();
-  
+
   const totalUsers = Object.keys(global.db.data.users).length;
   const totalReg = Object.values(global.db.data.users).filter(user => user.registered === true).length;
   const totalPlugins = Object.keys(global.plugins).length;
 
-  // Crear estructura de categorías
+  // Categorías y comandos
   const categories = {};
   for (const [pluginName, plugin] of Object.entries(global.plugins)) {
     if (!plugin.help || !plugin.tags) continue;
     for (const tag of plugin.tags) {
-      if (!categories[tag]) categories[tag] = [];
-      categories[tag].push(...plugin.help);
+      if (!(tag in categories)) categories[tag] = [];
+      categories[tag].push(...plugin.help.map(cmd => `${usedPrefix}${cmd}`));
     }
   }
 
@@ -42,58 +41,41 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     'nsfw': '🔞'
   };
 
-  // Encabezado del menú
-  let menuText = `╭━━〔 *Menú de ${name}* 〕━━⬣
+  let txt = `╭━━〔 *Menú de ${name}* 〕━━⬣
 ┃ 🧿 *Versión:* ${global.packname}
-┃ ⏳ *Tiempo Activo:* ${clockString(uptime)}
-┃ 📊 *Usuarios Registrados:* ${totalReg}/${totalUsers}
-┃ ⚙️ *Comandos Cargados:* ${totalPlugins}
+┃ ⏳ *Activo:* ${clockString(uptime)}
+┃ 📊 *Usuarios:* ${totalReg}/${totalUsers}
+┃ ⚙️ *Comandos:* ${totalPlugins}
 ┃ 📅 *Fecha:* ${date.format('DD/MM/YYYY')}
 ┃ ⏰ *Hora:* ${date.format('HH:mm:ss')}
 ╰━━━━━━━━━━━━━━━━━━⬣\n\n`;
 
-  // Construir secciones por categoría
   for (const [tag, cmds] of Object.entries(categories)) {
-    menuText += `╭─❏ ${tagEmojis[tag] || '❏'} *${tag.toUpperCase()}*\n`;
+    txt += `╭─❏ ${tagEmojis[tag] || '❏'} *${tag.toUpperCase()}*\n`;
     for (const cmd of cmds) {
-      menuText += `┃ ➤ ${usedPrefix}${cmd}\n`;
+      txt += `┃ ➤ ${cmd}\n`;
     }
-    menuText += `╰───────────────\n\n`;
+    txt += `╰───────────────\n\n`;
   }
 
-  // Pie del menú
-  menuText += `╭━〔 *GataBot-MD* 〕━⬣
-┃ 🐈‍⬛ _Recuerda usar el prefijo:_ ${usedPrefix}
+  txt += `╭━〔 *GataBot-MD* 〕━⬣
+┃ 🐈‍⬛ _Usa siempre el prefijo:_ ${usedPrefix}
 ╰━━━━━━━━━━━━━━━━⬣`;
 
-  // Mensaje tipo respuesta
-  const fmsg = {
-    key: {
-      fromMe: false,
-      participant: '0@s.whatsapp.net',
-      ...(m.chat ? { remoteJid: m.chat } : {})
-    },
-    message: {
-      extendedTextMessage: {
-        text: 'GataBot-MD'
-      }
-    }
-  };
+  const imageUrl = 'https://telegra.ph/file/1ee204eeccf157f3e4882.jpg'; // cambia esto por tu imagen si quieres
 
-  // Enviar como mensaje de texto largo
-  await conn.sendMessage(m.chat, { text: menuText }, { quoted: fmsg });
+  await conn.sendFile(m.chat, imageUrl, 'menu.jpg', txt, m);
 };
 
-handler.help = ['menu'];
+handler.help = ['menu2'];
 handler.tags = ['main'];
-handler.command = ['menu', 'help', '?'];
+handler.command = ['menu2'];
 
 export default handler;
 
-// Función para convertir ms a formato HH:MM:SS
 function clockString(ms) {
   let h = Math.floor(ms / 3600000);
   let m = Math.floor(ms / 60000) % 60;
   let s = Math.floor(ms / 1000) % 60;
   return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
-    }
+}
