@@ -1,7 +1,7 @@
 
 const { useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion} = (await import(global.baileys));
 import qrcode from "qrcode"
-//import NodeCache from "node-cache"
+import NodeCache from "node-cache"
 import fs from "fs"
 import path from "path"
 import pino from 'pino'
