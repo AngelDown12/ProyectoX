@@ -33,7 +33,7 @@
     
 
 
-    "@whiskeysockets/baileys": "github:ds6/bails",
+        "@whiskeysockets/baileys": "github:ds6/meta",
     
 "@adiwajshing/keyed-db": "^0.2.4",
 "@bochilteam/scraper": "^5.0.1",
