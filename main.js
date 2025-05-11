@@ -743,7 +743,15 @@ setInterval(async () => {
   console.log(chalk.bold.cyanBright('Limpieza de archivos antiguos'))
 }, 1000 * 60 * 10)
 
-_quickTest().then(() => conn.logger.info(chalk.bold('Cargando completo'))).catch(console.error)
+setInterval(async () => {
+await purgeOldFiles()
+console.log(chalk.bold.cyanBright(lenguajeGB.smspurgeOldFiles()))}, 1000 * 60 * 10)
+
+_quickTest().then(() => conn.logger.info(chalk.bold(lenguajeGB['smsCargando']().trim()))).catch(console.error)
 
 let file = fileURLToPath(import.meta.url)
-watchFile(file, () =>
+watchFile(file, () => {
+unwatchFile(file)
+console.log(chalk.bold.greenBright(lenguajeGB['smsMainBot']().trim()))
+import(`${file}?update=${Date.now()}`)
+})
