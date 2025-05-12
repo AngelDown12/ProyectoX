@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-const NUMERO_EXCLUIDO = '573243951424@s.whatsapp.net'; // Número del subbot que NO debe bloquear
+const NUMERO_EXCLUIDO = '573114427210@s.whatsapp.net'; // Número del subbot que NO debe bloquear
 const GRUPO_NOTIFICACION = '120363355566757025@g.us'; // ID del grupo para notificaciones
 const ARCHIVO_REGISTRO = './bloqueados.json';
 
