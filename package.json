@@ -32,7 +32,7 @@
 
     
 "libsignal": "github:nstar-y/libsignal",
-"@whiskeysockets/baileys": "github:elrebelde21/baileys",
+    "@whiskeysockets/baileys": "^6.7.16",
     
 "@adiwajshing/keyed-db": "^0.2.4",
 "@bochilteam/scraper": "^5.0.1",
