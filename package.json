@@ -30,9 +30,7 @@
 "license": "GPL-3.0-or-later",
 "dependencies": {
 
-    
-"libsignal": "github:nstar-y/libsignal",
-"@whiskeysockets/baileys": "github:ds6/bails",
+    "@whiskeysockets/baileys": "^6.7.0",
 
     
 "@adiwajshing/keyed-db": "^0.2.4",
