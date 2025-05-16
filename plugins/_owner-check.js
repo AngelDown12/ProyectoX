@@ -1,11 +1,6 @@
-// plugins/_owner-check.js
-
-let handler = async (m, { conn, command }) => {
-  m.reply('¡Eres el owner! Puedes usar este comando.')
+// plugins/zzz-debug-owner.js
+let handler = async (m, { conn }) => {
+  m.reply('Tu JID es: ' + m.sender)
 }
-handler.command = /^ownercheck$/i
-
-// Aquí defines tu número de owner con código de país, sin @
-handler.owner = true
-
+handler.command = /^myjid$/i
 export default handler
