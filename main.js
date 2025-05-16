@@ -1,5 +1,7 @@
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1'
+
 import './config.js' 
+//import './plugins/limpiezaConsole.js'
 import './plugins/_content.js'
 import { createRequire } from 'module'
 import path, { join } from 'path'
@@ -25,6 +27,7 @@ import readline from 'readline'
 import NodeCache from 'node-cache' 
 import { gataJadiBot } from './plugins/jadibot-serbot.js';
 import pkg from 'google-libphonenumber'
+
 const { PhoneNumberUtil } = pkg
 const phoneUtil = PhoneNumberUtil.getInstance()
 const { makeInMemoryStore, DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore } = await import('@whiskeysockets/baileys')
@@ -415,41 +418,28 @@ if (opts['autocleartmp'] && (global.support || {}).find) (tmp = [os.tmpdir(), 't
 if (opts['server']) (await import('./server.js')).default(global.conn, PORT)
 
 //respaldo de la sesión "GataBotSession"
-const backupCreds = async () => {
-if (!fs.existsSync(credsFile)) {
-console.log(await tr('[⚠] No se encontró el archivo creds.json para respaldar.'));
-return;
-}
+const backupCreds = () => {
+if (fs.existsSync(credsFile)) {
+fs.copyFileSync(credsFile, backupFile);
+console.log(`[✅] Respaldo creado en ${backupFile}`);
+} else {
+console.log('[⚠] No se encontró el archivo creds.json para respaldar.');
+}};
 
-const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-const newBackup = join(respaldoDir, `creds-${timestamp}.json`);
-fs.copyFileSync(credsFile, newBackup);
-console.log(`[✅] Respaldo creado: ${newBackup}`);
-
-const backups = fs.readdirSync(respaldoDir).filter(file => file.startsWith('creds-') && file.endsWith('.json')).sort((a, b) => fs.statSync(join(respaldoDir, a)).mtimeMs - fs.statSync(join(respaldoDir, b)).mtimeMs);
-
-while (backups.length > 3) {
-const oldest = backups.shift();
-fs.unlinkSync(join(respaldoDir, oldest));
-console.log(`[🗑️] Respaldo antiguo eliminado: ${oldest}`);
-}}; 
-
-const restoreCreds = async () => {
-const backups = fs.readdirSync(respaldoDir).filter(file => file.startsWith('creds-') && file.endsWith('.json')).sort((a, b) => fs.statSync(join(respaldoDir, b)).mtimeMs - fs.statSync(join(respaldoDir, a)).mtimeMs);
-
-if (backups.length === 0) {
-console.log('[⚠] No hay respaldos disponibles para restaurar.');
-return;
-}
-
-const latestBackup = join(respaldoDir, backups[0]);
-fs.copyFileSync(latestBackup, credsFile);
-console.log(`[✅] Restaurado desde respaldo: ${backups[0]}`);
-};
+const restoreCreds = () => {
+if (fs.existsSync(credsFile)) {
+fs.copyFileSync(backupFile, credsFile);
+console.log(`[✅] creds.json reemplazado desde el respaldo.`);
+} else if (fs.existsSync(backupFile)) {
+fs.copyFileSync(backupFile, credsFile);
+console.log(`[✅] creds.json restaurado desde el respaldo.`);
+} else {
+console.log('[⚠] No se encontró ni el archivo creds.json ni el respaldo.');
+}};
 
 setInterval(async () => {
 await backupCreds();
-console.log('[♻️] Respaldo periódico realizado.')
+console.log('[♻️] Respaldo periódico realizado.');
 }, 5 * 60 * 1000);
 
 async function connectionUpdate(update) {  
@@ -583,6 +573,7 @@ delete global.plugins[filename];
 }}}
 filesInit().then((_) => Object.keys(global.plugins)).catch(console.error)*/
 
+
 const pluginFolder = global.__dirname(join(__dirname, './plugins/index'));
 global.plugins = {};
 
@@ -604,35 +595,38 @@ async function filesInit(folder) {
   }
 }
 
+filesInit(pluginFolder).then(() => console.log(Object.keys(global.plugins))).catch(console.error);
 
-
-
-filesInit().then((_) => Object.keys(global.plugins)).catch(console.error)
-
+// Reload
 global.reload = async (_ev, filename) => {
-if (pluginFilter(filename)) {
-const dir = global.__filename(join(pluginFolder, filename), true)
-if (filename in global.plugins) {
-if (existsSync(dir)) conn.logger.info(` SE ACTULIZADO - '${filename}' CON ÉXITO`)
-else {
-conn.logger.warn(`SE ELIMINO UN ARCHIVO : '${filename}'`)
-return delete global.plugins[filename];
-}
-} else conn.logger.info(`SE DETECTO UN NUEVO PLUGINS : '${filename}'`)
-const err = syntaxerror(readFileSync(dir), filename, {
-sourceType: 'module',
-allowAwaitOutsideFunction: true,
-});
-if (err) conn.logger.error(`SE DETECTO UN ERROR DE SINTAXIS | SYNTAX ERROR WHILE LOADING '${filename}'\n${format(err)}`);
-else {
-try {
-const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`));
-global.plugins[filename] = module.default || module;
-} catch (e) {
-conn.logger.error(`HAY UN ERROR REQUIERE EL PLUGINS '${filename}\n${format(e)}'`);
-} finally {
-global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b)));
-}}}};
+  if (filename) {
+    const dir = global.__filename(join(pluginFolder, filename), true);
+    if (filename in global.plugins) {
+      if (existsSync(dir)) conn.logger.info(`Updated plugin - '${filename}'`);
+      else {
+        conn.logger.warn(`Deleted plugin - '${filename}'`);
+        return delete global.plugins[filename];
+      }
+    } else conn.logger.info(`New plugin - '${filename}'`);
+    
+    const err = syntaxerror(readFileSync(dir), filename, {
+      sourceType: 'module',
+      allowAwaitOutsideFunction: true,
+    });
+    
+    if (err) conn.logger.error(`Syntax error while loading '${filename}'\n${format(err)}`);
+    else {
+      try {
+        const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`));
+        global.plugins[filename] = module.default || module;
+      } catch (e) {
+        conn.logger.error(`Error requiring plugin '${filename}\n${format(e)}'`);
+      } finally {
+        global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b)));
+      }
+    }
+  }
+};
 
 Object.freeze(global.reload);
 watch(pluginFolder, global.reload);
@@ -707,8 +701,7 @@ const directories = await readdir(jadibtsDir);
 let SBprekey = [];
 const now = Date.now();
 const oneHourAgo = now - (24 * 60 * 60 * 1000); //24 horas
-    
-for (const dir of directories) {
+  for (const dir of directories) {
 const dirPath = join(jadibtsDir, dir);
 const stats = await stat(dirPath);
 if (stats.isDirectory()) {
@@ -808,7 +801,6 @@ console.log(chalk.bold.red(`${lenguajeGB.smspurgeOldFiles3()} ${file} ${lenguaje
 console.log(chalk.bold.green(`${lenguajeGB.smspurgeOldFiles1()} ${file} ${lenguajeGB.smspurgeOldFiles2()}`))
 } }) }
 }) }) }) }*/
-
 
 function redefineConsoleMethod(methodName, filterStrings) {
 const originalConsoleMethod = console[methodName]
