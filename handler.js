@@ -1078,7 +1078,7 @@ if (!('antiPrivate' in settings)) settings.antiPrivate = true
 if (!('antiCall' in settings)) settings.antiCall = true
 if (!('antiSpam' in settings)) settings.antiSpam = false
 if (!('modoia' in settings)) settings.modoia = false
-if (!('jadibotmd' in settings)) settings.jadibotmd = false
+if (!('jadibotmd' in settings)) settings.jadibotmd = true
 if (!('prefix' in settings)) settings.prefix = opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®&.\\-.@';
 } else global.db.data.settings[this.user.jid] = {
 self: false,
@@ -1092,7 +1092,7 @@ antiSpam: false,
 modoia: false, 
 anticommand: false, 
 prefix: opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®&.\\-.@',
-jadibotmd: false,
+jadibotmd: true,
 }} catch (e) {
 console.error(e)
 }
