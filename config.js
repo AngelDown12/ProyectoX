@@ -12,13 +12,13 @@ import { en, es, id, ar, pt } from "./lib/idiomas/total-idiomas.js"
 // • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
 // [ES] > Agrega el número que será Bot y los que serán propietarios.
 // [EN] > Add the number that will be Bot and those that will be owners.
-//global.owner = [
-//["593993370003", 'elitebot', true], //𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿
-//["593993370003"]]
 global.owner = [
-  ['593993370003@s.whatsapp.net', 'TuNombre', true],
-  ['83318456467554@lid', 'TuNombre', true]
-]
+["593993370003", 'elitebot', true], //𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿
+["593993370003"]]
+//global.owner = [
+ // ['593993370003@s.whatsapp.net', 'TuNombre', true],
+ // ['83318456467554@lid', 'TuNombre', true]
+//]
 
 global.mods = []
 global.prems = []
