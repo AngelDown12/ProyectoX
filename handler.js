@@ -1243,15 +1243,14 @@ if (!['owner-unbanchat.js'].includes(name) && chat && chat.isBanned && !isROwner
 if (name != 'owner-unbanchat.js' && name != 'owner-exec.js' && name != 'owner-exec2.js' && name != 'tool-delete.js' && chat?.isBanned && !isROwner) return 
 if (m.text && user.banned && !isROwner) {
 if (user.antispam > 2) return
-m.reply(`🚫 *ESTÁ BANEADO(A), NO PUEDE USAR LOS COMANDOS*\n📑 *MOTIVO: ${user.messageSpam === 0 ? 'NO ESPECIFICADO' : user.messageSpam}*\n⚠️ \`\`\`SI ESTE BOT ES CUENTA OFICIAL Y TIENE EVIDENCIA QUE RESPALDE QUE ESTE MENSAJE ES UN ERROR, PUEDE EXPONER SU CASO EN:\`\`\`👉 *${ig}*\n👉 ${asistencia}`)
+m.reply(`📵 Usted está baneado en mi sistema y no podrás usar EliteBot .
+
+• Motivo : Toxicidad hacia EliteBot`)
 user.antispam++	
 return
 }
 
-//Antispam 2		
-if (user.antispam2 && isROwner) return
-let time = global.db.data.users[m.sender].spam + 3000
-if (new Date - global.db.data.users[m.sender].spam < 3000) return console.log(`[ SPAM ]`) 
+//Antispam 2 (sin limitaciones)
 global.db.data.users[m.sender].spam = new Date * 1
 }
 		
@@ -1453,22 +1452,22 @@ function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]
  * @param {import('@adiwajshing/baileys').BaileysEventMap<unknown>['group-participants.update']} groupsUpdate 
  */
 export async function participantsUpdate({ id, participants, action }) {
-if (opts['self'])
-return
-// if (id in conn.chats) return // First login will spam
-if (this.isInit)
-return
-if (global.db.data == null)
-await loadDatabase()
-let chat = global.db.data.chats[id] || {}
-let text = ''
-switch (action) {
-case 'add':
+    if (opts['self'])
+        return
+    // if (id in conn.chats) return // First login will spam
+    if (this.isInit)
+        return
+    if (global.db.data == null)
+        await loadDatabase()
+    let chat = global.db.data.chats[id] || {}
+    let text = ''
+    switch (action) {
+        case 'add':
 case 'remove':
 if (chat.welcome) {
 let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
 for (let user of participants) {
-let pp = global.gataImg
+let pp = './src/sinfoto.jpg'
 try {
 pp = await this.profilePictureUrl(user, 'image')
 } catch (e) {
@@ -1476,7 +1475,7 @@ pp = await this.profilePictureUrl(user, 'image')
 let apii = await this.getFile(pp)                                      
 const botTt2 = groupMetadata.participants.find(u => this.decodeJid(u.id) == this.user.jid) || {} 
 const isBotAdminNn = botTt2?.admin === "admin" || false
-text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!').replace('@subject', await this.getName(id)).replace('@desc', groupMetadata.desc?.toString() || '😻 𝗦𝘂𝗽𝗲𝗿 𝗚𝗮𝘁𝗮𝗕𝗼𝘁-𝗠𝗗 😻') :
+text = (action === 'add' ? (chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!').replace('@subject', await this.getName(id)).replace('@desc', groupMetadata.desc?.toString() || '𝑆𝐼𝑁 𝐷𝐸𝑆𝐶𝑅𝐼𝑃𝐶𝐼𝑂́𝑁 ') :
 (chat.sBye || this.bye || conn.bye || 'Bye, @user!')).replace('@user', '@' + user.split('@')[0])
 			    
 if (chat.antifake && isBotAdminNn && action === 'add') {
@@ -1503,10 +1502,10 @@ mentionedJid:[user],
 "showAdAttribution": true,
 "renderLargerThumbnail": true,
 "thumbnail": apii.data, 
-"title": [wm, '😻 𝗦𝘂𝗽𝗲𝗿 ' + gt + ' 😻', '🌟 centergatabot.gmail.com'].getRandom(),
+"title": [wm, '' + gt + '', 'Elite Bot Global'].getRandom(),
 "containsAutoReply": true,
 "mediaType": 1, 
-sourceUrl: 'https://github.com/GataNina-Li/GataBot-MD' }}}, { quoted: fkontak2 })
+sourceUrl: '' }}}, { quoted: fkontak2 })
 apii.data = ''
 //this.sendFile(id, apii.data, 'pp.jpg', text, null, false, { mentions: [user] }, { quoted: fkontak2 })
 }}}
@@ -1571,10 +1570,10 @@ if (!msg) return
 let isGroup = remoteJid.endsWith('@g.us')
 let isPrivate = !isGroup && remoteJid.endsWith('@s.whatsapp.net')
 if (!isGroup && !isPrivate) return
-const antideleteMessage = `*╭━━⬣ ${lenguajeGB['smsCont19']()} ⬣━━ 𓃠*
-${lenguajeGB['smsCont20']()} @${participant.split`@`[0]}
-${lenguajeGB['smsCont21']()}
-*╰━━━⬣ ${lenguajeGB['smsCont19']()} ⬣━━╯*`.trim();
+const antideleteMessage = `┏━━⚠️ EL PANITA BORRÓ ⚠️━━┓
+┃ @${participant.split`@`[0]}⁩ intentó borrar un mensaje...
+┃ Pero aquí somos FBI. Aquí va lo que borró:
+┗━━━━━━━━━━━━━━━━━━━━━━┛`.trim();
 await this.sendMessage(msg.chat, {text: antideleteMessage, mentions: [participant]}, {quoted: msg})
 this.copyNForward(msg.chat, msg).catch(e => console.log(e, msg))
 } catch (e) {
