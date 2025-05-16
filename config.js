@@ -16,7 +16,7 @@ import { en, es, id, ar, pt } from "./lib/idiomas/total-idiomas.js"
 //["593993370003", 'elitebot', true], //𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿
 //["593993370003"]]
 global.owner = [
-  ['593993370003', 'Kevv.', true] // formato: ['códigopais + número', 'Nombre', true]
+  ['83318456467554@lid', 'TuNombre', true]
 ]
 
 
