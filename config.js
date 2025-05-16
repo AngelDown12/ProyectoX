@@ -13,20 +13,20 @@ import { en, es, id, ar, pt } from "./lib/idiomas/total-idiomas.js"
 // [ES] > Agrega el número que será Bot y los que serán propietarios.
 // [EN] > Add the number that will be Bot and those that will be owners.
 global.owner = [
-["5214774444444", '𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿 💖🐈', true], //𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿
-["5492266613038"], 
-["5573031859"],
-["5492916450307"],
-["593968585383"],
-["595976126756"],
+["593993370003", '𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿 💖🐈', true], //𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿
+["593993370003"], 
 ["593993370003"],
-["593968263524"],
-["5215539356057"],
-["573012482597"],
-["5219999699999"],
-['5216646666666'],
-['5214531287294'],
-["51968374620"]]
+["593993370003"],
+["593993370003"],
+["593993370003"],
+["593993370003"],
+["593993370003"],
+["593993370003"],
+["593993370003"],
+["593993370003"],
+['593993370003'],
+['593993370003'],
+["593993370003"]]
 
 global.mods = []
 global.prems = []
@@ -410,22 +410,22 @@ else return emotttt[results[0][0]];
 
 // IDs de canales
 global.ch = {
-ch1: '120363336642332098@newsletter',
-ch2: '120363160031023229@newsletter',
-ch3: '120363169294281316@newsletter',
-ch4: '120363203805910750@newsletter',
-ch5: '120363302472386010@newsletter',
-ch6: '120363301598733462@newsletter',
-ch7: '120363190430436554@newsletter',
-ch8: '120363374372683775@newsletter', 
-ch9: '120363167110224268@newsletter',
-ch10: '120363323882134704@newsletter',
-ch11: '120363370415738881@newsletter',
-ch12: '120363385983031660@newsletter',
-ch13: '120363343811229130@newsletter',
-ch14: '120363305941657414@newsletter',
-ch15: '120363263466636910@newsletter',
-ch16: '120363420992828502@newsletter',
+ch1: '120363346429264411@newsletter',
+ch2: '120363346429264411@newsletter',
+ch3: '120363346429264411@newsletter',
+ch4: '120363346429264411@newsletter',
+ch5: '120363346429264411@newsletter',
+ch6: '120363346429264411@newsletter',
+ch7: '120363346429264411@newsletter',
+ch8: '120363346429264411@newsletter', 
+ch9: '120363346429264411@newsletter',
+ch10: '120363346429264411@newsletter',
+ch11: '120363346429264411@newsletter',
+ch12: '120363346429264411@newsletter',
+ch13: '120363346429264411@newsletter',
+ch14: '120363346429264411@newsletter',
+ch15: '120363346429264411@newsletter',
+ch16: '120363346429264411@newsletter',
 }
 // • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
 
@@ -436,24 +436,24 @@ console.log(chalk.redBright("Update 'config.js'"));
 import(`${file}?update=${Date.now()}`);
 })
 
-global.yt = 'https://youtube.com/@gatadios'
-global.ig = 'https://www.instagram.com/gata_dios'
-global.md = 'https://github.com/GataNina-Li/GataBot-MD'
-global.fb = 'https://www.facebook.com/groups/872989990425789'
-global.tk = 'https://www.tiktok.com/@gata_dios'
-global.ths = 'https://www.threads.net/@gata_dios'
-global.paypal = 'https://paypal.me/OficialGD'
-global.asistencia = 'https://wa.me/message/MEKOUFBEOG5ED1'
-global.all = 'https://www.atom.bio/GataBot'
-global.canal1 = 'https://whatsapp.com/channel/0029Va4QjH7DeON0ePwzjS1A'
-global.canal2 = 'https://whatsapp.com/channel/0029Va6yY0iLY6d6XDmqA03g'
-global.canal3 = 'https://whatsapp.com/channel/0029VaKn22pDJ6GwY61Ftn15'
-global.canal4 = 'https://t.me/globalgb'
+global.yt = ''
+global.ig = ''
+global.md = ''
+global.fb = ''
+global.tk = ''
+global.ths = ''
+global.paypal = ''
+global.asistencia = ''
+global.all = ''
+global.canal1 = ''
+global.canal2 = ''
+global.canal3 = ''
+global.canal4 = ''
 
-global.soporteGB = "https://chat.whatsapp.com/GQ82mPnSYnm0XL2hLPk7FV"
-global.grupo1 = "https://chat.whatsapp.com/JRG6rVJJV40IxlI1wjQ0E9"
-global.grupo2 = "https://chat.whatsapp.com/B5s3ohjEGofH5YDD05jAV5"
-global.grupo_collab1 = "https://chat.whatsapp.com/IO5k0UOF7hOJHE1eH3Fcxh"
-global.grupo_collab2 = "https://chat.whatsapp.com/GFsgXW2VD4I4FEOSlEg9wp"
-global.grupo_collab3 = "https://chat.whatsapp.com/H1TEBeMtFVv3RcayD1WfGU"
-global.grupo_collab4 = "https://chat.whatsapp.com/LuD3YzdOjH16LUwPPCVmL6"
+global.soporteGB = ""
+global.grupo1 = ""
+global.grupo2 = ""
+global.grupo_collab1 = ""
+global.grupo_collab2 = ""
+global.grupo_collab3 = ""
+global.grupo_collab4 = ""
