@@ -25,7 +25,7 @@ handler.before = async function (m, { conn, groupMetadata }) {
 ▸  .menujuegos → *Juegos grupales*  
 ▸  .menufreefire → *Free Fire tools*  
 ━━━━━━━━━━━━━━━━━━━  
-©EliteBotGlobal 2023`
+©𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡 2025`
 
   await conn.sendMessage(m.chat, {
     text: welcomeBot
