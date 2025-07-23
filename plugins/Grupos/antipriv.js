@@ -32,8 +32,8 @@ export async function before(m, { isOwner, isROwner, conn }) {
     });
 
     const videos = [
-      'https://files.catbox.moe/tpmd88.mp4',
-      'https://files.catbox.moe/yo93u0.mp4'
+      'https://files.catbox.moe/skcpb6.mp4',
+      'https://files.catbox.moe/skcpb6.mp4'
     ];
     const videoRandom = videos[Math.floor(Math.random() * videos.length)];
 
@@ -42,8 +42,7 @@ export async function before(m, { isOwner, isROwner, conn }) {
       caption: `*¡HOLA¡ 👋🏻* ${userMention}\n
 Por ordenes de mi creador no está permitido mensajes a mi privado por la cuál tendré que bloquearte. 
 
-*Si quieres adquirir Elite Bot Global ingresa al siguiente link.*
-🎁 https://sites.google.com/view/elitebotglobal?usp=sharing
+*Si quieres adquirir 𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡 ingresa al siguiente link.*
 
 *GRUPO OFC:*
 > https://chat.whatsapp.com/GzqYw7fK9CADEWEtfL6804
@@ -51,7 +50,7 @@ Por ordenes de mi creador no está permitido mensajes a mi privado por la cuál 
 *CHANNEL:*
 > https://whatsapp.com/channel/0029VasDCR97dmeWOvPNlY45
 ••••••••••••••••••••••••••••••
-© 2023 EliteBotGlobal`,
+© 2025 𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡`,
       gifPlayback: true,
       mentions: [m.sender]
     }, { quoted: m });
