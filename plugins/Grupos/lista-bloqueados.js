@@ -2,7 +2,7 @@
 let handler = async (m, { conn }) => {
 	
 	await conn.fetchBlocklist().then(async data => {
-		let txt = `⛔ 𝗥𝗘𝗚𝗜𝗦𝗧𝗥𝗢 𝗗𝗘 𝗨𝗦𝗨𝗔𝗥𝗜𝗢𝗦 𝗕𝗟𝗢𝗤𝗨𝗘𝗔𝗗𝗢𝗦.\n\n𝗠𝗼𝘁𝗶𝘃𝗼:\n𝖲𝗉𝖺𝗆, 𝗅𝗂𝗇𝗄𝗌 𝗒 𝗅𝗅𝖺𝗆𝖺𝖽𝖺𝗌 𝗁𝖺𝖼𝗂𝖺 𝖤𝗅𝗂𝗍𝖾𝖡𝗈𝗍𝖦𝗅𝗈𝖻𝖺𝗅.\n\n𝗧𝗼𝘁𝗮𝗹 :\n ${data.length}\n\n╭━━━ 𝗨𝗦𝗨𝗔𝗥𝗜𝗢𝗦 👤\n`
+		let txt = `⛔ 𝗥𝗘𝗚𝗜𝗦𝗧𝗥𝗢 𝗗𝗘 𝗨𝗦𝗨𝗔𝗥𝗜𝗢𝗦 𝗕𝗟𝗢𝗤𝗨𝗘𝗔𝗗𝗢𝗦.\n\n𝗠𝗼𝘁𝗶𝘃𝗼:\n𝖲𝗉𝖺𝗆, 𝗅𝗂𝗇𝗄𝗌 𝗒 𝗅𝗅𝖺𝗆𝖺𝖽𝖺𝗌 𝗁𝖺𝖼𝗂𝖺 𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡.\n\n𝗧𝗼𝘁𝗮𝗹 :\n ${data.length}\n\n╭━━━ 𝗨𝗦𝗨𝗔𝗥𝗜𝗢𝗦 👤\n`
 		for (let i of data) {
 			txt += `┃🚫 @${i.split("@")[0]}\n`
 		}
