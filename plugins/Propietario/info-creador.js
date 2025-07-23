@@ -1,9 +1,9 @@
 const handler = async (m, { conn, usedPrefix }) => {
   // Información del creador (personalizable)
   const owner = {
-    number: "593993370003@s.whatsapp.net",
+    number: "5215565238431@s.whatsapp.net",
     name: "Kevv.",
-    botName: "Elite Bot Global",
+    botName: "𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡",
     businessInfo: "Desarrollador de bots WhatsApp"
   };
 
