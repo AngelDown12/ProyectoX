@@ -194,7 +194,7 @@ message: {
 'seconds': '999999999', 
 'gifPlayback': 'true', 
 'caption': bottime,
-'jpegThumbnail': fs.readFileSync('./media/menus/Menu3.jpg')
+'jpegThumbnail': 'https://files.catbox.moe/5k7vwl.jpg'
 }}}
 
 
