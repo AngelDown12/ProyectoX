@@ -7,7 +7,7 @@ if (!chats.expired)
 return !0
 if (+new Date() > chats.expired) {
 //let caption = `*${this.user.name}* ${lenguajeGB['smsBottem1']()}`
-let pp = './media/menus/Menu2.jpg'
+let pp = 'https://files.catbox.moe/5k7vwl.jpg'
 
 await m.reply(`${this.user.name}\n ${lenguajeGB['smsBottem1']()}`)
 //await this.sendButton(m.chat, caption, lenguajeGB.smsBottem2() + wm, pp, [[lenguajeGB.smsBottem3(), '.hastapronto']], null)
