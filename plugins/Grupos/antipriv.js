@@ -48,7 +48,7 @@ Por ordenes de mi creador no está permitido mensajes a mi privado por la cuál 
 > https://chat.whatsapp.com/I3VSFzkdDYG2Eo4amnC24c?mode=ac_t
 
 *CHANNEL:*
-> https://whatsapp.com/channel/0029VasDCR97dmeWOvPNlY45
+> https://whatsapp.com/channel/0029VbAj2nTCcW4ufY9dQ01N
 ••••••••••••••••••••••••••••••
 © 2025 𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡`,
       gifPlayback: true,
