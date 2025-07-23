@@ -23,8 +23,8 @@ let yaemori = `╭━━━━━━━━━━━━━━✠
 ┃
 ┃ 〽️ Estoy activo desde: ${uptime}
 ┃  
-╰━ 𝗘𝗹𝗶𝘁𝗲𝗕𝗼𝘁𝗚𝗹𝗼𝗯𝗮𝗹`
-await conn.sendFile(m.chat, pp, 'yaemori.jpg', yaemori, fkontak, null)
+╰━ 𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡`
+await conn.sendFile(m.chat, pp, 'https://files.catbox.moe/5k7vwl.jpg', yaemori, fkontak, null)
 }
 
 handler.customPrefix = /estado|estatus/i 
