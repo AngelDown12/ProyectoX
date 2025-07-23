@@ -9,7 +9,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     var now = new Date() * 1
     if (now < global.db.data.chats[who].expired) global.db.data.chats[who].expired += nMinutes
     else global.db.data.chats[who].expired = now + nMinutes
-    let teks = `🕔 Se activo la prueba gratis de Elite Bot Global, disfruta la variedad de comandos de Elite Bot con la palabra .menu \n\n» *Tiempo :* ${args[0]} Minutos\n\n*Cuenta regresiva :*\n ${msToDate(global.db.data.chats[who].expired - now)}\n\n𝗘𝗹𝗶𝘁𝗲𝗕𝗼𝘁𝗚𝗹𝗼𝗯𝗮𝗹 (𝗘𝗕𝗚)`
+    let teks = `🕔 Se activo la prueba gratis de 𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡, disfruta la variedad de comandos de 𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡 con la palabra .menu \n\n» *Tiempo :* ${args[0]} Minutos\n\n*Cuenta regresiva :*\n ${msToDate(global.db.data.chats[who].expired - now)}\n\n𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡 (𝗘𝗕𝗚)`
     conn.reply(m.chat, teks, m)
 }
 
