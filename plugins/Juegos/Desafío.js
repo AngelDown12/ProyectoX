@@ -23,7 +23,7 @@ astro = 'papel'
 
 if (text == astro) {
 global.db.data.users[m.sender].exp += 100
-m.reply(`🔰 𝗘𝗠𝗣𝗔𝗧𝗘 🔰\n\n👤 𝗧𝗨 : ${text}\n🔰 𝗘𝗟𝗜𝗧𝗘 𝗕𝗢𝗧 : ${astro}`)
+m.reply(`🔰 𝗘𝗠𝗣𝗔𝗧𝗘 🔰\n\n👤 𝗧𝗨 : ${text}\n🔰 𝘽𝙐𝙐 𝘽𝙊𝙏 𝙊𝙁𝙄𝘾𝙄𝘼𝙇 : ${astro}`)
 } else if (text == 'piedra') {
 if (astro == 'tijera') {
 global.db.data.users[m.sender].exp += 300
