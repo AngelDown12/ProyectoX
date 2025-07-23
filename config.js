@@ -104,9 +104,9 @@ global.moment = moment
 // [ES] > Agregate a ti, colaboradores o ayudates, aparecerá en el comando de lista de contactos.
 // [EN] > Adding yourself, collaborators or helpers will appear in the contact list command.
 global.official = [ // Agregate si eres Owner
-["593968263524", 'Gata Dios 💻', 1], 
-["573147616444", '𝗗𝗲𝘀𝗮𝗿𝗿𝗼𝗹𝗹𝗮𝗱𝗼𝗿 𝗢𝗳𝗶𝗰𝗶𝗮𝗹 💻', 1],  
-["5521989092076", '𝗗𝗲𝘀𝗮𝗿𝗿𝗼𝗹𝗹𝗮𝗱𝗼𝗿𝗮 𝗢𝗳𝗶𝗰𝗶𝗮𝗹 💻', 1]]
+["5217227584934", 'Angel 💻', 1], 
+["5217227584934", '𝗗𝗲𝘀𝗮𝗿𝗿𝗼𝗹𝗹𝗮𝗱𝗼𝗿 𝗢𝗳𝗶𝗰𝗶𝗮𝗹 💻', 1],  
+["5215565238431", '𝗗𝗲𝘀𝗮𝗿𝗿𝗼𝗹𝗹𝗮𝗱𝗼𝗿𝗮 𝗢𝗳𝗶𝗰𝗶𝗮𝗹 💻', 1]]
 
 global.mail = '' // Add email
 global.desc = '' // Add short description (20 caractres max)
@@ -114,8 +114,8 @@ global.desc2 = '' // Add long description (90 caractres max) (Este parámetro se
 global.country = '' // Add country, example: 🇪🇨
 // • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
 
-global.packname = `𝙀𝙡𝙞𝙩𝙚 𝘽𝙤𝙩 // 𝙋𝙧𝙤𝙮𝙚𝙘𝙩𝙤 𝙓` //"𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿 🐈"
-global.author = `𝙀𝙡𝙞𝙩𝙚 𝘽𝙤𝙩 // 𝙋𝙧𝙤𝙮𝙚𝙘𝙩𝙤 𝙓` //"𝙂𝙖𝙩𝙖 𝘿𝙞𝙤𝙨"
+global.packname = `𝗕𝘂𝘂 𝗕𝗼𝘁 𝗢𝗳𝗶𝗰𝗶𝗮𝗹 // 𝙋𝙧𝙤𝙮𝙚𝙘𝙩𝙤 𝙓` //"𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿 🐈"
+global.author = `𝗕𝘂𝘂 𝗕𝗼𝘁 𝗢𝗳𝗶𝗰𝗶𝗮𝗹 // 𝙋𝙧𝙤𝙮𝙚𝙘𝙩𝙤 𝙓` //"𝙂𝙖𝙩𝙖 𝘿𝙞𝙤𝙨"
 
 // • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
 // [ES] > INFORMACIÓN DE VERSIONES DEL BOT, POR FAVOR 
@@ -123,8 +123,8 @@ global.author = `𝙀𝙡𝙞𝙩𝙚 𝘽𝙤𝙩 // 𝙋𝙧𝙤𝙮𝙚𝙘�
 // [EN] > BOT VERSION INFORMATION, PLEASE KEEP THIS UNCHANGED, WE STRIVE DAILY TO PROVIDE YOU WITH A BOT FOR THE COMMUNITY, BE GRATEFUL
 global.vs = "1.7.0"
 global.vsJB = "5.0 (Beta)"
-global.gt = "𝙀𝙡𝙞𝙩𝙚 𝘽𝙤𝙩 // 𝙋𝙧𝙤𝙮𝙚𝙘𝙩𝙤 𝙓"
-global.imagen = fs.readFileSync('./Menu2.jpg')
+global.gt = "𝗕𝘂𝘂 𝗕𝗼𝘁 𝗢𝗳𝗶𝗰𝗶𝗮𝗹 // 𝙋𝙧𝙤𝙮𝙚𝙘𝙩𝙤 𝙓"
+global.imagen = 'https://files.catbox.moe/5k7vwl.jpg'
 
 // • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
 
@@ -150,9 +150,9 @@ global.eg = '╰⊱💚⊱ *𝙀́𝙓𝙄𝙏𝙊 | 𝙎𝙐𝘾𝘾𝙀𝙎�
 global.exito = eg
 
 // • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
-global.wm = "𝙀𝙡𝙞𝙩𝙚 𝘽𝙤𝙩 // 𝙋𝙧𝙤𝙮𝙚𝙘𝙩𝙤 𝙓"
-global.igfg = "𝙀𝙡𝙞𝙩𝙚 𝘽𝙤𝙩 // 𝙋𝙧𝙤𝙮𝙚𝙘𝙩𝙤 𝙓"
-global.nomorown = "593993370003"
+global.wm = "𝗕𝘂𝘂 𝗕𝗼𝘁 𝗢𝗳𝗶𝗰𝗶𝗮𝗹 // 𝙋𝙧𝙤𝙮𝙚𝙘𝙩𝙤 𝙓"
+global.igfg = "𝗕𝘂𝘂 𝗕𝗼𝘁 𝗢𝗳𝗶𝗰𝗶𝗮𝗹 // 𝙋𝙧𝙤𝙮𝙚𝙘𝙩𝙤 𝙓"
+global.nomorown = "52172275849349"
 global.pdoc = ["application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.ms-excel", "application/msword", "application/pdf", "text/rtf"]
 // • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
 
@@ -410,22 +410,22 @@ else return emotttt[results[0][0]];
 
 // IDs de canales
 global.ch = {
-ch1: '120363346429264411@newsletter',
-ch2: '120363346429264411@newsletter',
-ch3: '120363346429264411@newsletter',
-ch4: '120363346429264411@newsletter',
-ch5: '120363346429264411@newsletter',
-ch6: '120363346429264411@newsletter',
-ch7: '120363346429264411@newsletter',
-ch8: '120363346429264411@newsletter', 
-ch9: '120363346429264411@newsletter',
-ch10: '120363346429264411@newsletter',
-ch11: '120363346429264411@newsletter',
-ch12: '120363346429264411@newsletter',
-ch13: '120363346429264411@newsletter',
-ch14: '120363346429264411@newsletter',
-ch15: '120363346429264411@newsletter',
-ch16: '120363346429264411@newsletter',
+ch1: '120363401389725319@newsletter',
+ch2: '120363401389725319@newsletter',
+ch3: '120363401389725319@newsletter',
+ch4: '120363401389725319@newsletter',
+ch5: '120363401389725319@newsletter',
+ch6: '120363401389725319@newsletter',
+ch7: '120363401389725319@newsletter',
+ch8: '120363401389725319@newsletter', 
+ch9: '120363401389725319@newsletter',
+ch10: '120363401389725319@newsletter',
+ch11: '120363401389725319@newsletter',
+ch12: '120363401389725319@newsletter',
+ch13: '120363401389725319@newsletter',
+ch14: '120363401389725319@newsletter',
+ch15: '120363401389725319@newsletter',
+ch16: '120363401389725319@newsletter',
 }
 // • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
 
