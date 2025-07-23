@@ -6,11 +6,11 @@ let caption = `
 │
 │ *${i + 1}.* ${conn.getName(jid) == undefined ? 'Sin Usuarios Baneados' : conn.getName(jid)}
 │ ${isOwner ? '@' + jid.split`@`[0] : jid}\n│ - - - - - - - - -`.trim()).join('\n') : ''}
-│ *Estos usuarios no puedes Usar a ÉLITE BOT*
+│ *Estos usuarios no puedes Usar a 𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡*
 *╰•·–––––––––––––––––––·•*`.trim()
 
 await conn.reply(m.chat, caption, m, { mentions: await conn.parseMention(caption) })}
-/*conn.sendButton(m.chat, caption, `*Estos usuarios no puedes Usar a ELITE BOT*\n\n` + wm, null, [ 
+/*conn.sendButton(m.chat, caption, `*Estos usuarios no puedes Usar a 𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡*\n\n` + wm, null, [ 
 ['𝗠 𝗘 𝗡 𝗨 ☘️', '/menu']], m, { mentions: await conn.parseMention(caption) })}*/
 handler.command = /^listabanuser|listausuarios|listbanuser|listabaneados|listban$/i
 
