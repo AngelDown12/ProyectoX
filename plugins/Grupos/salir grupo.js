@@ -6,7 +6,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   }
   
   try {
-    await conn.sendMessage(args[0], { text: 'Adiós, el bot abandonará el grupo...' })
+    await conn.sendMessage(args[0], { text: 'Adiós, 𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡 abandonará el grupo...' })
     await conn.groupLeave(args[0])
     await m.reply(`*[✅] El bot salió exitosamente del grupo:*\n${args[0]}`)
   } catch (error) {
