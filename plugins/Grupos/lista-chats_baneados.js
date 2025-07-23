@@ -8,7 +8,7 @@ let caption = `*╭•·––| 💬 𝘾𝙃𝘼𝙏𝙎 𝘽𝘼𝙉𝙀𝘼�
 │ ${jid}\n│ - - - - - - - - -`.trim()).join('\n') : ''}
 *╰•·–––––––––––––––––––·•*`
 await conn.reply(m.chat, caption, m, { mentions: await conn.parseMention(caption) })}
-/*await conn.sendButton(m.chat, caption, wm, null, [ 
+await conn.sendButton(m.chat, caption, wm, null, [ 
 ['𝗠 𝗘 𝗡 𝗨 ☘️', '/menu']], m, { mentions: await conn.parseMention(caption) })}*/
 handler.command = /^chat(s)?baneado(s)?|list(a)?chat(s)?|list(a)?ban(chat(s)?)?$/i
 
