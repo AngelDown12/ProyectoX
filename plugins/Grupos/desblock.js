@@ -2,7 +2,7 @@ import fs from 'fs';
 
 let handler = async (m, { conn, isOwner }) => {
   if (!isOwner) {
-    return m.reply('Solo el dueño puede usar este comando.');
+    return m.reply('Solo Cristian puede usar este comando');
   }
 
   try {
