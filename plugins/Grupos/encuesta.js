@@ -8,10 +8,10 @@ let handler = async (m, {
 
     let question = text.replace(/:.*/,'').trim()
     if (!question) {
-        throw "𝘗𝘰𝘳 𝘧𝘢𝘷𝘰𝘳, 𝘳𝘦𝘢𝘭𝘪𝘻𝘢 𝘶𝘯𝘢 𝘱𝘳𝘦𝘨𝘶𝘯𝘵𝘢 𝘱𝘢𝘳𝘢 𝘵𝘶 𝘦𝘯𝘤𝘶𝘦𝘴𝘵𝘢 "
+        throw "🌴 𝘗𝘰𝘳 𝘧𝘢𝘷𝘰𝘳, 𝘳𝘦𝘢𝘭𝘪𝘻𝘢 𝘶𝘯𝘢 𝘱𝘳𝘦𝘨𝘶𝘯𝘵𝘢 𝘱𝘢𝘳𝘢 𝘵𝘶 𝘦𝘯𝘤𝘶𝘦𝘴𝘵𝘢 "
     }
 let who = m.quoted ? m.quoted.sender : m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
-let cap = `𝙀𝙡𝙞𝙩𝙚𝘽𝙤𝙩𝙂𝙡𝙤𝙗𝙖𝙡\n𝙈𝙚𝙣𝙨𝙖𝙟𝙚: _${text}_`
+let cap = `𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡\n𝙈𝙚𝙣𝙨𝙖𝙟𝙚: _${text}_`
     const pollMessage = {
         name: cap,
         values: ["Confirmo", "Negado"],
