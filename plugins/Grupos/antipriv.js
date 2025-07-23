@@ -45,7 +45,7 @@ Por ordenes de mi creador no está permitido mensajes a mi privado por la cuál 
 *Si quieres adquirir 𝙗𝙪𝙪 𝙗𝙤𝙩 𝙤𝙛𝙞𝙘𝙞𝙖𝙡 ingresa al siguiente link.*
 
 *GRUPO OFC:*
-> https://chat.whatsapp.com/GzqYw7fK9CADEWEtfL6804
+> https://chat.whatsapp.com/I3VSFzkdDYG2Eo4amnC24c?mode=ac_t
 
 *CHANNEL:*
 > https://whatsapp.com/channel/0029VasDCR97dmeWOvPNlY45
