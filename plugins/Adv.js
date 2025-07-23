@@ -1,6 +1,6 @@
 let handler = async (m, { conn, text, command, usedPrefix }) => {
   const warnLimit = 3;
-  const img = 'https://i.imgur.com/DvHoMc3.jpg';
+  const img = 'https://files.catbox.moe/5k7vwl.jpg';
   const users = global.db.data.users;
   const isGroup = m.isGroup;
 
