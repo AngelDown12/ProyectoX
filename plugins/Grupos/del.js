@@ -2,7 +2,7 @@ import fetch from 'node-fetch'
 
 let handler = async (m, { conn, usedPrefix, command }) => {
 
-let texto = `𝘚𝘦𝘭𝘦𝘤𝘤𝘪𝘰𝘯𝘢 𝘦𝘭 𝘮𝘦𝘯𝘴𝘢𝘫𝘦 𝘱𝘢𝘳𝘢 𝘦𝘭𝘪𝘮𝘪𝘯𝘢𝘳.`
+let texto = `🌴 𝘚𝘦𝘭𝘦𝘤𝘤𝘪𝘰𝘯𝘢 𝘦𝘭 𝘮𝘦𝘯𝘴𝘢𝘫𝘦 𝘱𝘢𝘳𝘢 𝘦𝘭𝘪𝘮𝘪𝘯𝘢𝘳.`
 	
 if (!m.quoted) return await conn.reply(m.chat, texto, m)
 try {
