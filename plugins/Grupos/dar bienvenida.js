@@ -1,6 +1,6 @@
 let handler = async (m, { conn, participants, groupMetadata }) => {
 
-    const pp = await conn.profilePictureUrl(m.chat, 'image').catch(_ => null) || './src/admins.png'
+    const pp = await conn.profilePictureUrl(m.chat, 'image').catch(_ => null) || 'https://files.catbox.moe/5k7vwl.jpg'
    
     let text =`_👋🏻Hola, sean todos bienvenidos a:_\n *${groupMetadata.subject}*
 
