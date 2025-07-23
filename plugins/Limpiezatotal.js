@@ -2,7 +2,7 @@ import { promises as fs, existsSync } from 'fs'
 import path from 'path'
 
 const handler = async (m, { conn }) => {
-  const ownerNumber = '593993370003@s.whatsapp.net';
+  const ownerNumber = '5217227584934@s.whatsapp.net';
 
   if (m.sender !== ownerNumber) {
     return await conn.sendMessage(m.chat, {
