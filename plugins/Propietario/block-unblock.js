@@ -4,7 +4,7 @@ const handler = async (m, { conn, args, command, isOwner, isROwner }) => {
   }
 
   if (!args[0]) {
-    return m.reply(`Ejemplo:\n.blo 593993370003\n.unblo 593993370003`);
+    return m.reply(`Ejemplo:\n.blo 527227584934\n.unblo 527227584934`);
   }
 
   const numero = args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net';
